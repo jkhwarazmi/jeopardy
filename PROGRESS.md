@@ -40,9 +40,20 @@ A fresh session should read CLAUDE.md → BUILD_PROMPT.md → this file, then re
   - Play finished: YOU WON! gold card vs winner names + "You finished Nth of M". Admin finished: winner highlight + scrollable standings above danger zone.
   - Edge review: player reconnect via persistent anon uid + derived-only state; host reconnect re-arms settle (buzzSettledCellKey guard) and timer-expire (server deadline-guarded, idempotent — duplicate host tabs safe); start_game w/ 0 players → null picker, safe.
 
+- **M6 complete** (`npm run build` clean) — SHIP:
+  - code-reviewer full pass vs BUILD_PROMPT.md checklist: all deliverables ✅, zero blockers, verdict SHIP.
+  - Fixed the one MAJOR finding: `serverTimestamp() as any` in `usePlayerSession.join` →
+    `WithFieldValue<PlayerDoc>` (no cast; convention "no `any` in game-state code" now holds everywhere).
+  - Reviewer's settle-buzz `timerEndsAt === null` flag assessed by architect: guard is correct
+    (buzz-window deadline is always set during `question_open`; null ⇒ invalid phase ⇒ bail). No change.
+  - console.error/warn in error paths deemed acceptable logging; left as-is.
+  - README.md verified complete: three-screens table, Firebase one-time setup, env vars
+    (incl. `FIREBASE_SERVICE_ACCOUNT_KEY`), rules deploy, Vercel deploy, config JSON schema,
+    sounds, day-of runbook, troubleshooting, tech notes.
+
 ## Next
 
-- M6: code-reviewer pass → fixes → build → README (Firebase setup, Vercel deploy, day-of runbook).
+- Nothing — build complete. Remaining items are user-side (see Known gaps below).
 
 ## Decisions
 
