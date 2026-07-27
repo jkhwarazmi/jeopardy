@@ -66,6 +66,9 @@ A fresh session should read CLAUDE.md → BUILD_PROMPT.md → this file, then re
     `skipLabel`/`onCancel` props); preview view now offers Retake Photo / Upload
     Instead. Rules hardened: player-update path now re-validates name 1..30 and
     photo < 120KB (was create-only) — REDEPLOY RULES.
+  - `/new` created panel: copy button beside the join code + player-link QR
+    ("Scan to join", same `qrcode`/`toDataURL` recipe as HostLobby); Copied!
+    feedback on all copy buttons w/ single timer ref cleared on unmount.
 
 ## Next
 
