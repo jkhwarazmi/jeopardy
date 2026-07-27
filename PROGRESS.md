@@ -69,6 +69,11 @@ A fresh session should read CLAUDE.md → BUILD_PROMPT.md → this file, then re
   - `/new` created panel: copy button beside the join code + player-link QR
     ("Scan to join", same `qrcode`/`toDataURL` recipe as HostLobby); Copied!
     feedback on all copy buttons w/ single timer ref cleared on unmount.
+  - Bugfixes: `updateProfile` guard used falsiness so `photoBase64: ""` (photo
+    removal) short-circuited without writing — now checks `=== undefined`.
+    `SelfieCapture` tracks preview `source` ("camera"|"upload"); preview redo
+    buttons now match origin (Retake Photo/Upload Instead vs Choose a Different
+    Photo/Use Camera Instead).
 
 ## Next
 
