@@ -51,6 +51,16 @@ A fresh session should read CLAUDE.md → BUILD_PROMPT.md → this file, then re
     (incl. `FIREBASE_SERVICE_ACCOUNT_KEY`), rules deploy, Vercel deploy, config JSON schema,
     sounds, day-of runbook, troubleshooting, tech notes.
 
+- **Post-ship user-testing fixes** (`npm run build` clean):
+  - `next.config.ts`: `allowedDevOrigins: ["192.168.1.*"]` — Next 16 blocks cross-origin
+    `/_next/*` dev assets, so pages loaded via the LAN IP never hydrated (dead buttons,
+    native `GET /new?` form submits). Dev-only; localhost was always fine.
+  - `SelfieCapture`: retake black-screen fixed — single camera-lifecycle effect keyed on
+    `[mode, preview]` (effect-local stream, cleanup stops tracks; retake re-acquires);
+    `stream` state removed. Added "Continue without photo" (`onCapture("")`) in camera,
+    upload, and preview views — rules accept empty string, `PlayerAvatar` renders
+    initials fallback, direct usages already guarded.
+
 ## Next
 
 - Nothing — build complete. Remaining items are user-side (see Known gaps below).

@@ -9,18 +9,18 @@ interface SelfieCaptureProps {
 
 export default function SelfieCapture({ onCapture }: SelfieCaptureProps) {
   const [mode, setMode] = useState<"camera" | "upload">("camera");
-  const [stream, setStream] = useState<MediaStream | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [error, setError] = useState("");
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Initialize camera
+  // Camera lifecycle: acquire stream when mode=camera and no preview; cleanup stops tracks
   useEffect(() => {
-    if (mode !== "camera") return;
+    if (mode !== "camera" || preview !== null) return;
 
     let mounted = true;
+    let effectStream: MediaStream | null = null;
 
     const initCamera = async () => {
       try {
@@ -33,7 +33,7 @@ export default function SelfieCapture({ onCapture }: SelfieCaptureProps) {
           return;
         }
 
-        setStream(mediaStream);
+        effectStream = mediaStream;
         if (videoRef.current) {
           videoRef.current.srcObject = mediaStream;
         }
@@ -49,16 +49,11 @@ export default function SelfieCapture({ onCapture }: SelfieCaptureProps) {
 
     return () => {
       mounted = false;
+      if (effectStream) {
+        effectStream.getTracks().forEach((track) => track.stop());
+      }
     };
-  }, [mode]);
-
-  // Cleanup stream on unmount or when preview is set
-  useEffect(() => {
-    if (preview && stream) {
-      stream.getTracks().forEach((track) => track.stop());
-      setStream(null);
-    }
-  }, [preview, stream]);
+  }, [mode, preview]);
 
   const handleSnap = () => {
     if (!videoRef.current || !canvasRef.current) return;
@@ -112,7 +107,9 @@ export default function SelfieCapture({ onCapture }: SelfieCaptureProps) {
 
   const handleRetake = () => {
     setPreview(null);
-    setMode("camera");
+    if (!error) {
+      setMode("camera");
+    }
   };
 
   const handleUse = () => {
@@ -145,6 +142,12 @@ export default function SelfieCapture({ onCapture }: SelfieCaptureProps) {
             Use This Photo
           </button>
         </div>
+        <button
+          onClick={() => onCapture("")}
+          className="w-full py-2 text-white/70 hover:text-white transition-colors text-sm"
+        >
+          Continue without photo
+        </button>
       </div>
     );
   }
@@ -177,6 +180,13 @@ export default function SelfieCapture({ onCapture }: SelfieCaptureProps) {
           className="w-full py-2 text-white/70 hover:text-white transition-colors text-sm"
         >
           Upload a photo instead
+        </button>
+
+        <button
+          onClick={() => onCapture("")}
+          className="w-full py-2 text-white/70 hover:text-white transition-colors text-sm"
+        >
+          Continue without photo
         </button>
       </div>
     );
@@ -214,6 +224,13 @@ export default function SelfieCapture({ onCapture }: SelfieCaptureProps) {
           Use camera instead
         </button>
       )}
+
+      <button
+        onClick={() => onCapture("")}
+        className="w-full py-2 text-white/70 hover:text-white transition-colors text-sm"
+      >
+        Continue without photo
+      </button>
     </div>
   );
 }
