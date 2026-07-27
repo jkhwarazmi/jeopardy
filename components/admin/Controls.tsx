@@ -262,10 +262,71 @@ export default function Controls({ game, players, act, busy }: ControlsProps) {
   }
 
   if (game.status === "finished") {
+    // Show final rankings
+    const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
+    const maxScore = sortedPlayers.length > 0 ? sortedPlayers[0].score : 0;
+    const winners = sortedPlayers.filter((p) => p.score === maxScore);
+
     return (
-      <div className="bg-jeopardy-blue-dark rounded-lg p-6 text-center space-y-2">
-        <p className="text-white font-bold text-xl">Game Over</p>
-        <p className="text-white/70 text-sm">
+      <div className="space-y-4">
+        <div className="bg-jeopardy-blue-dark rounded-lg p-6 space-y-4">
+          <p className="text-white font-bold text-xl text-center">Game Over</p>
+
+          {/* Winner(s) */}
+          {winners.length > 0 && (
+            <div className="bg-jeopardy-gold/20 border-2 border-jeopardy-gold rounded-lg p-4">
+              <p className="text-jeopardy-gold text-sm uppercase tracking-wide mb-2">
+                Winner{winners.length > 1 ? "s" : ""}
+              </p>
+              {winners.map((w) => (
+                <div key={w.id} className="flex justify-between items-center text-white">
+                  <span className="font-semibold">{w.name}</span>
+                  <span className="text-jeopardy-gold font-display text-xl">
+                    ${w.score.toLocaleString()}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* All rankings */}
+          <div className="space-y-2 max-h-64 overflow-y-auto">
+            <p className="text-white/70 text-xs uppercase tracking-wide">
+              Final Standings
+            </p>
+            {sortedPlayers.map((player, idx) => {
+              const rank = idx + 1;
+              const isWinner = player.score === maxScore;
+
+              return (
+                <div
+                  key={player.id}
+                  className={`flex justify-between items-center py-2 px-3 rounded ${
+                    isWinner
+                      ? "bg-jeopardy-gold/10"
+                      : "bg-jeopardy-dark"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-white/50 text-sm w-6">#{rank}</span>
+                    <span className="text-white font-semibold text-sm">
+                      {player.name}
+                    </span>
+                  </div>
+                  <span
+                    className={`font-display text-lg ${
+                      player.score >= 0 ? "text-jeopardy-gold" : "text-red-400"
+                    }`}
+                  >
+                    ${player.score.toLocaleString()}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <p className="text-white/60 text-xs text-center">
           Use the danger zone to reset or end the game
         </p>
       </div>

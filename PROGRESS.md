@@ -33,9 +33,15 @@ A fresh session should read CLAUDE.md → BUILD_PROMPT.md → this file, then re
   - Host: FinalRound — category reveal w/ wager-in badges (amounts hidden), question + timer, spotlight reveal (answer → wager → CORRECT/WRONG stamp), revealed strip; PlayerRail stays for live scores.
   - Admin: FinalControls — wager/answer visibility for the judge, lowest-score-first spotlight queue, CORRECT/WRONG ±wager, END GAME when all judged, zero-participant edge handled.
 
+- **M5 complete** (`npm run build` clean):
+  - `lib/hooks/useAudio.ts` — host-only, unlock() from user gesture primes 7 preloaded elements (muted-play autoplay dance); play() no-ops until unlocked, resets currentTime for rapid repeats.
+  - Host sound wiring: single transition-observing effect w/ prev-state ref — buzz (null→uid), wrong (lockedOutIds grows; covers timeouts), timeup (question_open→reveal, no buzz), correct (buzzed→reveal, no lockout growth), reveal (playing→question_open), final (enter final_wager), winner (enter finished). Gold "Enable Sound" pill until unlocked.
+  - `WinnerCelebration` (host finished): co-winner-aware, huge glowing photo + bobbing crown + zoom-in, canvas-confetti burst + 15s side cannons (cleanup on unmount), ranked standings w/ silver/bronze, 0-player fallback.
+  - Play finished: YOU WON! gold card vs winner names + "You finished Nth of M". Admin finished: winner highlight + scrollable standings above danger zone.
+  - Edge review: player reconnect via persistent anon uid + derived-only state; host reconnect re-arms settle (buzzSettledCellKey guard) and timer-expire (server deadline-guarded, idempotent — duplicate host tabs safe); start_game w/ 0 players → null picker, safe.
+
 ## Next
 
-- M5 Polish: useAudio (host-only, unlock gesture) + sound wiring, winner animation (confetti/crown/zoom w/ photo), finished screens, reconnect/edge review.
 - M6: code-reviewer pass → fixes → build → README (Firebase setup, Vercel deploy, day-of runbook).
 
 ## Decisions

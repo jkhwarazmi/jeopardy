@@ -1,0 +1,179 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+import type { Game, Player } from "@/lib/types";
+import PlayerAvatar from "@/components/shared/PlayerAvatar";
+
+interface WinnerCelebrationProps {
+  game: Game;
+  players: Player[];
+}
+
+export default function WinnerCelebration({ game, players }: WinnerCelebrationProps) {
+  const confettiIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Dynamically import confetti
+  useEffect(() => {
+    let mounted = true;
+
+    const runConfetti = async () => {
+      try {
+        const confetti = (await import("canvas-confetti")).default;
+        if (!mounted) return;
+
+        // Initial big burst
+        confetti({
+          particleCount: 200,
+          spread: 100,
+          origin: { y: 0.6 },
+          colors: ["#FFCC00", "#FFD700", "#FFA500", "#FF6347"],
+        });
+
+        // Side cannons every 1.5s for 15s
+        let count = 0;
+        const maxBursts = 10; // ~15s
+
+        confettiIntervalRef.current = setInterval(() => {
+          if (count >= maxBursts || !mounted) {
+            if (confettiIntervalRef.current) {
+              clearInterval(confettiIntervalRef.current);
+              confettiIntervalRef.current = null;
+            }
+            return;
+          }
+
+          // Left cannon
+          confetti({
+            particleCount: 50,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0, y: 0.8 },
+            colors: ["#FFCC00", "#FFD700", "#FFA500"],
+          });
+
+          // Right cannon
+          confetti({
+            particleCount: 50,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1, y: 0.8 },
+            colors: ["#FFCC00", "#FFD700", "#FFA500"],
+          });
+
+          count++;
+        }, 1500);
+      } catch (err) {
+        // Swallow; confetti is cosmetic
+      }
+    };
+
+    runConfetti();
+
+    return () => {
+      mounted = false;
+      if (confettiIntervalRef.current) {
+        clearInterval(confettiIntervalRef.current);
+        confettiIntervalRef.current = null;
+      }
+    };
+  }, []);
+
+  // Determine winner(s)
+  if (players.length === 0) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="bg-jeopardy-blue-dark border-4 border-jeopardy-gold rounded-2xl p-12">
+          <p className="text-white font-display text-6xl">GAME OVER</p>
+        </div>
+      </div>
+    );
+  }
+
+  const maxScore = Math.max(...players.map((p) => p.score));
+  const winners = players.filter((p) => p.score === maxScore);
+  const remaining = players.filter((p) => p.score < maxScore).sort((a, b) => b.score - a.score);
+
+  return (
+    <div className="h-full flex flex-col items-center justify-center px-8 py-12 overflow-y-auto bg-jeopardy-dark relative">
+      {/* Winner(s) */}
+      <div className="mb-12 flex flex-wrap gap-12 justify-center items-center animate-winner-zoom">
+        {winners.map((winner) => (
+          <div key={winner.id} className="flex flex-col items-center relative">
+            {/* Crown */}
+            <div className="absolute -top-16 text-8xl animate-crown-bob">
+              👑
+            </div>
+
+            {/* Winner photo with gold glow */}
+            <div className="w-80 h-80 rounded-2xl overflow-hidden border-8 border-jeopardy-gold shadow-winner-glow mb-6">
+              {winner.photoBase64 ? (
+                <img
+                  src={winner.photoBase64}
+                  alt={winner.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-jeopardy-blue flex items-center justify-center font-display text-jeopardy-gold text-9xl">
+                  {winner.name.charAt(0).toUpperCase()}
+                </div>
+              )}
+            </div>
+
+            {/* Name */}
+            <p className="text-white font-display text-7xl mb-4">
+              {winner.name}
+            </p>
+
+            {/* Score */}
+            <p className="text-jeopardy-gold font-display text-6xl">
+              ${winner.score.toLocaleString()}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* "WINNER" or "WINNERS" banner */}
+      <div className="mb-16">
+        <p className="text-jeopardy-gold font-display text-8xl tracking-wider">
+          {winners.length > 1 ? "WINNERS!" : "WINNER!"}
+        </p>
+      </div>
+
+      {/* Remaining players ranked */}
+      {remaining.length > 0 && (
+        <div className="w-full max-w-6xl">
+          <h3 className="text-white/70 font-display text-3xl mb-6 text-center">
+            Final Standings
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {remaining.map((player, idx) => {
+              const rank = winners.length + idx + 1;
+              let accentColor = "border-white/30";
+
+              if (rank === 2) accentColor = "border-gray-400"; // Silver
+              if (rank === 3) accentColor = "border-amber-700"; // Bronze
+
+              return (
+                <div
+                  key={player.id}
+                  className={`bg-jeopardy-blue-dark rounded-lg p-4 border-3 ${accentColor} flex flex-col items-center gap-3`}
+                >
+                  <div className="text-white/50 font-display text-xl">
+                    #{rank}
+                  </div>
+                  <PlayerAvatar player={player} size="lg" />
+                  <p className="text-white font-semibold text-lg text-center">
+                    {player.name}
+                  </p>
+                  <p className="text-jeopardy-gold font-display text-2xl">
+                    ${player.score.toLocaleString()}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

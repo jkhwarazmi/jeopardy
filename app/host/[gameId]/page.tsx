@@ -4,6 +4,7 @@ import { use, useMemo, useEffect, useState, useRef } from "react";
 import { useGame } from "@/lib/hooks/useGame";
 import { usePlayers } from "@/lib/hooks/usePlayers";
 import { useCountdown } from "@/lib/hooks/useCountdown";
+import { useAudio } from "@/lib/hooks/useAudio";
 import {
   adminAction,
   settleBuzz,
@@ -11,11 +12,13 @@ import {
   ADMIN_PW_KEY,
 } from "@/lib/admin-api";
 import { cellKey, SETTLE_CALL_DELAY_MS } from "@/lib/types";
+import type { GameStatus } from "@/lib/types";
 import HostLobby from "@/components/host/HostLobby";
 import Board from "@/components/host/Board";
 import QuestionView from "@/components/host/QuestionView";
 import PlayerRail from "@/components/host/PlayerRail";
 import FinalRound from "@/components/host/FinalRound";
+import WinnerCelebration from "@/components/host/WinnerCelebration";
 
 export default function HostPage({
   params,
@@ -35,6 +38,20 @@ export default function HostPage({
 
   // Track last fired timer to prevent duplicate calls
   const lastFiredTimerRef = useRef<number>(0);
+
+  // Audio (host-only)
+  const { unlocked, unlock, play } = useAudio();
+
+  // Track previous state for sound triggers
+  const prevStateRef = useRef<{
+    status: GameStatus | null;
+    buzzedPlayerId: string | null;
+    lockedOutLength: number;
+  }>({
+    status: null,
+    buzzedPlayerId: null,
+    lockedOutLength: 0,
+  });
 
   // Get window.location.origin safely (client-side only)
   useEffect(() => {
@@ -119,6 +136,70 @@ export default function HostPage({
     }
   }, [gameId, game, expired]);
 
+  // Sound effects driven by game state transitions
+  useEffect(() => {
+    if (!game) return;
+
+    const prev = prevStateRef.current;
+    const curr = {
+      status: game.status,
+      buzzedPlayerId: game.buzzedPlayerId,
+      lockedOutLength: game.lockedOutIds.length,
+    };
+
+    // buzzedPlayerId transitions null → non-null → play "buzz"
+    if (prev.buzzedPlayerId === null && curr.buzzedPlayerId !== null) {
+      play("buzz");
+    }
+
+    // lockedOutIds.length increases → play "wrong"
+    if (curr.lockedOutLength > prev.lockedOutLength) {
+      play("wrong");
+    }
+
+    // status question_open → answer_reveal (nobody buzzed) → play "timeup"
+    if (
+      prev.status === "question_open" &&
+      curr.status === "answer_reveal" &&
+      curr.buzzedPlayerId === null
+    ) {
+      play("timeup");
+    }
+
+    // status buzzed → answer_reveal AND lockedOutIds didn't increase → play "correct"
+    if (
+      prev.status === "buzzed" &&
+      curr.status === "answer_reveal" &&
+      curr.lockedOutLength === prev.lockedOutLength
+    ) {
+      play("correct");
+    }
+
+    // status playing → question_open → play "reveal" (cell opened)
+    if (prev.status === "playing" && curr.status === "question_open") {
+      play("reveal");
+    }
+
+    // status enters final_wager (from any non-final status) → play "final"
+    if (
+      prev.status !== null &&
+      prev.status !== "final_wager" &&
+      prev.status !== "final_answer" &&
+      prev.status !== "final_reveal" &&
+      curr.status === "final_wager"
+    ) {
+      play("final");
+    }
+
+    // status enters finished → play "winner"
+    if (prev.status !== "finished" && curr.status === "finished") {
+      play("winner");
+    }
+
+    // Update ref
+    prevStateRef.current = curr;
+  }, [game, play]);
+
   // Handle cell click
   const handlePickCell = async (cat: number, row: number) => {
     if (!password) {
@@ -186,6 +267,16 @@ export default function HostPage({
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg font-semibold animate-fade-in">
           {errorBanner}
         </div>
+      )}
+
+      {/* Sound unlock button */}
+      {!unlocked && (
+        <button
+          onClick={unlock}
+          className="fixed top-4 right-4 z-50 bg-jeopardy-gold border-2 border-jeopardy-gold-dark text-jeopardy-dark px-4 py-2 rounded-lg font-semibold text-sm hover:bg-jeopardy-gold-dark transition-colors shadow-lg"
+        >
+          🔇 Enable Sound
+        </button>
       )}
 
       {/* Password overlay */}
@@ -256,8 +347,8 @@ export default function HostPage({
       )}
 
       {game.status === "finished" && (
-        <div className="flex-1 flex items-center justify-center">
-          <p className="text-white text-4xl font-display">Game over</p>
+        <div className="flex-1 overflow-y-auto">
+          <WinnerCelebration game={game} players={players} />
         </div>
       )}
     </div>
