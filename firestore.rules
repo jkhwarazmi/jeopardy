@@ -1,0 +1,106 @@
+rules_version = '2';
+
+// Business-Event Jeopardy security rules.
+//
+// Write-path philosophy:
+//   - Game docs are created/mutated ONLY by the server (Admin SDK via Next.js
+//     API routes, password-checked) — with ONE exception: the buzz transaction,
+//     where a signed-in player may set buzzedPlayerId to their own uid while a
+//     question is open and nobody has buzzed yet.
+//   - Players may create/update only their own player doc, and never `score`,
+//     `isKicked`, `finalRevealed`, or `finalCorrect`.
+//   - Buzz records may be created only while status == 'question_open', only
+//     for yourself, and only with a server timestamp.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /games/{gameId} {
+
+      function game() {
+        return get(/databases/$(database)/documents/games/$(gameId)).data;
+      }
+
+      function signedIn() {
+        return request.auth != null;
+      }
+
+      allow read: if signedIn();
+      allow create, delete: if false; // Admin SDK only (bypasses rules)
+
+      // The buzz transaction: the ONLY client-side game-doc write allowed.
+      allow update: if signedIn()
+        && resource.data.status == 'question_open'
+        && resource.data.buzzedPlayerId == null
+        && request.resource.data.buzzedPlayerId == request.auth.uid
+        && !(request.auth.uid in resource.data.lockedOutIds)
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['buzzedPlayerId']);
+
+      match /players/{playerId} {
+        allow read: if signedIn();
+
+        // Join: doc id must be the caller's uid; safe initial values enforced.
+        allow create: if signedIn()
+          && request.auth.uid == playerId
+          && game().lobbyLocked == false
+          && game().status != 'finished'
+          && request.resource.data.score == 0
+          && request.resource.data.isKicked == false
+          && request.resource.data.finalWager == null
+          && request.resource.data.finalAnswer == null
+          && request.resource.data.finalRevealed == false
+          && request.resource.data.finalCorrect == null
+          && request.resource.data.name is string
+          && request.resource.data.name.size() >= 1
+          && request.resource.data.name.size() <= 30
+          && request.resource.data.photoBase64 is string
+          && request.resource.data.photoBase64.size() < 120000;
+
+        // Self-service updates: identity/presence + final inputs only.
+        allow update: if signedIn()
+          && request.auth.uid == playerId
+          && resource.data.isKicked == false
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['name', 'photoBase64', 'connected',
+                         'finalWager', 'finalAnswer'])
+          // Wagers: only during final_wager, 0..current score.
+          && (
+            !request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['finalWager'])
+            || (
+              game().status == 'final_wager'
+              && request.resource.data.finalWager is int
+              && request.resource.data.finalWager >= 0
+              && request.resource.data.finalWager <= resource.data.score
+            )
+          )
+          // Answers: only during final_answer, before the deadline.
+          && (
+            !request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['finalAnswer'])
+            || (
+              game().status == 'final_answer'
+              && request.resource.data.finalAnswer is string
+              && request.resource.data.finalAnswer.size() <= 200
+              && (game().timerEndsAt == null
+                  || request.time < game().timerEndsAt)
+            )
+          );
+
+        allow delete: if false; // kick happens server-side
+      }
+
+      match /buzzes/{buzzId} {
+        allow read: if signedIn();
+        allow create: if signedIn()
+          && game().status == 'question_open'
+          && request.resource.data.playerId == request.auth.uid
+          && request.resource.data.at == request.time
+          && request.resource.data.cellKey is string
+          && request.resource.data.keys().hasOnly(['playerId', 'at', 'cellKey']);
+        allow update, delete: if false; // cleared server-side on question close
+      }
+    }
+  }
+}

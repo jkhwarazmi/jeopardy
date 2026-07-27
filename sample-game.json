@@ -1,0 +1,125 @@
+{
+  "title": "Office Icebreaker Jeopardy",
+  "boards": [
+    {
+      "pointValues": [100, 200, 300, 400],
+      "categories": [
+        {
+          "name": "Corporate Jargon Decoded",
+          "cells": [
+            {
+              "question": "Finding the intersection of ideas to achieve mutual gains",
+              "answer": "Synergy"
+            },
+            {
+              "question": "Let's reschedule a discussion for a later time to revisit this topic",
+              "answer": "Circle back"
+            },
+            {
+              "question": "Attempt an ambitious project with unclear outcomes or massive scope",
+              "answer": "Boil the ocean"
+            },
+            {
+              "question": "Improve a key metric or objective by taking decisive action",
+              "answer": "Move the needle"
+            }
+          ]
+        },
+        {
+          "name": "Famous Logos",
+          "cells": [
+            {
+              "question": "A swoosh mark, often seen on athletic shoes and apparel",
+              "answer": "Nike"
+            },
+            {
+              "question": "Four interlocking rings arranged in a circle",
+              "answer": "Audi"
+            },
+            {
+              "question": "A golden arches forming the letter M",
+              "answer": "McDonald's"
+            },
+            {
+              "question": "A bitten piece of fruit in grayscale or monochrome",
+              "answer": "Apple"
+            }
+          ]
+        },
+        {
+          "name": "Email Etiquette or Crime?",
+          "cells": [
+            {
+              "question": "Replying-all to a company-wide email to share a funny meme",
+              "answer": "Crime"
+            },
+            {
+              "question": "Proofing your email before sending to check for typos and professionalism",
+              "answer": "Etiquette"
+            },
+            {
+              "question": "Forwarding the same message to 50 coworkers with 'See Below' and no context",
+              "answer": "Crime"
+            },
+            {
+              "question": "Cc-ing someone's boss to notify them of a completed project milestone",
+              "answer": "Etiquette"
+            }
+          ]
+        },
+        {
+          "name": "Office Movie & TV Lines",
+          "cells": [
+            {
+              "question": "I love lamp. Do you really love the lamp or are you just saying things?",
+              "answer": "Anchorman"
+            },
+            {
+              "question": "That would be great, if you could come in on Saturday... that'd be great.",
+              "answer": "Office Space"
+            },
+            {
+              "question": "Did you get the memo? Updated memo on the memo distribution list.",
+              "answer": "Office Space"
+            },
+            {
+              "question": "Threat level midnight. I am running away from my responsibilities.",
+              "answer": "The Office"
+            }
+          ]
+        },
+        {
+          "name": "Tech or Star Trek?",
+          "cells": [
+            {
+              "question": "Kubernetes: a system for automating containerized application deployment",
+              "answer": "Tech"
+            },
+            {
+              "question": "Heisenberg compensator: a fictional device that corrects quantum uncertainty",
+              "answer": "Star Trek"
+            },
+            {
+              "question": "Dilithium crystals: a power source for warp drive engines",
+              "answer": "Star Trek"
+            },
+            {
+              "question": "Machine learning: a subset of artificial intelligence that learns patterns from data",
+              "answer": "Tech"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "final": {
+    "category": "Company History",
+    "question": "In what year did the founder of Microsoft drop out of Harvard to pursue his business venture?",
+    "answer": "1975"
+  },
+  "timers": {
+    "answerSeconds": 5,
+    "buzzWindowSeconds": 10,
+    "finalAnswerSeconds": 30
+  }
+}
