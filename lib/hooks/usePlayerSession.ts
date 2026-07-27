@@ -138,7 +138,6 @@ export function usePlayerSession(gameId: string): UsePlayerSession {
         connected: true,
         finalWager: null,
         finalAnswer: null,
-        finalRevealed: false,
         finalCorrect: null,
         isKicked: false,
       };

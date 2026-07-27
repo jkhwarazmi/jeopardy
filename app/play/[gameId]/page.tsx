@@ -279,6 +279,13 @@ export default function PlayPage({
   }
 
   if (game.status === "final_reveal") {
+    const final = game.config.final;
+    const qIndex = Math.min(game.finalQuestionIndex, final.questions.length - 1);
+    const multiplier = final.multipliers[qIndex] ?? 1;
+    const qLabel = final.questions.length > 1
+      ? `Question ${qIndex + 1} of ${final.questions.length}` : null;
+
+    const stake = (self.finalWager ?? 0) * multiplier;
     const wagerDisplay =
       self.finalWager !== null ? `$${self.finalWager}` : "N/A";
     const answerDisplay = self.finalAnswer || "(no answer)";
@@ -292,7 +299,7 @@ export default function PlayPage({
         resultDisplay = (
           <div className="bg-green-900/50 border-2 border-green-500 rounded-lg p-4">
             <p className="text-green-200 font-bold text-2xl">
-              CORRECT +${self.finalWager}
+              CORRECT +${stake}
             </p>
           </div>
         );
@@ -300,7 +307,7 @@ export default function PlayPage({
         resultDisplay = (
           <div className="bg-red-900/50 border-2 border-red-500 rounded-lg p-4">
             <p className="text-red-200 font-bold text-2xl">
-              WRONG −${self.finalWager}
+              WRONG −${stake}
             </p>
           </div>
         );
@@ -314,6 +321,11 @@ export default function PlayPage({
             <h2 className="font-display text-3xl text-jeopardy-gold mb-2">
               FINAL JEOPARDY
             </h2>
+            {qLabel && (
+              <p className="text-white/70 text-xs uppercase tracking-wide mb-1">
+                {qLabel}
+              </p>
+            )}
             <p className="text-white/70">Reveal in progress...</p>
           </div>
 
@@ -325,6 +337,11 @@ export default function PlayPage({
               <p className="text-jeopardy-gold font-display text-3xl">
                 {wagerDisplay}
               </p>
+              {multiplier > 1 && self.finalWager !== null && (
+                <p className="text-white/60 text-sm mt-1">
+                  ×{multiplier} → ${stake} at stake
+                </p>
+              )}
             </div>
 
             <div className="border-t border-white/10 pt-4">

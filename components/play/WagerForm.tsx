@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Game, Player } from "@/lib/types";
+import { maxFinalWager } from "@/lib/types";
 import { submitWager } from "@/lib/final-actions";
 
 interface WagerFormProps {
@@ -17,33 +18,19 @@ export default function WagerForm({
   uid,
   gameId,
 }: WagerFormProps) {
-  const maxWager = Math.max(0, self.score);
+  const final = game.config.final;
+  const qIndex = Math.min(game.finalQuestionIndex, final.questions.length - 1);
+  const fq = final.questions[qIndex];
+  const multiplier = final.multipliers[qIndex] ?? 1;
+  const qLabel = final.questions.length > 1
+    ? `Question ${qIndex + 1} of ${final.questions.length}` : null;
+
+  const maxWager = maxFinalWager(final, self.score);
   const [wagerInput, setWagerInput] = useState(
     self.finalWager !== null ? self.finalWager : maxWager
   );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-
-  // Player cannot wager if score <= 0
-  if (self.score <= 0) {
-    return (
-      <div className="flex-1 flex items-center justify-center px-6 py-12">
-        <div className="w-full max-w-md space-y-6">
-          <div className="bg-jeopardy-blue-dark rounded-lg p-6 text-center border-2 border-jeopardy-blue">
-            <p className="text-jeopardy-gold font-display text-2xl mb-4">
-              SPECTATOR
-            </p>
-            <p className="text-white text-lg mb-2">
-              You need a positive score to play Final Jeopardy
-            </p>
-            <p className="text-white/70">
-              Enjoy the show and watch the big screen!
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,12 +62,27 @@ export default function WagerForm({
           <h2 className="font-display text-3xl text-jeopardy-gold">
             FINAL JEOPARDY
           </h2>
+          {qLabel && (
+            <p className="text-white/70 text-xs uppercase tracking-wide">
+              {qLabel}
+            </p>
+          )}
           <p className="text-white/70 text-sm uppercase tracking-wide">
             Category
           </p>
           <p className="text-white text-2xl font-semibold">
-            {game.config.final.category}
+            {fq.category}
           </p>
+          {multiplier > 1 && (
+            <div className="inline-flex items-center gap-2 bg-jeopardy-gold text-jeopardy-dark px-3 py-1 rounded-full text-sm font-bold">
+              <span>×{multiplier} STAKES</span>
+            </div>
+          )}
+          {multiplier > 1 && (
+            <p className="text-white/50 text-xs">
+              Win or lose your wager ×{multiplier}
+            </p>
+          )}
         </div>
 
         <div className="bg-jeopardy-blue-dark rounded-lg p-4 text-center border-2 border-jeopardy-blue">
@@ -89,6 +91,14 @@ export default function WagerForm({
             ${self.score}
           </p>
         </div>
+
+        {self.score < final.wagerFloor && (
+          <div className="text-center">
+            <p className="text-white/60 text-sm">
+              Everyone may wager up to ${final.wagerFloor.toLocaleString()}
+            </p>
+          </div>
+        )}
 
         {isSubmitted ? (
           <div className="space-y-4">

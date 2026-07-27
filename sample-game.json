@@ -2,7 +2,12 @@
   "title": "Office Icebreaker Jeopardy",
   "boards": [
     {
-      "pointValues": [100, 200, 300, 400],
+      "pointValues": [
+        100,
+        200,
+        300,
+        400
+      ],
       "categories": [
         {
           "name": "Corporate Jargon Decoded",
@@ -113,13 +118,29 @@
     }
   ],
   "final": {
-    "category": "Company History",
-    "question": "In what year did the founder of Microsoft drop out of Harvard to pursue his business venture?",
-    "answer": "1975"
+    "questions": [
+      {
+        "category": "Company History",
+        "question": "In what year did the founder of Microsoft drop out of Harvard to pursue his business venture?",
+        "answer": "1975"
+      },
+      {
+        "category": "Office Firsts",
+        "question": "This everyday office fixture was invented in 1849 and its design has barely changed since — you probably bent one out of shape today.",
+        "answer": "The paper clip"
+      },
+      {
+        "category": "Famous Emails",
+        "question": "Sent in 1971, the very first networked email traveled between two computers that were sitting in this relative position to each other.",
+        "answer": "Right next to each other (in the same room)"
+      }
+    ],
+    "multipliers": [1, 2, 3],
+    "wagerFloor": 1000
   },
   "timers": {
-    "answerSeconds": 5,
-    "buzzWindowSeconds": 10,
+    "answerSeconds": 8,
+    "buzzWindowSeconds": 15,
     "finalAnswerSeconds": 30
   }
 }

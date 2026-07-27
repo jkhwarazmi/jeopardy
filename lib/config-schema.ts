@@ -42,11 +42,55 @@ const boardConfigSchema = z
     }
   );
 
-const finalConfigSchema = z.object({
+const finalQuestionSchema = z.object({
   category: z.string().min(1, "Final category cannot be empty"),
   question: z.string().min(1, "Final question cannot be empty"),
   answer: z.string().min(1, "Final answer cannot be empty"),
 });
+
+/**
+ * Final round: multiple questions with rising multipliers. Accepts the legacy
+ * single-question shape ({category, question, answer}) and upgrades it to a
+ * one-question round with multiplier ×1.
+ */
+const finalConfigSchema = z.preprocess(
+  (val) => {
+    if (
+      val !== null &&
+      typeof val === "object" &&
+      !("questions" in val) &&
+      "question" in val
+    ) {
+      return { questions: [val] };
+    }
+    return val;
+  },
+  z
+    .object({
+      questions: z
+        .array(finalQuestionSchema)
+        .min(1, "At least one final question required")
+        .max(5, "At most 5 final questions allowed"),
+      multipliers: z
+        .array(z.number().int().positive("Multipliers must be positive integers"))
+        .optional(),
+      wagerFloor: z
+        .number()
+        .int()
+        .nonnegative("wagerFloor must be ≥ 0")
+        .default(1000),
+    })
+    .refine(
+      (f) => !f.multipliers || f.multipliers.length === f.questions.length,
+      { message: "multipliers must have one entry per final question" }
+    )
+    .transform((f) => ({
+      questions: f.questions,
+      // Default multipliers: 1, 2, 3, …
+      multipliers: f.multipliers ?? f.questions.map((_, i) => i + 1),
+      wagerFloor: f.wagerFloor,
+    }))
+);
 
 const timersConfigSchema = z
   .object({
@@ -55,13 +99,13 @@ const timersConfigSchema = z
       .int()
       .positive("answerSeconds must be positive")
       .max(300, "answerSeconds must be ≤300")
-      .default(5),
+      .default(8),
     buzzWindowSeconds: z
       .number()
       .int()
       .positive("buzzWindowSeconds must be positive")
       .max(300, "buzzWindowSeconds must be ≤300")
-      .default(10),
+      .default(15),
     finalAnswerSeconds: z
       .number()
       .int()
@@ -70,8 +114,8 @@ const timersConfigSchema = z
       .default(30),
   })
   .default({
-    answerSeconds: 5,
-    buzzWindowSeconds: 10,
+    answerSeconds: 8,
+    buzzWindowSeconds: 15,
     finalAnswerSeconds: 30,
   });
 

@@ -25,18 +25,41 @@ export interface BoardConfig {
   pointValues: number[];
 }
 
-export interface FinalConfig {
+export interface FinalQuestionConfig {
   category: string;
   question: string;
   answer: string;
 }
 
+/**
+ * Final round: a series of questions (typically 3) with rising stakes so
+ * trailing players can come back. Per question every player wagers up to
+ * max(wagerFloor, own score); a judged answer moves their score by
+ * ±wager × multipliers[questionIndex].
+ */
+export interface FinalConfig {
+  /** 1–5 questions, played in order. */
+  questions: FinalQuestionConfig[];
+  /** Wager-outcome multiplier per question (same length as questions).
+   *  Defaults to 1, 2, 3, … */
+  multipliers: number[];
+  /** Everyone may wager at least this much regardless of score (default 1000)
+   *  — keeps losing players in the game. Leaders may wager up to their score. */
+  wagerFloor: number;
+}
+
+/** Max wager for a player in the final round. */
+export function maxFinalWager(config: FinalConfig, score: number): number {
+  return Math.max(config.wagerFloor, score);
+}
+
 export interface TimersConfig {
-  /** Seconds a buzzed player has to answer (default 5) */
+  /** Seconds a buzzed player has to answer (default 8) */
   answerSeconds: number;
-  /** Seconds players may buzz before auto-reveal (default 10) */
+  /** Seconds players may buzz before auto-reveal — includes the host reading
+   *  the question aloud (default 15) */
   buzzWindowSeconds: number;
-  /** Seconds to type the Final Jeopardy answer (default 30) */
+  /** Seconds to type each Final Jeopardy answer (default 30) */
   finalAnswerSeconds: number;
 }
 
@@ -94,8 +117,8 @@ export interface GameDoc {
   timerEndsAt: Timestamp | null;
   /** When true, new players may not join (rules-enforced) */
   lobbyLocked: boolean;
-  /** Player currently spotlighted during final_reveal */
-  finalSpotlightId: string | null;
+  /** Which final question is in play (0-based; meaningful during final_*) */
+  finalQuestionIndex: number;
   createdAt: Timestamp;
 }
 
@@ -107,10 +130,11 @@ export interface PlayerDoc {
   score: number;
   joinedAt: Timestamp;
   connected: boolean;
+  /** Wager for the CURRENT final question; reset between questions */
   finalWager: number | null;
+  /** Typed answer for the CURRENT final question; reset between questions */
   finalAnswer: string | null;
-  finalRevealed: boolean;
-  /** Set by admin during final reveal; null until judged */
+  /** Set by admin judging the current final question; null until judged */
   finalCorrect: boolean | null;
   isKicked: boolean;
 }
@@ -165,11 +189,15 @@ export type AdminAction =
   | { type: "next_board" }
   | { type: "adjust_score"; playerId: string; delta: number }
   | { type: "kick_player"; playerId: string }
+  /** Enter the final round at question 0 (also clears player final fields). */
   | { type: "start_final_wager" }
   | { type: "start_final_answer" }
   | { type: "start_final_reveal" }
-  | { type: "final_spotlight"; playerId: string }
+  /** Judge a player's current final answer; re-marking adjusts the score by
+   *  the difference, so misclicks are safe to correct. */
   | { type: "final_mark"; playerId: string; correct: boolean }
+  /** final_reveal → final_wager for the next question (clears final fields). */
+  | { type: "next_final_question" }
   | { type: "end_game" }
   | { type: "reset_game" };
 

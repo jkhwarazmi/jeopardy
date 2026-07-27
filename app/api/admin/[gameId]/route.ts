@@ -274,6 +274,15 @@ async function applyAction(
     case "start_final_wager": {
       if (game.status !== "playing" && game.status !== "answer_reveal")
         fail("Finish the current question first");
+      // Enter the final round at question 0 with a clean slate.
+      const players = await getPlayers(tx, playersRef);
+      for (const p of players) {
+        tx.update(p.ref, {
+          finalWager: null,
+          finalAnswer: null,
+          finalCorrect: null,
+        });
+      }
       tx.update(gameRef, {
         status: "final_wager",
         currentCell: null,
@@ -281,7 +290,7 @@ async function applyAction(
         buzzSettledCellKey: null,
         lockedOutIds: [],
         timerEndsAt: null,
-        finalSpotlightId: null,
+        finalQuestionIndex: 0,
       });
       return;
     }
@@ -300,15 +309,7 @@ async function applyAction(
       tx.update(gameRef, {
         status: "final_reveal",
         timerEndsAt: null,
-        finalSpotlightId: null,
       });
-      return;
-    }
-
-    case "final_spotlight": {
-      if (game.status !== "final_reveal") fail("Not in reveal phase");
-      tx.update(playersRef.doc(action.playerId), { finalRevealed: true });
-      tx.update(gameRef, { finalSpotlightId: action.playerId });
       return;
     }
 
@@ -317,10 +318,37 @@ async function applyAction(
       const snap = await tx.get(playersRef.doc(action.playerId));
       if (!snap.exists) fail("Player not found");
       const player = snap.data() as PlayerDoc;
-      const wager = player.finalWager ?? 0;
+      const multiplier =
+        game.config.final.multipliers[game.finalQuestionIndex] ?? 1;
+      const stake = (player.finalWager ?? 0) * multiplier;
+      // Re-mark safe: apply the DIFFERENCE vs. what was already applied,
+      // so the admin can correct a misclick without double-counting.
+      const applied =
+        player.finalCorrect === null ? 0 : player.finalCorrect ? stake : -stake;
+      const target = action.correct ? stake : -stake;
       tx.update(playersRef.doc(action.playerId), {
         finalCorrect: action.correct,
-        score: FieldValue.increment(action.correct ? wager : -wager),
+        score: FieldValue.increment(target - applied),
+      });
+      return;
+    }
+
+    case "next_final_question": {
+      if (game.status !== "final_reveal") fail("Not in reveal phase");
+      if (game.finalQuestionIndex + 1 >= game.config.final.questions.length)
+        fail("No more final questions");
+      const players = await getPlayers(tx, playersRef);
+      for (const p of players) {
+        tx.update(p.ref, {
+          finalWager: null,
+          finalAnswer: null,
+          finalCorrect: null,
+        });
+      }
+      tx.update(gameRef, {
+        status: "final_wager",
+        finalQuestionIndex: game.finalQuestionIndex + 1,
+        timerEndsAt: null,
       });
       return;
     }
@@ -329,7 +357,6 @@ async function applyAction(
       tx.update(gameRef, {
         status: "finished",
         timerEndsAt: null,
-        finalSpotlightId: null,
       });
       return;
     }
@@ -341,7 +368,6 @@ async function applyAction(
           score: 0,
           finalWager: null,
           finalAnswer: null,
-          finalRevealed: false,
           finalCorrect: null,
         });
       }
@@ -356,7 +382,7 @@ async function applyAction(
         usedCells: [],
         timerEndsAt: null,
         lobbyLocked: false,
-        finalSpotlightId: null,
+        finalQuestionIndex: 0,
       });
       return;
     }

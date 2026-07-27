@@ -91,6 +91,37 @@ A fresh session should read CLAUDE.md → BUILD_PROMPT.md → this file, then re
     lowercase URLs work. README runbook updated (short slugs, host prompts
     on entry, no first-tap prompt).
 
+- **Multi-question Final round + low-latency buzzer** (`npm run build` clean,
+  code-reviewer pass, REDEPLOY RULES):
+  - `FinalConfig` is now `{ questions[] (1–5), multipliers[], wagerFloor }`
+    (zod upgrades the legacy single-question shape → 1 question, ×1, floor
+    1000; default multipliers 1,2,3,…). `GameDoc.finalQuestionIndex` replaces
+    `finalSpotlightId`; `PlayerDoc.finalRevealed` removed — finalWager/
+    finalAnswer/finalCorrect are per-current-question, reset server-side.
+  - Everyone wagers every final question: rules allow 0..max(wagerFloor, own
+    score), so trailing players stay in. Judged answers move score by
+    ±(wager × multiplier). `final_mark` applies the DIFF vs. what was already
+    applied → re-marking (admin ↺ flip buttons, confirm-gated) is safe.
+    New `next_final_question` action (final_reveal → final_wager, clears
+    per-question fields, increments index). Timer defaults now 8s answer /
+    15s buzz window.
+  - Reveal spotlight is DERIVED, not stored: host + admin both order
+    participants by preScore (score minus already-applied ±stake) asc,
+    id tie-break; first unjudged is "up". Host holds a judged player with the
+    CORRECT/WRONG stamp for 2.5s (local linger state; hooks at top level —
+    fixed a builder Rules-of-Hooks violation) then advances; standings view
+    when all judged. Admin gets UP NOW card + NEXT QUESTION / END GAME.
+  - Buzz path (architect): client `runTransaction` → plain `updateDoc`
+    (`buzzedPlayerId: uid`); rules already enforce first-writer-wins, and
+    updateDoc gets latency-compensated local echo (transactions don't), so
+    "YOU BUZZED" renders same-frame via optimistic `pendingBuzz` in Buzzer
+    and is confirmed/corrected by the echo. Settle route unchanged as final
+    authority. Reviewer BLOCKER fixed: per-attempt reset now keyed on
+    `[cell, game.status]` (clears stale pendingBuzz; re-arms lost racers
+    when a wrong answer reopens the window).
+  - sample-game.json: 3 final questions, multipliers [1,2,3], floor 1000.
+    README: final schema docs + runbook step 9 rewritten.
+
 ## Next
 
 - Nothing — build complete. Remaining items are user-side (see Known gaps below).

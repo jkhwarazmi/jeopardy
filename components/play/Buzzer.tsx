@@ -26,6 +26,9 @@ export default function Buzzer({
 }: BuzzerProps) {
   const [, tick] = useState(0);
   const buzzedRef = useRef(false);
+  /** Optimistic: flips to true synchronously on tap so "YOU BUZZED" renders
+   *  in the same frame — the game doc confirms (or corrects) moments later. */
+  const [pendingBuzz, setPendingBuzz] = useState(false);
   const { secondsLeft } = useCountdown(game.timerEndsAt);
 
   const cell = game.currentCell;
@@ -48,6 +51,8 @@ export default function Buzzer({
     if (buzzedPlayerId === uid) return "you";
     if (buzzedPlayerId !== null) return "locked";
     if (isLockedOut) return "out";
+    // Optimistic: we tapped and no contradicting buzz has arrived yet.
+    if (pendingBuzz && game.status === "question_open") return "you";
     if (game.status === "question_open" && cell && game.timerEndsAt) {
       const liveAt =
         game.timerEndsAt.toMillis() -
@@ -57,36 +62,45 @@ export default function Buzzer({
     return "armed";
   })();
 
-  // Reset buzzedRef when question changes
+  // Reset per-attempt state whenever the question changes OR the phase
+  // changes. Keying on status matters twice over:
+  //  - it explicitly clears a stale optimistic pendingBuzz if the question
+  //    closes before our write settles (rather than relying on `cell` being
+  //    a referentially-new object every snapshot);
+  //  - on buzzed → question_open (wrong answer reopens the window), players
+  //    who buzzed earlier but lost the race get their double-fire guard
+  //    cleared so they can buzz again.
   useEffect(() => {
     buzzedRef.current = false;
-  }, [cell]);
+    setPendingBuzz(false);
+  }, [cell, game.status]);
 
-  const handleBuzz = async () => {
+  const handleBuzz = () => {
     if (localState !== "live") return;
     if (buzzedRef.current) return; // Guard against double-fire
     if (!cell) return;
 
     buzzedRef.current = true;
 
-    // Haptics
+    // Instant feedback: same-frame render + haptic. The Firestore write's
+    // local echo confirms this within milliseconds; the server corrects it
+    // only if someone else genuinely won the race.
+    setPendingBuzz(true);
     if (navigator.vibrate) {
       navigator.vibrate(50);
     }
 
-    const result = await attemptBuzz(
+    attemptBuzz(
       gameId,
       uid,
       cellKey(game.currentBoard, cell.cat, cell.row)
-    );
-
-    // The game doc will update via subscription; we don't need to do anything else
-    // If we lost, the state will change to "locked" automatically
-    // If we won, the state will change to "you" automatically
-    if (result === "error") {
-      // Silently fail; the user will see the state didn't change
-      buzzedRef.current = false;
-    }
+    ).then((result) => {
+      if (result === "lost") {
+        // Rules rejected the write (someone beat us / question closed).
+        // Drop the optimistic state; the game doc drives the real state.
+        setPendingBuzz(false);
+      }
+    });
   };
 
   // ARMED: dimmed red, disabled
