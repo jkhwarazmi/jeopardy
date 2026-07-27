@@ -55,15 +55,17 @@ export async function POST(
     const db = getAdminDb();
     const gamesRef = db.collection("games");
 
-    // Generate unique join code (retry up to 5 times on collision)
+    // Generate unique join code (retry up to 5 times on collision).
+    // The join code IS the game document ID, so URLs are short and memorable
+    // (/play/QX3F2A); host/admin surfaces stay password-gated regardless.
     let joinCode = "";
     let attempts = 0;
     const maxAttempts = 5;
 
     while (attempts < maxAttempts) {
       joinCode = generateJoinCode();
-      const existing = await gamesRef.where("joinCode", "==", joinCode).get();
-      if (existing.empty) {
+      const existing = await gamesRef.doc(joinCode).get();
+      if (!existing.exists) {
         break;
       }
       attempts++;
@@ -100,11 +102,13 @@ export async function POST(
       createdAt: FieldValue.serverTimestamp(),
     };
 
-    const docRef = await gamesRef.add(gameDoc);
+    // create() (not set()) fails if the doc appeared since the collision
+    // check, closing the check-then-write race.
+    await gamesRef.doc(joinCode).create(gameDoc);
 
     return NextResponse.json({
       ok: true,
-      gameId: docRef.id,
+      gameId: joinCode,
       joinCode,
     });
   } catch (error) {

@@ -75,6 +75,22 @@ A fresh session should read CLAUDE.md → BUILD_PROMPT.md → this file, then re
     buttons now match origin (Retake Photo/Upload Instead vs Choose a Different
     Photo/Use Camera Instead).
 
+- **Short URLs + host entry gate** (`npm run build` clean):
+  - Join code is now the game **doc ID** (`gamesRef.doc(joinCode).create(...)`,
+    race-safe via `create()`), so all URLs are `/host/QX3F2A`-style. `POST
+    /api/games` returns `gameId === joinCode`. Lookup API: direct doc get with
+    legacy `where("joinCode"==)` fallback for pre-change games.
+  - New `{ type: "verify" }` AdminAction — no-op after the password check;
+    POST handler fast-paths it before any transaction. Used to gate UIs.
+  - `/host` now shows a **full-page password gate on entry** (like `/admin`):
+    mount effect server-verifies the stored `localStorage` credential via
+    `verify` (spinner while checking), gate form verifies before storing;
+    lazy `showPasswordForm` overlay + cell-click prompt removed. Wrong
+    password during play clears the credential and returns to the gate.
+  - Host/admin/play pages uppercase-normalize the `[gameId]` slug so typed
+    lowercase URLs work. README runbook updated (short slugs, host prompts
+    on entry, no first-tap prompt).
+
 ## Next
 
 - Nothing — build complete. Remaining items are user-side (see Known gaps below).

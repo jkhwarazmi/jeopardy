@@ -161,7 +161,9 @@ Replace these with real royalty-free audio clips (keep the same filenames). Soun
    - Admin link (for your phone)
    - Player join link (QR code or direct URL)
 
-2. Open the **host link** on your laptop and leave it in the lobby screen (do not start the game yet).
+   All three URLs use the 6-character join code as the slug (e.g. `/host/QX3F2A`), so they're easy to retype from memory. Host and admin surfaces still require the password.
+
+2. Open the **host link** on your laptop and enter the admin password when prompted, then leave it in the lobby screen (do not start the game yet).
 
 3. Start the Teams meeting and **share the browser window** (select "window" to share, include computer sound if you have real sound files).
 
@@ -179,7 +181,7 @@ Replace these with real royalty-free audio clips (keep the same filenames). Soun
 
 8. **Main round play loop:**
    - A highlighted player announces a category and dollar amount out loud.
-   - You tap that cell on the **host laptop** (on first tap, you'll be prompted to enter the admin password).
+   - You tap that cell on the **host laptop**.
    - Read the question aloud to all players.
    - Players buzz by tapping the big buzzer on their phones.
    - The first player to buzz gets to answer.

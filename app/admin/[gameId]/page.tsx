@@ -14,7 +14,9 @@ export default function AdminPage({
 }: {
   params: Promise<{ gameId: string }>;
 }) {
-  const { gameId } = use(params);
+  const { gameId: rawGameId } = use(params);
+  // Join codes are uppercase; normalize so typed lowercase URLs still work.
+  const gameId = rawGameId.toUpperCase();
   const { game, loading: gameLoading, error: gameError } = useGame(gameId);
   const { players } = usePlayers(gameId);
 
