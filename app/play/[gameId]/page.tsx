@@ -6,6 +6,7 @@ import { usePlayers } from "@/lib/hooks/usePlayers";
 import { usePlayerSession } from "@/lib/hooks/usePlayerSession";
 import SelfieCapture from "@/components/play/SelfieCapture";
 import PlayerStatus from "@/components/play/PlayerStatus";
+import Buzzer from "@/components/play/Buzzer";
 
 export default function PlayPage({
   params,
@@ -14,7 +15,8 @@ export default function PlayPage({
 }) {
   const { gameId } = use(params);
   const { game, loading: gameLoading, error: gameError } = useGame(gameId);
-  const { self, loading: sessionLoading, join } = usePlayerSession(gameId);
+  const { self, uid, loading: sessionLoading, join } = usePlayerSession(gameId);
+  const { players } = usePlayers(gameId);
 
   const [joinStep, setJoinStep] = useState<"name" | "selfie" | null>(null);
   const [playerName, setPlayerName] = useState("");
@@ -174,7 +176,104 @@ export default function PlayPage({
     );
   }
 
-  // For M2: all other statuses show a placeholder (M3 replaces this)
+  if (game.status === "playing") {
+    const isPicking = game.currentPickerId === uid;
+    const pickerName = game.currentPickerId
+      ? players.find((p) => p.id === game.currentPickerId)?.name ?? "Someone"
+      : "Someone";
+
+    return (
+      <div className="flex-1 flex items-center justify-center px-6 py-12">
+        <div className="w-full max-w-md space-y-6">
+          <PlayerStatus self={self} game={game} />
+
+          {isPicking && (
+            <div className="bg-jeopardy-gold text-jeopardy-dark rounded-lg p-6 text-center">
+              <p className="font-display text-3xl mb-2">YOU PICK!</p>
+              <p className="text-sm">
+                Tell the host your category and amount
+              </p>
+            </div>
+          )}
+
+          {!isPicking && (
+            <div className="bg-jeopardy-blue-dark rounded-lg p-4 text-center">
+              <p className="text-white/70">
+                <strong className="text-white">{pickerName}</strong> is
+                picking...
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (game.status === "question_open" || game.status === "buzzed") {
+    if (!uid) return null; // Should not happen
+    return (
+      <Buzzer
+        game={game}
+        self={self}
+        uid={uid}
+        gameId={gameId}
+        players={players}
+      />
+    );
+  }
+
+  if (game.status === "answer_reveal") {
+    return (
+      <div className="flex-1 flex items-center justify-center px-6 py-12">
+        <div className="w-full max-w-md space-y-6">
+          <div className="bg-jeopardy-blue-dark rounded-lg p-6 text-center">
+            <p className="text-white text-lg mb-4">
+              Answer&apos;s on the big screen
+            </p>
+            <div className="bg-jeopardy-dark rounded p-4">
+              <p className="text-white/70 text-sm mb-1">Your Score</p>
+              <p className="text-jeopardy-gold font-display text-3xl">
+                ${self.score}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (
+    game.status === "final_wager" ||
+    game.status === "final_answer" ||
+    game.status === "final_reveal"
+  ) {
+    return (
+      <div className="flex-1 flex items-center justify-center px-6">
+        <div className="bg-jeopardy-blue-dark rounded-lg p-6 text-center max-w-md">
+          <p className="text-white text-xl mb-2">Final Jeopardy</p>
+          <p className="text-white/70 text-sm">Coming in M4</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (game.status === "finished") {
+    return (
+      <div className="flex-1 flex items-center justify-center px-6">
+        <div className="bg-jeopardy-blue-dark rounded-lg p-6 text-center max-w-md">
+          <p className="text-white font-display text-4xl mb-4">GAME OVER!</p>
+          <div className="bg-jeopardy-dark rounded p-4">
+            <p className="text-white/70 text-sm mb-1">Your Final Score</p>
+            <p className="text-jeopardy-gold font-display text-3xl">
+              ${self.score}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback
   return (
     <div className="flex-1 flex items-center justify-center px-6">
       <div className="text-center">
