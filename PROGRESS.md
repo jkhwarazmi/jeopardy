@@ -27,10 +27,16 @@ A fresh session should read CLAUDE.md → BUILD_PROMPT.md → this file, then re
   - Play: Buzzer with armed/live/you/locked/out states (liveAt derived from timerEndsAt − buzzWindow; onPointerDown; haptics), pick-turn banner, answer_reveal/finished cards.
   - Architect integration fixes: Buzzer double-counted anti-jump delay + never flipped armed→live (no re-render tick) + showed uid instead of name — corrected.
 
+- **M4 complete** (`npm run build` clean):
+  - `lib/final-actions.ts` (architect): submitWager/submitFinalAnswer (rules enforce phase, 0..score, deadline).
+  - Play: WagerForm (slider + 0/half/all-in, re-submittable, spectator card for score ≤ 0), FinalAnswerForm (30s countdown, pencils-down state, graceful deadline rejection), final_reveal result card.
+  - Host: FinalRound — category reveal w/ wager-in badges (amounts hidden), question + timer, spotlight reveal (answer → wager → CORRECT/WRONG stamp), revealed strip; PlayerRail stays for live scores.
+  - Admin: FinalControls — wager/answer visibility for the judge, lowest-score-first spotlight queue, CORRECT/WRONG ±wager, END GAME when all judged, zero-participant edge handled.
+
 ## Next
 
-- M4 Final Jeopardy: play WagerForm (0..score, only score>0 players) + FinalAnswerForm (30s deadline, rules-enforced); host FinalRound (category → question → per-player reveal of answer+wager, spotlight via finalSpotlightId); admin FinalControls (start wager/answer/reveal, spotlight lowest-score-first, mark correct/incorrect, end game).
-- Then M5 (sounds, winner animation, reconnect/edge polish), M6 (review/build/docs).
+- M5 Polish: useAudio (host-only, unlock gesture) + sound wiring, winner animation (confetti/crown/zoom w/ photo), finished screens, reconnect/edge review.
+- M6: code-reviewer pass → fixes → build → README (Firebase setup, Vercel deploy, day-of runbook).
 
 ## Decisions
 

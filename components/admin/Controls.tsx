@@ -3,6 +3,7 @@
 import type { Game, Player, AdminAction } from "@/lib/types";
 import { useCountdown } from "@/lib/hooks/useCountdown";
 import { useState } from "react";
+import FinalControls from "@/components/admin/FinalControls";
 
 interface ControlsProps {
   game: Game;
@@ -257,11 +258,7 @@ export default function Controls({ game, players, act, busy }: ControlsProps) {
     game.status === "final_answer" ||
     game.status === "final_reveal"
   ) {
-    return (
-      <div className="bg-jeopardy-blue-dark rounded-lg p-6 text-center">
-        <p className="text-white/70">Final Jeopardy controls come in M4</p>
-      </div>
-    );
+    return <FinalControls game={game} players={players} act={act} busy={busy} />;
   }
 
   if (game.status === "finished") {

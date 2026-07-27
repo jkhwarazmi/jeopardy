@@ -15,6 +15,7 @@ import HostLobby from "@/components/host/HostLobby";
 import Board from "@/components/host/Board";
 import QuestionView from "@/components/host/QuestionView";
 import PlayerRail from "@/components/host/PlayerRail";
+import FinalRound from "@/components/host/FinalRound";
 
 export default function HostPage({
   params,
@@ -246,11 +247,12 @@ export default function HostPage({
       {(game.status === "final_wager" ||
         game.status === "final_answer" ||
         game.status === "final_reveal") && (
-        <div className="flex-1 flex items-center justify-center">
-          <p className="text-white text-4xl font-display">
-            Final Jeopardy — coming next
-          </p>
-        </div>
+        <>
+          <div className="flex-1 overflow-hidden">
+            <FinalRound game={game} players={players} />
+          </div>
+          <PlayerRail players={players} game={game} />
+        </>
       )}
 
       {game.status === "finished" && (

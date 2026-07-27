@@ -7,6 +7,8 @@ import { usePlayerSession } from "@/lib/hooks/usePlayerSession";
 import SelfieCapture from "@/components/play/SelfieCapture";
 import PlayerStatus from "@/components/play/PlayerStatus";
 import Buzzer from "@/components/play/Buzzer";
+import WagerForm from "@/components/play/WagerForm";
+import FinalAnswerForm from "@/components/play/FinalAnswerForm";
 
 export default function PlayPage({
   params,
@@ -242,16 +244,83 @@ export default function PlayPage({
     );
   }
 
-  if (
-    game.status === "final_wager" ||
-    game.status === "final_answer" ||
-    game.status === "final_reveal"
-  ) {
+  if (game.status === "final_wager") {
+    if (!uid) return null;
+    return <WagerForm game={game} self={self} uid={uid} gameId={gameId} />;
+  }
+
+  if (game.status === "final_answer") {
+    if (!uid) return null;
     return (
-      <div className="flex-1 flex items-center justify-center px-6">
-        <div className="bg-jeopardy-blue-dark rounded-lg p-6 text-center max-w-md">
-          <p className="text-white text-xl mb-2">Final Jeopardy</p>
-          <p className="text-white/70 text-sm">Coming in M4</p>
+      <FinalAnswerForm game={game} self={self} uid={uid} gameId={gameId} />
+    );
+  }
+
+  if (game.status === "final_reveal") {
+    const wagerDisplay =
+      self.finalWager !== null ? `$${self.finalWager}` : "N/A";
+    const answerDisplay = self.finalAnswer || "(no answer)";
+
+    let resultDisplay: React.ReactNode = (
+      <p className="text-white/70">Waiting for the host...</p>
+    );
+
+    if (self.finalCorrect !== null) {
+      if (self.finalCorrect) {
+        resultDisplay = (
+          <div className="bg-green-900/50 border-2 border-green-500 rounded-lg p-4">
+            <p className="text-green-200 font-bold text-2xl">
+              CORRECT +${self.finalWager}
+            </p>
+          </div>
+        );
+      } else {
+        resultDisplay = (
+          <div className="bg-red-900/50 border-2 border-red-500 rounded-lg p-4">
+            <p className="text-red-200 font-bold text-2xl">
+              WRONG −${self.finalWager}
+            </p>
+          </div>
+        );
+      }
+    }
+
+    return (
+      <div className="flex-1 flex items-center justify-center px-6 py-12">
+        <div className="w-full max-w-md space-y-6">
+          <div className="text-center">
+            <h2 className="font-display text-3xl text-jeopardy-gold mb-2">
+              FINAL JEOPARDY
+            </h2>
+            <p className="text-white/70">Reveal in progress...</p>
+          </div>
+
+          <div className="bg-jeopardy-blue-dark rounded-lg p-6 space-y-4 border-2 border-jeopardy-blue">
+            <div>
+              <p className="text-white/70 text-sm uppercase tracking-wide mb-1">
+                Your Wager
+              </p>
+              <p className="text-jeopardy-gold font-display text-3xl">
+                {wagerDisplay}
+              </p>
+            </div>
+
+            <div className="border-t border-white/10 pt-4">
+              <p className="text-white/70 text-sm uppercase tracking-wide mb-2">
+                Your Answer
+              </p>
+              <p className="text-white text-lg">{answerDisplay}</p>
+            </div>
+
+            <div className="border-t border-white/10 pt-4">{resultDisplay}</div>
+          </div>
+
+          <div className="bg-jeopardy-dark rounded-lg p-4 text-center">
+            <p className="text-white/70 text-sm mb-1">Current Score</p>
+            <p className="text-jeopardy-gold font-display text-4xl">
+              ${self.score}
+            </p>
+          </div>
         </div>
       </div>
     );
