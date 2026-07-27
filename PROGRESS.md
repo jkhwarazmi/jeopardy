@@ -60,6 +60,12 @@ A fresh session should read CLAUDE.md → BUILD_PROMPT.md → this file, then re
     `stream` state removed. Added "Continue without photo" (`onCapture("")`) in camera,
     upload, and preview views — rules accept empty string, `PlayerAvatar` renders
     initials fallback, direct usages already guarded.
+  - Profile editing: `usePlayerSession.updateProfile({name?, photoBase64?})` (name
+    dedupe factored into `resolveName`, localStorage sync); `EditProfile` card on the
+    lobby wait screen (rename, change/remove photo, reuses `SelfieCapture` w/ new
+    `skipLabel`/`onCancel` props); preview view now offers Retake Photo / Upload
+    Instead. Rules hardened: player-update path now re-validates name 1..30 and
+    photo < 120KB (was create-only) — REDEPLOY RULES.
 
 ## Next
 
