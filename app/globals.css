@@ -1,26 +1,33 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Jeopardy color palette */
+  --jeopardy-blue: #060CE9;
+  --jeopardy-blue-dark: #04077a;
+  --jeopardy-blue-darker: #03055c;
+  --jeopardy-gold: #FFCC00;
+  --jeopardy-gold-dark: #E5A00D;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Jeopardy color tokens */
+  --color-jeopardy-blue: var(--jeopardy-blue);
+  --color-jeopardy-blue-dark: var(--jeopardy-blue-dark);
+  --color-jeopardy-dark: var(--jeopardy-blue-darker);
+  --color-jeopardy-gold: var(--jeopardy-gold);
+  --color-jeopardy-gold-dark: var(--jeopardy-gold-dark);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-display), system-ui, -apple-system, sans-serif;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }

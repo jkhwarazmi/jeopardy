@@ -14,12 +14,19 @@ A fresh session should read CLAUDE.md → BUILD_PROMPT.md → this file, then re
   - `firebase.json`, `firestore.indexes.json`, 7 silent mp3s + `public/sounds/README.md`, `sample-game.json`.
   - Deps added: `canvas-confetti`, `@types/canvas-confetti`, `@types/qrcode`.
 
+- **M2 complete** (`npm run build` clean):
+  - Hooks: `useGame`, `usePlayers` (kicked filtered, defensive sort), `useCountdown` (display-only), `usePlayerSession` (anon-uid identity, join w/ duplicate-name suffixing, presence via pagehide/visibility, localStorage rejoin memory).
+  - `lib/selfie.ts` — square center-crop ≤256px JPEG, quality-stepped to ≤~40KB, EXIF-aware.
+  - Pages: landing, `/new` (password + JSON paste/upload/sample + created-links panel), `/join`, `/play/[gameId]` (join flow → selfie → lobby wait; non-lobby placeholder), `/host/[gameId]` (lobby: QR, huge join code, rules, live player grid).
+  - Components: `SelfieCapture` (getUserMedia + upload fallback), `PlayerStatus`, `PlayerAvatar`, `HostLobby`. Theme (deep blue/gold, Anton display font) in globals.css/layout.
+
 ## Next
 
-- M2 Lobby:
-  - firebase-backend → `lib/hooks/useGame.ts`, `usePlayers.ts`, `useCountdown.ts`, `usePlayerSession.ts`, `lib/selfie.ts` helpers, player join data-access.
-  - frontend-builder → `app/page.tsx` landing, `/new` (password + JSON paste/upload + "load sample"), `/join`, `/play/[gameId]` join flow (name + selfie + lobby wait), `/host/[gameId]` lobby screen (QR, join code, players popping in).
-- Then M3 (core loop), M4 (final), M5 (polish), M6 (review/build/docs) per CLAUDE.md.
+- M3 Core loop:
+  - Architect → `lib/buzz.ts` (client buzz transaction + buzzes record), `app/api/settle-buzz/route.ts` (150ms lower-score tie-break, idempotent), `app/api/admin/[gameId]/route.ts` (all AdminActions, scrypt-verified), `app/api/timer-expire/route.ts`.
+  - firebase-backend → `lib/admin-api.ts` typed client wrappers.
+  - frontend-builder → host Board/QuestionView/BuzzOverlay/TimerCorner/PlayerRail, play Buzzer + status states, admin panel (PasswordGate, Controls, LiveScoreboard).
+- Then M4 (final), M5 (polish), M6 (review/build/docs).
 
 ## Decisions
 
