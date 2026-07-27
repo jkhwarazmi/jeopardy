@@ -17,6 +17,8 @@ export default function PlayerStatus({ self, game }: PlayerStatusProps) {
     message = "Buzz when you know the answer!";
   } else if (game.status === "buzzed") {
     message = "Someone buzzed!";
+  } else if (game.status === "answer_reveal") {
+    message = "Check the big screen for the answer";
   } else if (game.status === "finished") {
     message = "Game finished!";
   }

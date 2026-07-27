@@ -131,12 +131,21 @@ export interface Player extends PlayerDoc {
 }
 
 // ---------------------------------------------------------------------------
-// Cell keys
+// Cell keys & shared timing constants
 // ---------------------------------------------------------------------------
 
 export function cellKey(board: number, cat: number, row: number): string {
   return `${board}:${cat}:${row}`;
 }
+
+/** Buzzers go live this long after a cell opens (anti-jump). Buzz-live moment
+ *  is derived as timerEndsAt - buzzWindowSeconds*1000 (no extra field). */
+export const BUZZ_ANTI_JUMP_MS = 500;
+/** Two buzzes within this window tie-break to the lower current score. */
+export const BUZZ_SETTLE_MS = 150;
+/** Host client waits this long after seeing a provisional buzz before calling
+ *  /api/settle-buzz (must be > BUZZ_SETTLE_MS to let straggler buzzes land). */
+export const SETTLE_CALL_DELAY_MS = 300;
 
 // ---------------------------------------------------------------------------
 // Admin API contract (POST /api/admin/[gameId])

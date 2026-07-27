@@ -20,13 +20,17 @@ A fresh session should read CLAUDE.md → BUILD_PROMPT.md → this file, then re
   - Pages: landing, `/new` (password + JSON paste/upload/sample + created-links panel), `/join`, `/play/[gameId]` (join flow → selfie → lobby wait; non-lobby placeholder), `/host/[gameId]` (lobby: QR, huge join code, rules, live player grid).
   - Components: `SelfieCapture` (getUserMedia + upload fallback), `PlayerStatus`, `PlayerAvatar`, `HostLobby`. Theme (deep blue/gold, Anton display font) in globals.css/layout.
 
+- **M3 complete** (`npm run build` clean):
+  - Architect: `lib/buzz.ts` (buzzes record + provisional transaction), `/api/admin/[gameId]` (full AdminAction switch in one Firestore transaction; buzzes pre-cleared before open_cell/mark_incorrect to avoid stale-record races), `/api/settle-buzz` (150ms lower-score tie-break, timestamp-window filtered, idempotent via buzzSettledCellKey, starts 5s answer timer), `/api/timer-expire` (deadline-guarded answer_timeout ≙ mark_incorrect, buzz_window_timeout → reveal), `lib/admin-api.ts`.
+  - Host: Board grid, QuestionView (buzz overlay, answer reveal, BUZZERS OPEN indicator), TimerCorner, PlayerRail (picker highlight); host page holds admin pw (localStorage), fires settle (300ms + 1.5s retry) and timer-expire calls.
+  - Admin: PasswordGate, contextual Controls (start/lock lobby, judge Correct/Wrong with answer visible, skip, continue, next board, Final entry point), LiveScoreboard (adjust ±, kick), danger zone (end/reset).
+  - Play: Buzzer with armed/live/you/locked/out states (liveAt derived from timerEndsAt − buzzWindow; onPointerDown; haptics), pick-turn banner, answer_reveal/finished cards.
+  - Architect integration fixes: Buzzer double-counted anti-jump delay + never flipped armed→live (no re-render tick) + showed uid instead of name — corrected.
+
 ## Next
 
-- M3 Core loop:
-  - Architect → `lib/buzz.ts` (client buzz transaction + buzzes record), `app/api/settle-buzz/route.ts` (150ms lower-score tie-break, idempotent), `app/api/admin/[gameId]/route.ts` (all AdminActions, scrypt-verified), `app/api/timer-expire/route.ts`.
-  - firebase-backend → `lib/admin-api.ts` typed client wrappers.
-  - frontend-builder → host Board/QuestionView/BuzzOverlay/TimerCorner/PlayerRail, play Buzzer + status states, admin panel (PasswordGate, Controls, LiveScoreboard).
-- Then M4 (final), M5 (polish), M6 (review/build/docs).
+- M4 Final Jeopardy: play WagerForm (0..score, only score>0 players) + FinalAnswerForm (30s deadline, rules-enforced); host FinalRound (category → question → per-player reveal of answer+wager, spotlight via finalSpotlightId); admin FinalControls (start wager/answer/reveal, spotlight lowest-score-first, mark correct/incorrect, end game).
+- Then M5 (sounds, winner animation, reconnect/edge polish), M6 (review/build/docs).
 
 ## Decisions
 
