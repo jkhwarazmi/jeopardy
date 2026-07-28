@@ -3,6 +3,7 @@
 import type { Game, Player, AdminAction } from "@/lib/types";
 import PlayerAvatar from "@/components/shared/PlayerAvatar";
 import { useState } from "react";
+import { money } from "@/lib/format";
 
 interface LiveScoreboardProps {
   players: Player[];
@@ -54,7 +55,7 @@ export default function LiveScoreboard({
       <h2 className="text-white font-semibold text-lg px-1">Live Scoreboard</h2>
 
       {sortedPlayers.length === 0 && (
-        <div className="bg-jeopardy-blue-dark rounded-lg p-6 text-center">
+        <div className="card p-6 text-center">
           <p className="text-white/70">No players yet</p>
         </div>
       )}
@@ -66,10 +67,10 @@ export default function LiveScoreboard({
           isQuestionActive && game.lockedOutIds.includes(player.id);
 
         return (
-          <div key={player.id} className="bg-jeopardy-blue-dark rounded-lg">
+          <div key={player.id} className="card">
             <button
               onClick={() => setExpandedId(isExpanded ? null : player.id)}
-              className="w-full p-4 flex items-center gap-3 text-left hover:bg-jeopardy-blue/30 transition-colors rounded-lg focus:outline-none focus:ring-2 focus:ring-jeopardy-gold"
+              className="w-full p-4 flex items-center gap-3 text-left hover:bg-white/5 transition-colors rounded-lg focus:outline-none focus:ring-2 focus:ring-jeopardy-gold"
             >
               <PlayerAvatar player={player} size="sm" />
 
@@ -89,13 +90,13 @@ export default function LiveScoreboard({
                     </span>
                   )}
                   {!player.connected && (
-                    <span className="w-2 h-2 bg-gray-500 rounded-full" />
+                    <span className="w-2 h-2 bg-white/30 rounded-full" />
                   )}
                 </div>
               </div>
 
-              <p className="text-jeopardy-gold font-display text-xl">
-                ${player.score}
+              <p className="font-display text-money text-xl">
+                {money(player.score)}
               </p>
             </button>
 
@@ -105,16 +106,16 @@ export default function LiveScoreboard({
                   <p className="text-white/70 text-xs uppercase tracking-wide mb-2">
                     Quick Adjust
                   </p>
-                  <div className="flex gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     <button
                       onClick={() => handleAdjust(player.id, -100)}
-                      className="flex-1 bg-red-700 hover:bg-red-800 text-white font-semibold py-2 rounded transition-colors text-sm"
+                      className="btn btn-ghost py-2 text-sm font-semibold"
                     >
                       −100
                     </button>
                     <button
                       onClick={() => handleAdjust(player.id, 100)}
-                      className="flex-1 bg-green-700 hover:bg-green-800 text-white font-semibold py-2 rounded transition-colors text-sm"
+                      className="btn btn-ghost py-2 text-sm font-semibold"
                     >
                       +100
                     </button>
@@ -136,11 +137,11 @@ export default function LiveScoreboard({
                         }))
                       }
                       placeholder="±100"
-                      className="flex-1 px-3 py-2 bg-jeopardy-dark text-white rounded border border-jeopardy-blue focus:border-jeopardy-gold focus:outline-none text-sm"
+                      className="input flex-1 text-sm"
                     />
                     <button
                       onClick={() => handleCustomAdjust(player.id)}
-                      className="bg-jeopardy-blue hover:bg-jeopardy-blue-dark text-white font-semibold px-4 py-2 rounded transition-colors text-sm"
+                      className="btn btn-ghost px-4 py-2 text-sm font-semibold"
                     >
                       Apply
                     </button>
@@ -149,7 +150,7 @@ export default function LiveScoreboard({
 
                 <button
                   onClick={() => handleKick(player.id)}
-                  className="w-full bg-red-900 hover:bg-red-950 text-red-200 font-semibold py-2 rounded transition-colors text-sm"
+                  className="btn btn-danger w-full py-2 text-sm font-semibold"
                 >
                   {confirmKick === player.id ? "Confirm Kick?" : "Kick Player"}
                 </button>

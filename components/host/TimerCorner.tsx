@@ -24,13 +24,12 @@ export default function TimerCorner({
     <div className="fixed top-6 right-6 z-50">
       <div
         className={`
-          w-24 h-24 rounded-full flex items-center justify-center
-          border-4 font-display text-4xl font-black
-          shadow-lg transition-all duration-300
+          card px-6 py-3 flex items-center justify-center
+          font-display text-3xl transition-all duration-300
           ${
             isWarning
-              ? "bg-red-600 border-red-400 text-white animate-pulse scale-110"
-              : "bg-jeopardy-gold border-jeopardy-gold-dark text-jeopardy-blue-dark"
+              ? "bg-red-600/90 border-red-400 text-white animate-pulse scale-110"
+              : "text-jeopardy-gold"
           }
         `}
       >

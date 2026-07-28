@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Anton } from "next/font/google";
+import { Geist, Geist_Mono, Anton, Merriweather } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -18,9 +18,15 @@ const anton = Anton({
   subsets: ["latin"],
 });
 
+const merriweather = Merriweather({
+  variable: "--font-clue",
+  weight: ["400", "700"],
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
-  title: "Jeopardy Icebreaker",
-  description: "Real-time Jeopardy-style icebreaker game",
+  title: "Jeopardy Live",
+  description: "The live quiz game — join on your phone and buzz in.",
 };
 
 export default function RootLayout({
@@ -31,9 +37,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${anton.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${anton.variable} ${merriweather.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-jeopardy-dark text-white">{children}</body>
+      <body className="min-h-full flex flex-col text-white">{children}</body>
     </html>
   );
 }

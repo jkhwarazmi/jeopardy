@@ -5,6 +5,7 @@ import type { Game, Player } from "@/lib/types";
 import { attemptBuzz } from "@/lib/buzz";
 import { cellKey } from "@/lib/types";
 import { useCountdown } from "@/lib/hooks/useCountdown";
+import { money } from "@/lib/format";
 
 interface BuzzerProps {
   game: Game;
@@ -103,94 +104,81 @@ export default function Buzzer({
     });
   };
 
-  // ARMED: dimmed red, disabled
+  // ARMED: dimmed blue, disabled
   if (localState === "armed") {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center px-6">
-        <div className="w-full max-w-md space-y-6">
-          <button
-            disabled
-            className="w-full aspect-square max-w-sm mx-auto rounded-full bg-red-900/30 border-8 border-red-900/50 flex items-center justify-center cursor-not-allowed"
-          >
-            <span className="text-white/40 font-display text-3xl text-center px-8">
-              GET READY...
-            </span>
-          </button>
+      <div className="flex-1 flex flex-col items-center justify-center px-6 pb-safe">
+        <div className="text-center mb-6">
+          <p className="font-display text-money text-3xl">{money(self.score)}</p>
+        </div>
 
-          <div className="text-center">
-            <p className="text-white/50 text-sm">Buzzer goes live soon</p>
-          </div>
+        <button
+          disabled
+          className="w-[70vw] h-[70vw] max-w-[340px] max-h-[340px] rounded-full bg-jeopardy-blue/40 border-4 border-jeopardy-blue/50 flex items-center justify-center cursor-not-allowed"
+        >
+          <span className="font-display text-white/50 text-4xl uppercase">
+            GET READY…
+          </span>
+        </button>
 
-          <div className="bg-jeopardy-blue-dark rounded-lg p-4 text-center">
-            <p className="text-white/70 text-sm mb-1">Your Score</p>
-            <p className="text-jeopardy-gold font-display text-3xl">
-              ${self.score}
-            </p>
-          </div>
+        <div className="mt-8 text-center">
+          <p className="text-white/70 text-sm">Buzzer goes live soon</p>
         </div>
       </div>
     );
   }
 
-  // LIVE: glowing red, enabled
+  // LIVE: glowing gold, enabled
   if (localState === "live") {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center px-6">
-        <div className="w-full max-w-md space-y-6">
-          <button
-            onPointerDown={handleBuzz}
-            className="w-full aspect-square max-w-sm mx-auto rounded-full bg-red-600 border-8 border-red-500 flex items-center justify-center shadow-[0_0_40px_rgba(220,38,38,0.6)] hover:shadow-[0_0_60px_rgba(220,38,38,0.8)] active:scale-95 transition-all focus:outline-none focus:ring-8 focus:ring-red-500/50"
-          >
-            <span className="text-white font-display text-5xl">BUZZ!</span>
-          </button>
+      <div className="flex-1 flex flex-col items-center justify-center px-6 pb-safe">
+        <div className="text-center mb-6">
+          <p className="font-display text-money text-3xl">{money(self.score)}</p>
+        </div>
 
-          <div className="text-center">
-            {secondsLeft !== null && (
-              <p className="text-white font-display text-2xl">
-                {secondsLeft}s
-              </p>
-            )}
-          </div>
+        <button
+          onPointerDown={handleBuzz}
+          className="w-[70vw] h-[70vw] max-w-[340px] max-h-[340px] rounded-full bg-gradient-to-br from-jeopardy-gold to-jeopardy-gold-dark border-4 border-jeopardy-gold flex items-center justify-center shadow-lg hover:shadow-xl active:scale-95 transition-all focus:outline-none focus:ring-8 focus:ring-jeopardy-gold/50 animate-gold-pulse"
+        >
+          <span className="font-display text-jeopardy-dark text-5xl uppercase">
+            BUZZ!
+          </span>
+        </button>
 
-          <div className="bg-jeopardy-blue-dark rounded-lg p-4 text-center">
-            <p className="text-white/70 text-sm mb-1">Your Score</p>
-            <p className="text-jeopardy-gold font-display text-3xl">
-              ${self.score}
+        <div className="mt-8 text-center">
+          {secondsLeft !== null && (
+            <p className="text-white font-display text-2xl">
+              {secondsLeft}s
             </p>
-          </div>
+          )}
         </div>
       </div>
     );
   }
 
-  // YOU: green, you buzzed
+  // YOU: gold, you buzzed
   if (localState === "you") {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center px-6">
-        <div className="w-full max-w-md space-y-6">
-          <div className="w-full aspect-square max-w-sm mx-auto rounded-full bg-green-600 border-8 border-green-500 flex items-center justify-center shadow-[0_0_40px_rgba(22,163,74,0.6)]">
-            <div className="text-center px-8">
-              <p className="text-white font-display text-4xl mb-2">
-                YOU BUZZED
-              </p>
-              <p className="text-white/90 text-xl">ANSWER OUT LOUD!</p>
-            </div>
-          </div>
+      <div className="flex-1 flex flex-col items-center justify-center px-6 pb-safe">
+        <div className="text-center mb-6">
+          <p className="font-display text-money text-3xl">{money(self.score)}</p>
+        </div>
 
-          <div className="text-center">
-            {game.status === "buzzed" && secondsLeft !== null && (
-              <p className="text-white font-display text-5xl">
-                {secondsLeft}s
-              </p>
-            )}
-          </div>
-
-          <div className="bg-jeopardy-blue-dark rounded-lg p-4 text-center">
-            <p className="text-white/70 text-sm mb-1">Your Score</p>
-            <p className="text-jeopardy-gold font-display text-3xl">
-              ${self.score}
+        <div className="w-[70vw] h-[70vw] max-w-[340px] max-h-[340px] rounded-full bg-gradient-to-br from-jeopardy-gold to-jeopardy-gold-dark border-4 border-jeopardy-gold flex items-center justify-center shadow-lg animate-pop-in">
+          <div className="text-center px-8">
+            <p className="font-display text-jeopardy-dark text-4xl uppercase mb-2">
+              YOU'RE IN!
             </p>
+            <p className="text-jeopardy-dark/90 text-lg font-semibold">ANSWER OUT LOUD!</p>
           </div>
+        </div>
+
+        <div className="mt-8 text-center">
+          {game.status === "buzzed" && secondsLeft !== null && (
+            <p className="text-white font-display text-5xl">
+              {secondsLeft}s
+            </p>
+          )}
         </div>
       </div>
     );
@@ -202,23 +190,24 @@ export default function Buzzer({
       players.find((p) => p.id === game.buzzedPlayerId)?.name ?? "Someone";
 
     return (
-      <div className="flex-1 flex flex-col items-center justify-center px-6">
-        <div className="w-full max-w-md space-y-6">
-          <div className="w-full aspect-square max-w-sm mx-auto rounded-full bg-gray-700 border-8 border-gray-600 flex items-center justify-center">
-            <div className="text-center px-8">
-              <p className="text-white/70 font-display text-3xl">
-                {buzzedPlayer}
-              </p>
-              <p className="text-white/90 text-xl mt-2">buzzed first</p>
-            </div>
-          </div>
+      <div className="flex-1 flex flex-col items-center justify-center px-6 pb-safe">
+        <div className="text-center mb-6">
+          <p className="font-display text-money text-3xl">{money(self.score)}</p>
+        </div>
 
-          <div className="bg-jeopardy-blue-dark rounded-lg p-4 text-center">
-            <p className="text-white/70 text-sm mb-1">Your Score</p>
-            <p className="text-jeopardy-gold font-display text-3xl">
-              ${self.score}
+        <div className="w-[70vw] h-[70vw] max-w-[340px] max-h-[340px] rounded-full bg-jeopardy-blue-dark/60 border-4 border-jeopardy-blue-dark flex items-center justify-center">
+          <div className="text-center px-8">
+            <p className="text-white/70 font-display text-3xl uppercase">
+              {buzzedPlayer}
             </p>
+            <p className="text-white/50 text-lg mt-2">buzzed first</p>
           </div>
+        </div>
+
+        <div className="mt-8 text-center">
+          <p className="text-white/70 text-sm">
+            If they get it wrong, you can buzz again
+          </p>
         </div>
       </div>
     );
@@ -227,23 +216,22 @@ export default function Buzzer({
   // OUT: locked out (answered wrong)
   if (localState === "out") {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center px-6">
-        <div className="w-full max-w-md space-y-6">
-          <div className="w-full aspect-square max-w-sm mx-auto rounded-full bg-red-950 border-8 border-red-900 flex items-center justify-center">
-            <div className="text-center px-8">
-              <p className="text-red-300 font-display text-3xl">LOCKED OUT</p>
-              <p className="text-red-200/70 text-lg mt-2">
-                No more buzzing this question
-              </p>
-            </div>
-          </div>
+      <div className="flex-1 flex flex-col items-center justify-center px-6 pb-safe">
+        <div className="text-center mb-6">
+          <p className="font-display text-money text-3xl">{money(self.score)}</p>
+        </div>
 
-          <div className="bg-jeopardy-blue-dark rounded-lg p-4 text-center">
-            <p className="text-white/70 text-sm mb-1">Your Score</p>
-            <p className="text-jeopardy-gold font-display text-3xl">
-              ${self.score}
+        <div className="w-[70vw] h-[70vw] max-w-[340px] max-h-[340px] rounded-full bg-red-950/60 border-4 border-red-900 flex items-center justify-center">
+          <div className="text-center px-8">
+            <p className="text-red-400 font-display text-3xl uppercase">LOCKED OUT</p>
+            <p className="text-red-300/70 text-base mt-2">
+              No more buzzing
             </p>
           </div>
+        </div>
+
+        <div className="mt-8 text-center">
+          <p className="text-white/70 text-sm">Wait for the next question</p>
         </div>
       </div>
     );

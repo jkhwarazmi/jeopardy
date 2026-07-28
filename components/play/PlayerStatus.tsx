@@ -1,5 +1,6 @@
 import type { Player, Game } from "@/lib/types";
 import PlayerAvatar from "@/components/shared/PlayerAvatar";
+import { money } from "@/lib/format";
 
 interface PlayerStatusProps {
   self: Player;
@@ -25,20 +26,22 @@ export default function PlayerStatus({ self, game }: PlayerStatusProps) {
 
   return (
     <div className="w-full max-w-md">
-      <div className="bg-jeopardy-blue-dark rounded-lg p-6 space-y-6">
+      <div className="card p-6 space-y-4">
         <div className="flex items-center gap-4">
           <PlayerAvatar player={self} size="lg" />
-          <div className="flex-1">
-            <h2 className="text-white font-bold text-xl">{self.name}</h2>
-            <p className="text-jeopardy-gold font-display text-2xl">
-              ${self.score}
+          <div className="flex-1 min-w-0">
+            <h2 className="text-white font-semibold text-lg truncate">{self.name}</h2>
+            <p className="font-display text-money text-2xl">
+              {money(self.score)}
             </p>
           </div>
         </div>
 
-        <div className="bg-jeopardy-dark rounded p-4 text-center">
-          <p className="text-white/90">{message}</p>
-        </div>
+        {message && (
+          <div className="text-center">
+            <p className="text-white/70 text-sm">{message}</p>
+          </div>
+        )}
       </div>
     </div>
   );

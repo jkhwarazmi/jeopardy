@@ -131,11 +131,11 @@ export default function SelfieCapture({ onCapture, skipLabel = "Continue without
   if (preview) {
     return (
       <div className="space-y-4">
-        <div className="bg-jeopardy-blue-dark rounded-lg p-4">
+        <div className="flex justify-center">
           <img
             src={preview}
             alt="Your selfie"
-            className="w-64 h-64 mx-auto rounded-lg border-4 border-jeopardy-gold object-cover"
+            className="w-64 h-64 rounded-2xl border-2 border-jeopardy-gold object-cover"
           />
         </div>
         <div className="flex gap-3">
@@ -143,28 +143,28 @@ export default function SelfieCapture({ onCapture, skipLabel = "Continue without
             <>
               <button
                 onClick={handleUploadInstead}
-                className="flex-1 py-3 bg-jeopardy-blue hover:bg-jeopardy-blue-dark text-white font-semibold rounded-lg transition-colors"
+                className="btn btn-ghost flex-1"
               >
-                Choose a Different Photo
+                Choose Different
               </button>
               <button
                 onClick={handleRetake}
-                className="flex-1 py-3 bg-jeopardy-blue hover:bg-jeopardy-blue-dark text-white font-semibold rounded-lg transition-colors"
+                className="btn btn-ghost flex-1"
               >
-                Use Camera Instead
+                Use Camera
               </button>
             </>
           ) : (
             <>
               <button
                 onClick={handleRetake}
-                className="flex-1 py-3 bg-jeopardy-blue hover:bg-jeopardy-blue-dark text-white font-semibold rounded-lg transition-colors"
+                className="btn btn-ghost flex-1"
               >
-                Retake Photo
+                Retake
               </button>
               <button
                 onClick={handleUploadInstead}
-                className="flex-1 py-3 bg-jeopardy-blue hover:bg-jeopardy-blue-dark text-white font-semibold rounded-lg transition-colors"
+                className="btn btn-ghost flex-1"
               >
                 Upload Instead
               </button>
@@ -173,7 +173,7 @@ export default function SelfieCapture({ onCapture, skipLabel = "Continue without
         </div>
         <button
           onClick={handleUse}
-          className="w-full py-4 bg-jeopardy-gold hover:bg-jeopardy-gold-dark text-jeopardy-dark font-bold text-lg rounded-lg transition-colors"
+          className="btn btn-gold w-full"
         >
           Use This Photo
         </button>
@@ -198,8 +198,8 @@ export default function SelfieCapture({ onCapture, skipLabel = "Continue without
   if (mode === "camera" && !error) {
     return (
       <div className="space-y-4">
-        <div className="bg-jeopardy-blue-dark rounded-lg p-4 relative overflow-hidden">
-          <div className="w-64 h-64 mx-auto relative overflow-hidden rounded-lg">
+        <div className="relative overflow-hidden rounded-2xl">
+          <div className="w-64 h-64 mx-auto relative overflow-hidden rounded-2xl border-2 border-jeopardy-gold">
             <video
               ref={videoRef}
               autoPlay
@@ -213,14 +213,14 @@ export default function SelfieCapture({ onCapture, skipLabel = "Continue without
 
         <button
           onClick={handleSnap}
-          className="w-full py-4 bg-jeopardy-gold hover:bg-jeopardy-gold-dark text-jeopardy-dark font-bold text-lg rounded-lg transition-colors"
+          className="btn btn-gold w-full"
         >
           Snap
         </button>
 
         <button
           onClick={() => setMode("upload")}
-          className="w-full py-2 text-white/70 hover:text-white transition-colors text-sm"
+          className="btn btn-ghost w-full"
         >
           Upload a photo instead
         </button>
@@ -252,9 +252,9 @@ export default function SelfieCapture({ onCapture, skipLabel = "Continue without
         </div>
       )}
 
-      <div className="bg-jeopardy-blue-dark rounded-lg p-6">
+      <div className="text-center">
         <label className="block">
-          <span className="text-white font-semibold mb-3 block text-center">
+          <span className="text-white font-semibold mb-3 block">
             Choose a photo
           </span>
           <input
@@ -262,7 +262,7 @@ export default function SelfieCapture({ onCapture, skipLabel = "Continue without
             accept="image/*"
             capture="user"
             onChange={handleFileUpload}
-            className="w-full text-white file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-jeopardy-gold file:text-jeopardy-dark file:font-semibold hover:file:bg-jeopardy-gold-dark file:cursor-pointer"
+            className="w-full text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-jeopardy-gold file:text-jeopardy-dark file:font-semibold hover:file:bg-jeopardy-gold-dark file:cursor-pointer file:transition-colors"
           />
         </label>
       </div>
@@ -270,7 +270,7 @@ export default function SelfieCapture({ onCapture, skipLabel = "Continue without
       {!error && (
         <button
           onClick={() => setMode("camera")}
-          className="w-full py-2 text-white/70 hover:text-white transition-colors text-sm"
+          className="btn btn-ghost w-full"
         >
           Use camera instead
         </button>

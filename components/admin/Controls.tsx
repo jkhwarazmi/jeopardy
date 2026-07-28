@@ -4,6 +4,7 @@ import type { Game, Player, AdminAction } from "@/lib/types";
 import { useCountdown } from "@/lib/hooks/useCountdown";
 import { useState } from "react";
 import FinalControls from "@/components/admin/FinalControls";
+import { money } from "@/lib/format";
 
 interface ControlsProps {
   game: Game;
@@ -37,15 +38,17 @@ export default function Controls({ game, players, act, busy }: ControlsProps) {
   if (game.status === "lobby") {
     return (
       <div className="space-y-4">
-        <div className="bg-jeopardy-blue-dark rounded-lg p-4">
-          <p className="text-white/70 text-sm mb-1">Players joined</p>
+        <div className="card p-4">
+          <p className="font-display text-jeopardy-gold text-xs uppercase tracking-wide mb-1">
+            LOBBY
+          </p>
           <p className="text-white font-display text-3xl">{players.length}</p>
         </div>
 
         <button
           onClick={() => act({ type: "start_game" })}
           disabled={busy || players.length === 0}
-          className="w-full bg-jeopardy-gold hover:bg-jeopardy-gold-dark text-jeopardy-dark font-bold text-2xl py-6 rounded-lg transition-colors focus:outline-none focus:ring-4 focus:ring-jeopardy-gold/50 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="btn btn-gold w-full min-h-12 py-6 text-2xl font-bold"
         >
           START GAME
         </button>
@@ -55,7 +58,7 @@ export default function Controls({ game, players, act, busy }: ControlsProps) {
             act({ type: "toggle_lobby_locked", locked: !game.lobbyLocked })
           }
           disabled={busy}
-          className="w-full bg-jeopardy-blue hover:bg-jeopardy-blue-dark text-white font-semibold py-3 rounded-lg transition-colors focus:outline-none focus:ring-4 focus:ring-jeopardy-blue/50 disabled:opacity-50"
+          className="btn btn-ghost w-full min-h-12 py-3 font-semibold"
         >
           {game.lobbyLocked ? "Unlock" : "Lock"} Lobby
         </button>
@@ -66,7 +69,10 @@ export default function Controls({ game, players, act, busy }: ControlsProps) {
   if (game.status === "playing") {
     return (
       <div className="space-y-4">
-        <div className="bg-jeopardy-blue-dark rounded-lg p-4">
+        <div className="card p-4">
+          <p className="font-display text-jeopardy-gold text-xs uppercase tracking-wide mb-1">
+            PLAYING
+          </p>
           <p className="text-white/80">
             Waiting for <strong>{pickerName}</strong> to pick
           </p>
@@ -78,7 +84,7 @@ export default function Controls({ game, players, act, busy }: ControlsProps) {
         <button
           onClick={() => confirmAndAct("final", { type: "start_final_wager" })}
           disabled={busy}
-          className="w-full bg-jeopardy-gold hover:bg-jeopardy-gold-dark text-jeopardy-dark font-bold py-3 rounded-lg transition-colors focus:outline-none focus:ring-4 focus:ring-jeopardy-gold/50 disabled:opacity-50"
+          className="btn btn-gold w-full min-h-12 py-3 font-bold"
         >
           {confirmAction === "final" ? "Confirm?" : "Final Jeopardy →"}
         </button>
@@ -87,7 +93,7 @@ export default function Controls({ game, players, act, busy }: ControlsProps) {
           <button
             onClick={() => confirmAndAct("next_board", { type: "next_board" })}
             disabled={busy}
-            className="w-full bg-jeopardy-blue hover:bg-jeopardy-blue-dark text-white font-semibold py-3 rounded-lg transition-colors focus:outline-none focus:ring-4 focus:ring-jeopardy-blue/50 disabled:opacity-50"
+            className="btn btn-ghost w-full min-h-12 py-3 font-semibold"
           >
             {confirmAction === "next_board" ? "Confirm?" : "Next Board →"}
           </button>
@@ -107,7 +113,10 @@ export default function Controls({ game, players, act, busy }: ControlsProps) {
 
     return (
       <div className="space-y-4">
-        <div className="bg-jeopardy-blue-dark rounded-lg p-4 space-y-3">
+        <div className="card p-4 space-y-3">
+          <p className="font-display text-jeopardy-gold text-xs uppercase tracking-wide">
+            CLUE OPEN
+          </p>
           <div>
             <p className="text-white/70 text-xs uppercase tracking-wide mb-1">
               Category
@@ -118,8 +127,8 @@ export default function Controls({ game, players, act, busy }: ControlsProps) {
             <p className="text-white/70 text-xs uppercase tracking-wide mb-1">
               Points
             </p>
-            <p className="text-jeopardy-gold font-display text-2xl">
-              ${points}
+            <p className="font-display text-money text-2xl">
+              {money(points)}
             </p>
           </div>
           <div>
@@ -139,7 +148,7 @@ export default function Controls({ game, players, act, busy }: ControlsProps) {
         </div>
 
         {secondsLeft !== null && (
-          <div className="bg-jeopardy-dark rounded-lg p-3 text-center">
+          <div className="card p-3 text-center">
             <p className="text-white font-display text-3xl">{secondsLeft}s</p>
           </div>
         )}
@@ -147,7 +156,7 @@ export default function Controls({ game, players, act, busy }: ControlsProps) {
         <button
           onClick={() => confirmAndAct("skip", { type: "skip_question" })}
           disabled={busy}
-          className="w-full bg-red-700 hover:bg-red-800 text-white font-semibold py-3 rounded-lg transition-colors focus:outline-none focus:ring-4 focus:ring-red-700/50 disabled:opacity-50"
+          className="btn btn-ghost w-full min-h-12 py-3 font-semibold"
         >
           {confirmAction === "skip" ? "Confirm Skip?" : "Skip / Void Question"}
         </button>
@@ -166,9 +175,9 @@ export default function Controls({ game, players, act, busy }: ControlsProps) {
 
     return (
       <div className="space-y-4">
-        <div className="bg-green-900/50 border-2 border-green-500 rounded-lg p-6 text-center">
-          <p className="text-green-200 text-sm uppercase tracking-wide mb-2">
-            Buzzed
+        <div className="card-gold p-6 text-center">
+          <p className="font-display text-jeopardy-gold text-xs uppercase tracking-wide mb-2">
+            BUZZED
           </p>
           <p className="text-white font-bold text-3xl">
             {buzzedPlayer?.name ?? "Unknown"}
@@ -184,25 +193,25 @@ export default function Controls({ game, players, act, busy }: ControlsProps) {
           <button
             onClick={() => act({ type: "mark_correct" })}
             disabled={busy}
-            className="bg-green-600 hover:bg-green-700 text-white font-bold text-xl py-8 rounded-lg transition-colors focus:outline-none focus:ring-4 focus:ring-green-600/50 disabled:opacity-50"
+            className="btn btn-gold min-h-12 py-8 text-xl font-bold"
           >
             CORRECT
             <br />
-            <span className="text-2xl">+{points}</span>
+            <span className="text-2xl">{money(points)}</span>
           </button>
 
           <button
             onClick={() => act({ type: "mark_incorrect" })}
             disabled={busy}
-            className="bg-red-600 hover:bg-red-700 text-white font-bold text-xl py-8 rounded-lg transition-colors focus:outline-none focus:ring-4 focus:ring-red-600/50 disabled:opacity-50"
+            className="btn btn-danger min-h-12 py-8 text-xl font-bold"
           >
             WRONG
             <br />
-            <span className="text-2xl">−{points}</span>
+            <span className="text-2xl">{money(-points)}</span>
           </button>
         </div>
 
-        <div className="bg-jeopardy-blue-dark rounded-lg p-3">
+        <div className="card p-3">
           <p className="text-jeopardy-gold text-xs uppercase tracking-wide mb-1">
             Answer
           </p>
@@ -212,7 +221,7 @@ export default function Controls({ game, players, act, busy }: ControlsProps) {
         <button
           onClick={() => confirmAndAct("skip", { type: "skip_question" })}
           disabled={busy}
-          className="w-full bg-red-700 hover:bg-red-800 text-white font-semibold py-3 rounded-lg transition-colors focus:outline-none focus:ring-4 focus:ring-red-700/50 disabled:opacity-50"
+          className="btn btn-ghost w-full min-h-12 py-3 font-semibold"
         >
           {confirmAction === "skip" ? "Confirm Skip?" : "Skip / Void Question"}
         </button>
@@ -234,9 +243,9 @@ export default function Controls({ game, players, act, busy }: ControlsProps) {
 
     return (
       <div className="space-y-4">
-        <div className="bg-jeopardy-blue-dark rounded-lg p-4 space-y-2">
-          <p className="text-jeopardy-gold text-xs uppercase tracking-wide">
-            Answer
+        <div className="card p-4 space-y-2">
+          <p className="font-display text-jeopardy-gold text-xs uppercase tracking-wide">
+            ANSWER REVEAL
           </p>
           <p className="text-white font-semibold text-lg">{cellData.answer}</p>
           <p className="text-white/70 text-sm mt-2">{whoGotIt}</p>
@@ -245,7 +254,7 @@ export default function Controls({ game, players, act, busy }: ControlsProps) {
         <button
           onClick={() => act({ type: "close_question" })}
           disabled={busy}
-          className="w-full bg-jeopardy-gold hover:bg-jeopardy-gold-dark text-jeopardy-dark font-bold text-2xl py-6 rounded-lg transition-colors focus:outline-none focus:ring-4 focus:ring-jeopardy-gold/50 disabled:opacity-50"
+          className="btn btn-gold w-full min-h-12 py-6 text-2xl font-bold"
         >
           CONTINUE →
         </button>
@@ -269,20 +278,22 @@ export default function Controls({ game, players, act, busy }: ControlsProps) {
 
     return (
       <div className="space-y-4">
-        <div className="bg-jeopardy-blue-dark rounded-lg p-6 space-y-4">
-          <p className="text-white font-bold text-xl text-center">Game Over</p>
+        <div className="card p-6 space-y-4">
+          <p className="font-display text-jeopardy-gold text-xs uppercase tracking-wide text-center">
+            GAME OVER
+          </p>
 
           {/* Winner(s) */}
           {winners.length > 0 && (
-            <div className="bg-jeopardy-gold/20 border-2 border-jeopardy-gold rounded-lg p-4">
-              <p className="text-jeopardy-gold text-sm uppercase tracking-wide mb-2">
+            <div className="card-gold p-4">
+              <p className="font-display text-jeopardy-gold text-sm uppercase tracking-wide mb-2">
                 Winner{winners.length > 1 ? "s" : ""}
               </p>
               {winners.map((w) => (
                 <div key={w.id} className="flex justify-between items-center text-white">
-                  <span className="font-semibold">{w.name}</span>
-                  <span className="text-jeopardy-gold font-display text-xl">
-                    ${w.score.toLocaleString()}
+                  <span className="font-semibold truncate">{w.name}</span>
+                  <span className="font-display text-money text-xl">
+                    {money(w.score)}
                   </span>
                 </div>
               ))}
@@ -309,16 +320,16 @@ export default function Controls({ game, players, act, busy }: ControlsProps) {
                 >
                   <div className="flex items-center gap-2">
                     <span className="text-white/50 text-sm w-6">#{rank}</span>
-                    <span className="text-white font-semibold text-sm">
+                    <span className="text-white font-semibold text-sm truncate">
                       {player.name}
                     </span>
                   </div>
                   <span
                     className={`font-display text-lg ${
-                      player.score >= 0 ? "text-jeopardy-gold" : "text-red-400"
+                      player.score >= 0 ? "text-money" : "text-red-400"
                     }`}
                   >
-                    ${player.score.toLocaleString()}
+                    {money(player.score)}
                   </span>
                 </div>
               );

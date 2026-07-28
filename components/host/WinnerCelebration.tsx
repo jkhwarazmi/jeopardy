@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import type { Game, Player } from "@/lib/types";
 import PlayerAvatar from "@/components/shared/PlayerAvatar";
+import { money } from "@/lib/format";
 
 interface WinnerCelebrationProps {
   game: Game;
@@ -82,8 +83,8 @@ export default function WinnerCelebration({ game, players }: WinnerCelebrationPr
   if (players.length === 0) {
     return (
       <div className="h-full flex items-center justify-center">
-        <div className="bg-jeopardy-blue-dark border-4 border-jeopardy-gold rounded-2xl p-12">
-          <p className="text-white font-display text-6xl">GAME OVER</p>
+        <div className="card-gold p-12">
+          <p className="text-white font-display text-5xl">GAME OVER</p>
         </div>
       </div>
     );
@@ -94,7 +95,7 @@ export default function WinnerCelebration({ game, players }: WinnerCelebrationPr
   const remaining = players.filter((p) => p.score < maxScore).sort((a, b) => b.score - a.score);
 
   return (
-    <div className="h-full flex flex-col items-center justify-center px-8 py-12 overflow-y-auto bg-jeopardy-dark relative">
+    <div className="h-full flex flex-col items-center justify-center px-8 py-12 overflow-y-auto relative">
       {/* Winner(s) */}
       <div className="mb-12 flex flex-wrap gap-12 justify-center items-center animate-winner-zoom">
         {winners.map((winner) => (
@@ -113,20 +114,20 @@ export default function WinnerCelebration({ game, players }: WinnerCelebrationPr
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full bg-jeopardy-blue flex items-center justify-center font-display text-jeopardy-gold text-9xl">
+                <div className="w-full h-full bg-jeopardy-ink flex items-center justify-center font-display text-jeopardy-gold text-9xl">
                   {winner.name.charAt(0).toUpperCase()}
                 </div>
               )}
             </div>
 
             {/* Name */}
-            <p className="text-white font-display text-7xl mb-4">
+            <p className="text-white font-display text-6xl mb-4">
               {winner.name}
             </p>
 
             {/* Score */}
-            <p className="text-jeopardy-gold font-display text-6xl">
-              ${winner.score.toLocaleString()}
+            <p className="font-display text-money text-5xl">
+              {money(winner.score)}
             </p>
           </div>
         ))}
@@ -134,7 +135,7 @@ export default function WinnerCelebration({ game, players }: WinnerCelebrationPr
 
       {/* "WINNER" or "WINNERS" banner */}
       <div className="mb-16">
-        <p className="text-jeopardy-gold font-display text-8xl tracking-wider">
+        <p className="font-display text-money text-7xl tracking-wider">
           {winners.length > 1 ? "WINNERS!" : "WINNER!"}
         </p>
       </div>
@@ -145,7 +146,7 @@ export default function WinnerCelebration({ game, players }: WinnerCelebrationPr
           <h3 className="text-white/70 font-display text-3xl mb-6 text-center">
             Final Standings
           </h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {remaining.map((player, idx) => {
               const rank = winners.length + idx + 1;
               let accentColor = "border-white/30";
@@ -156,17 +157,17 @@ export default function WinnerCelebration({ game, players }: WinnerCelebrationPr
               return (
                 <div
                   key={player.id}
-                  className={`bg-jeopardy-blue-dark rounded-lg p-4 border-3 ${accentColor} flex flex-col items-center gap-3`}
+                  className={`card p-4 border-2 ${accentColor} flex flex-col items-center gap-3`}
                 >
                   <div className="text-white/50 font-display text-xl">
                     #{rank}
                   </div>
                   <PlayerAvatar player={player} size="lg" />
-                  <p className="text-white font-semibold text-lg text-center">
+                  <p className="text-white font-semibold text-lg text-center truncate max-w-[150px]">
                     {player.name}
                   </p>
-                  <p className="text-jeopardy-gold font-display text-2xl">
-                    ${player.score.toLocaleString()}
+                  <p className="font-display text-money text-2xl">
+                    {money(player.score)}
                   </p>
                 </div>
               );

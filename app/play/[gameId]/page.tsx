@@ -12,6 +12,7 @@ import Buzzer from "@/components/play/Buzzer";
 import WagerForm from "@/components/play/WagerForm";
 import FinalAnswerForm from "@/components/play/FinalAnswerForm";
 import EditProfile from "@/components/play/EditProfile";
+import { money, moneyDelta, ordinal } from "@/lib/format";
 
 export default function PlayPage({
   params,
@@ -70,10 +71,10 @@ export default function PlayPage({
   if (gameError || !game) {
     return (
       <div className="flex-1 flex items-center justify-center px-6">
-        <div className="bg-red-900/50 border-2 border-red-500 text-red-200 px-6 py-4 rounded-lg text-center max-w-md space-y-4">
+        <div className="card p-6 text-center max-w-md space-y-4 border-red-500">
           <div>
-            <p className="font-semibold mb-2">Something went wrong</p>
-            <p className="text-sm">
+            <p className="font-semibold text-red-400 mb-2">Something went wrong</p>
+            <p className="text-white/70 text-sm">
               {gameError || "This game does not exist or has been deleted."}
             </p>
           </div>
@@ -92,8 +93,8 @@ export default function PlayPage({
   if (self?.isKicked) {
     return (
       <div className="flex-1 flex items-center justify-center px-6">
-        <div className="bg-red-900/50 border-2 border-red-500 text-red-200 px-6 py-4 rounded-lg text-center max-w-md">
-          <p className="font-semibold text-lg">You were removed from the game</p>
+        <div className="card p-6 text-center max-w-md border-red-500">
+          <p className="font-semibold text-lg text-red-400">You were removed from the game</p>
         </div>
       </div>
     );
@@ -105,8 +106,8 @@ export default function PlayPage({
     if (game.lobbyLocked || game.status === "finished") {
       return (
         <div className="flex-1 flex items-center justify-center px-6">
-          <div className="bg-jeopardy-blue-dark border-2 border-jeopardy-blue text-white px-6 py-4 rounded-lg text-center max-w-md">
-            <p className="font-semibold text-lg">
+          <div className="card p-6 text-center max-w-md">
+            <p className="font-semibold text-lg text-white">
               This game isn&apos;t accepting players
             </p>
           </div>
@@ -119,7 +120,7 @@ export default function PlayPage({
       return (
         <div className="flex-1 flex flex-col items-center justify-center px-6 py-8">
           <div className="w-full max-w-md space-y-6">
-            <h2 className="font-display text-3xl text-jeopardy-gold text-center">
+            <h2 className="font-display text-3xl text-jeopardy-gold text-center uppercase">
               Take Your Selfie
             </h2>
             {joinError && (
@@ -127,7 +128,9 @@ export default function PlayPage({
                 {joinError}
               </div>
             )}
-            <SelfieCapture onCapture={handleSelfieCapture} />
+            <div className="card p-6">
+              <SelfieCapture onCapture={handleSelfieCapture} />
+            </div>
             <button
               onClick={() => setJoinStep("name")}
               disabled={joining}
@@ -145,14 +148,14 @@ export default function PlayPage({
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
         <div className="w-full max-w-md space-y-8">
           <div className="text-center space-y-2">
-            <h1 className="font-display text-4xl text-jeopardy-gold">
+            <h1 className="font-display text-4xl text-jeopardy-gold uppercase">
               {game.config.title}
             </h1>
             <p className="text-white/70">Join the game</p>
           </div>
 
           <form onSubmit={handleStartJoin} className="space-y-6">
-            <div className="bg-jeopardy-blue-dark rounded-lg p-6 space-y-4">
+            <div className="card p-6 space-y-4">
               <label className="block">
                 <span className="text-white font-semibold mb-2 block">
                   Your Name
@@ -161,7 +164,7 @@ export default function PlayPage({
                   type="text"
                   value={playerName}
                   onChange={(e) => setPlayerName(e.target.value)}
-                  className="w-full px-4 py-3 bg-jeopardy-dark text-white rounded border-2 border-jeopardy-blue focus:border-jeopardy-gold focus:outline-none"
+                  className="input w-full"
                   placeholder="Enter your name"
                   required
                   maxLength={30}
@@ -177,7 +180,7 @@ export default function PlayPage({
 
             <button
               type="submit"
-              className="w-full bg-jeopardy-gold hover:bg-jeopardy-gold-dark text-jeopardy-dark font-bold text-xl py-4 rounded-lg transition-colors focus:outline-none focus:ring-4 focus:ring-jeopardy-gold/50"
+              className="btn btn-gold w-full text-xl py-4"
             >
               Next
             </button>
@@ -226,16 +229,16 @@ export default function PlayPage({
           <PlayerStatus self={self} game={game} />
 
           {isPicking && (
-            <div className="bg-jeopardy-gold text-jeopardy-dark rounded-lg p-6 text-center">
-              <p className="font-display text-3xl mb-2">YOU PICK!</p>
-              <p className="text-sm">
+            <div className="card-gold p-6 text-center animate-pop-in">
+              <p className="font-display text-3xl text-jeopardy-dark mb-2 uppercase">YOU PICK!</p>
+              <p className="text-jeopardy-dark/80 text-sm">
                 Tell the host your category and amount
               </p>
             </div>
           )}
 
           {!isPicking && (
-            <div className="bg-jeopardy-blue-dark rounded-lg p-4 text-center">
+            <div className="card p-4 text-center">
               <p className="text-white/70">
                 <strong className="text-white">{pickerName}</strong> is
                 picking...
@@ -263,15 +266,15 @@ export default function PlayPage({
   if (game.status === "answer_reveal") {
     return (
       <div className="flex-1 flex items-center justify-center px-6 py-12">
-        <div className="w-full max-w-md space-y-6">
-          <div className="bg-jeopardy-blue-dark rounded-lg p-6 text-center">
-            <p className="text-white text-lg mb-4">
+        <div className="w-full max-w-md">
+          <div className="card p-6 text-center">
+            <p className="text-white text-lg mb-6">
               Answer&apos;s on the big screen
             </p>
-            <div className="bg-jeopardy-dark rounded p-4">
-              <p className="text-white/70 text-sm mb-1">Your Score</p>
-              <p className="text-jeopardy-gold font-display text-3xl">
-                ${self.score}
+            <div className="pt-6 border-t border-white/10">
+              <p className="text-white/70 text-sm mb-2">Your Score</p>
+              <p className="font-display text-money text-3xl">
+                {money(self.score)}
               </p>
             </div>
           </div>
@@ -301,7 +304,7 @@ export default function PlayPage({
 
     const stake = (self.finalWager ?? 0) * multiplier;
     const wagerDisplay =
-      self.finalWager !== null ? `$${self.finalWager}` : "N/A";
+      self.finalWager !== null ? money(self.finalWager) : "N/A";
     const answerDisplay = self.finalAnswer || "(no answer)";
 
     let resultDisplay: React.ReactNode = (
@@ -313,7 +316,7 @@ export default function PlayPage({
         resultDisplay = (
           <div className="bg-green-900/50 border-2 border-green-500 rounded-lg p-4">
             <p className="text-green-200 font-bold text-2xl">
-              CORRECT +${stake}
+              CORRECT {moneyDelta(stake)}
             </p>
           </div>
         );
@@ -321,7 +324,7 @@ export default function PlayPage({
         resultDisplay = (
           <div className="bg-red-900/50 border-2 border-red-500 rounded-lg p-4">
             <p className="text-red-200 font-bold text-2xl">
-              WRONG −${stake}
+              WRONG {moneyDelta(-stake)}
             </p>
           </div>
         );
@@ -353,7 +356,7 @@ export default function PlayPage({
               </p>
               {multiplier > 1 && self.finalWager !== null && (
                 <p className="text-white/60 text-sm mt-1">
-                  ×{multiplier} → ${stake} at stake
+                  ×{multiplier} → {money(stake)} at stake
                 </p>
               )}
             </div>
@@ -371,7 +374,7 @@ export default function PlayPage({
           <div className="bg-jeopardy-dark rounded-lg p-4 text-center">
             <p className="text-white/70 text-sm mb-1">Current Score</p>
             <p className="text-jeopardy-gold font-display text-4xl">
-              ${self.score}
+              {money(self.score)}
             </p>
           </div>
         </div>
@@ -400,7 +403,7 @@ export default function PlayPage({
                 YOU WON!
               </p>
               <p className="text-jeopardy-dark font-bold text-3xl">
-                ${self.score.toLocaleString()}
+                {money(self.score)}
               </p>
             </div>
           ) : (
@@ -420,11 +423,11 @@ export default function PlayPage({
               <div className="bg-jeopardy-dark rounded-lg p-4">
                 <p className="text-white/70 text-sm mb-1">Your Final Score</p>
                 <p className="text-jeopardy-gold font-display text-4xl mb-3">
-                  ${self.score.toLocaleString()}
+                  {money(self.score)}
                 </p>
                 {selfRank > 0 && (
                   <p className="text-white/80 text-lg">
-                    You finished <strong className="text-white">{selfRank}{selfRank === 1 ? "st" : selfRank === 2 ? "nd" : selfRank === 3 ? "rd" : "th"}</strong> of {sortedPlayers.length}
+                    You finished <strong className="text-white">{ordinal(selfRank)}</strong> of {sortedPlayers.length}
                   </p>
                 )}
               </div>

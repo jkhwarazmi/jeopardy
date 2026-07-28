@@ -72,8 +72,8 @@ export default function EditProfile({ self, onSave, onClose }: EditProfileProps)
 
   if (showSelfieCapture) {
     return (
-      <div className="bg-jeopardy-blue-dark rounded-lg p-6 max-w-md w-full">
-        <h2 className="font-display text-jeopardy-gold text-2xl mb-6 text-center">
+      <div className="card p-6 max-w-md w-full">
+        <h2 className="font-display text-jeopardy-gold text-2xl mb-6 text-center uppercase">
           Change Photo
         </h2>
         <SelfieCapture
@@ -86,8 +86,8 @@ export default function EditProfile({ self, onSave, onClose }: EditProfileProps)
   }
 
   return (
-    <div className="bg-jeopardy-blue-dark rounded-lg p-6 max-w-md w-full space-y-6">
-      <h2 className="font-display text-jeopardy-gold text-2xl text-center">
+    <div className="card p-6 max-w-md w-full space-y-6">
+      <h2 className="font-display text-jeopardy-gold text-2xl text-center uppercase">
         Edit Profile
       </h2>
 
@@ -104,7 +104,7 @@ export default function EditProfile({ self, onSave, onClose }: EditProfileProps)
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full px-4 py-3 bg-jeopardy-dark text-white rounded border-2 border-jeopardy-blue focus:border-jeopardy-gold focus:outline-none"
+            className="input w-full"
             placeholder="Enter your name"
             required
             maxLength={30}
@@ -125,7 +125,7 @@ export default function EditProfile({ self, onSave, onClose }: EditProfileProps)
               type="button"
               onClick={handleChangePhoto}
               disabled={saving}
-              className="px-4 py-2 bg-jeopardy-blue hover:bg-jeopardy-blue-dark text-white font-semibold rounded-lg transition-colors disabled:opacity-50 text-sm"
+              className="btn btn-ghost text-sm"
             >
               Change Photo
             </button>
@@ -134,7 +134,7 @@ export default function EditProfile({ self, onSave, onClose }: EditProfileProps)
                 type="button"
                 onClick={handleRemovePhoto}
                 disabled={saving}
-                className="px-4 py-2 bg-jeopardy-blue hover:bg-jeopardy-blue-dark text-white font-semibold rounded-lg transition-colors disabled:opacity-50 text-sm"
+                className="btn btn-ghost text-sm"
               >
                 Remove Photo
               </button>
@@ -148,7 +148,7 @@ export default function EditProfile({ self, onSave, onClose }: EditProfileProps)
           type="button"
           onClick={onClose}
           disabled={saving}
-          className="flex-1 py-3 bg-jeopardy-blue hover:bg-jeopardy-blue-dark text-white font-semibold rounded-lg transition-colors disabled:opacity-50"
+          className="btn btn-ghost flex-1"
         >
           Cancel
         </button>
@@ -156,7 +156,7 @@ export default function EditProfile({ self, onSave, onClose }: EditProfileProps)
           type="button"
           onClick={handleSave}
           disabled={saving}
-          className="flex-1 py-3 bg-jeopardy-gold hover:bg-jeopardy-gold-dark text-jeopardy-dark font-bold rounded-lg transition-colors disabled:opacity-50"
+          className="btn btn-gold flex-1"
         >
           {saving ? "Saving..." : "Save"}
         </button>
