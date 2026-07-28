@@ -82,6 +82,7 @@ export function normalizeGameDoc<T extends GameDoc>(docData: T): T {
   return {
     ...docData,
     finalQuestionIndex: docData.finalQuestionIndex ?? 0,
+    buzzLiveAt: docData.buzzLiveAt ?? null,
     config: { ...docData.config, final },
   };
 }
@@ -90,8 +91,9 @@ export interface TimersConfig {
   /** Seconds a buzzed player has to answer (default 8) */
   answerSeconds: number;
   /** Seconds players may buzz before auto-reveal — includes the host reading
-   *  the question aloud (default 15) */
-  buzzWindowSeconds: number;
+   *  the question aloud. null/omitted = no time limit: no countdown, no
+   *  auto-reveal — the admin ends the question via Reveal Answer / Skip. */
+  buzzWindowSeconds: number | null;
   /** Seconds to type each Final Jeopardy answer. null/omitted = no time
    *  limit — the host ends the phase manually via "Start Reveal". */
   finalAnswerSeconds: number | null;
@@ -149,6 +151,15 @@ export interface GameDoc {
   usedCells: string[];
   /** Wall-clock authoritative deadline for the active countdown */
   timerEndsAt: Timestamp | null;
+  /**
+   * Wall-clock moment buzzing goes live for the current question (anti-jump
+   * delay already applied). Set on open_cell and every buzz-window reopen.
+   * Authoritative source for the buzzer's armed→live flip AND settle-buzz's
+   * stale-record filter — required because timerEndsAt is null when
+   * buzzWindowSeconds is null (untimed). Older docs lack it; readers fall
+   * back to timerEndsAt − buzzWindowSeconds via normalizeGameDoc's null.
+   */
+  buzzLiveAt: Timestamp | null;
   /** When true, new players may not join (rules-enforced) */
   lobbyLocked: boolean;
   /** Which final question is in play (0-based; meaningful during final_*) */
@@ -196,8 +207,9 @@ export function cellKey(board: number, cat: number, row: number): string {
   return `${board}:${cat}:${row}`;
 }
 
-/** Buzzers go live this long after a cell opens (anti-jump). Buzz-live moment
- *  is derived as timerEndsAt - buzzWindowSeconds*1000 (no extra field). */
+/** Buzzers go live this long after a cell opens (anti-jump). The moment is
+ *  stored on the game doc as buzzLiveAt (legacy docs: readers fall back to
+ *  timerEndsAt - buzzWindowSeconds*1000). */
 export const BUZZ_ANTI_JUMP_MS = 500;
 /** Two buzzes within this window tie-break to the lower current score. */
 export const BUZZ_SETTLE_MS = 150;
@@ -217,6 +229,9 @@ export type AdminAction =
   | { type: "open_cell"; cat: number; row: number }
   | { type: "mark_correct" }
   | { type: "mark_incorrect" }
+  /** question_open with no buzz → answer_reveal (the "nobody knows" ending;
+   *  same outcome as buzz_window_timeout — for untimed buzz windows). */
+  | { type: "reveal_answer" }
   | { type: "skip_question" }
   /** answer_reveal → playing (picker already set) */
   | { type: "close_question" }

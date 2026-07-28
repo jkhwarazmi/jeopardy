@@ -76,7 +76,7 @@ Games are defined by a JSON file that you upload or paste when creating a new ga
   },
   "timers": {
     "answerSeconds": 8,
-    "buzzWindowSeconds": 15,
+    "buzzWindowSeconds": null,
     "finalAnswerSeconds": null
   }
 }
@@ -99,7 +99,7 @@ Games are defined by a JSON file that you upload or paste when creating a new ga
   - The legacy single-question shape (`{ "category", "question", "answer" }`) is still accepted and upgraded to a one-question round with multiplier ×1.
 - **`timers`** (object, all optional with defaults below):
   - **`answerSeconds`** (number): Time to answer after buzzing (default: 8).
-  - **`buzzWindowSeconds`** (number): Time window for players to buzz, including reading the clue aloud (default: 15).
+  - **`buzzWindowSeconds`** (number or null): Time window for players to buzz, including reading the clue aloud. `null` or omitted = no time limit — the question stays open until someone buzzes or the host taps "Reveal Answer" / "Skip" on the admin phone (default: null).
   - **`finalAnswerSeconds`** (number or null): Time to type each final answer. `null` or omitted = no time limit — players can answer until the host taps "Start Reveal" on the admin phone (default: null).
 
 ## Sounds

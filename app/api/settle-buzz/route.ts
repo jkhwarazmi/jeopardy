@@ -57,11 +57,13 @@ export async function POST(
 
       // Idempotency / phase guards. The provisional winner exists but the
       // status is still 'question_open' (clients cannot change status).
+      // buzzLiveAt is the authoritative live moment; legacy docs (created
+      // before untimed buzz windows) derive it from timerEndsAt below.
       if (
         game.status !== "question_open" ||
         game.buzzedPlayerId === null ||
         game.currentCell === null ||
-        game.timerEndsAt === null
+        (game.buzzLiveAt === null && game.timerEndsAt === null)
       ) {
         return { settled: false, winnerId: game.buzzedPlayerId ?? null };
       }
@@ -82,12 +84,16 @@ export async function POST(
       const players = new Map<string, PlayerDoc>();
       playersSnap.docs.forEach((d) => players.set(d.id, d.data() as PlayerDoc));
 
-      // Only buzzes from this round: at/after the moment buzzing went live
-      // (timerEndsAt minus the buzz window), minus a skew tolerance. This
-      // excludes stale records from before a wrong answer reopened buzzing.
+      // Only buzzes from this round: at/after the moment buzzing went live,
+      // minus a skew tolerance. This excludes stale records from before a
+      // wrong answer reopened buzzing. buzzLiveAt is authoritative; legacy
+      // docs fall back to timerEndsAt minus the buzz window (both non-null
+      // there, guaranteed by the guard above — legacy docs always have a
+      // numeric buzzWindowSeconds).
       const liveAtMs =
-        game.timerEndsAt.toMillis() -
-        game.config.timers.buzzWindowSeconds * 1000 -
+        (game.buzzLiveAt?.toMillis() ??
+          game.timerEndsAt!.toMillis() -
+            (game.config.timers.buzzWindowSeconds ?? 0) * 1000) -
         WINDOW_EPSILON_MS;
 
       const eligible = buzzSnap.docs

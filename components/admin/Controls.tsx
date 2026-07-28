@@ -153,6 +153,16 @@ export default function Controls({ game, players, act, busy }: ControlsProps) {
           </div>
         )}
 
+        {/* End the question when nobody knows: shows the answer, no score
+            change. Server rejects it if someone has buzzed in the meantime. */}
+        <button
+          onClick={() => confirmAndAct("reveal", { type: "reveal_answer" })}
+          disabled={busy || game.buzzedPlayerId !== null}
+          className="btn btn-gold w-full"
+        >
+          {confirmAction === "reveal" ? "Confirm?" : "Reveal Answer"}
+        </button>
+
         <button
           onClick={() => confirmAndAct("skip", { type: "skip_question" })}
           disabled={busy}

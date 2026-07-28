@@ -97,6 +97,7 @@ export async function POST(
       lockedOutIds: [],
       usedCells: [],
       timerEndsAt: null,
+      buzzLiveAt: null,
       lobbyLocked: false,
       finalQuestionIndex: 0,
       createdAt: FieldValue.serverTimestamp(),
