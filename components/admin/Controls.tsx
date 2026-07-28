@@ -48,7 +48,7 @@ export default function Controls({ game, players, act, busy }: ControlsProps) {
         <button
           onClick={() => act({ type: "start_game" })}
           disabled={busy || players.length === 0}
-          className="btn btn-gold w-full min-h-12 py-6 text-2xl font-bold"
+          className="btn btn-lg btn-gold w-full"
         >
           START GAME
         </button>
@@ -58,7 +58,7 @@ export default function Controls({ game, players, act, busy }: ControlsProps) {
             act({ type: "toggle_lobby_locked", locked: !game.lobbyLocked })
           }
           disabled={busy}
-          className="btn btn-ghost w-full min-h-12 py-3 font-semibold"
+          className="btn btn-ghost w-full"
         >
           {game.lobbyLocked ? "Unlock" : "Lock"} Lobby
         </button>
@@ -84,7 +84,7 @@ export default function Controls({ game, players, act, busy }: ControlsProps) {
         <button
           onClick={() => confirmAndAct("final", { type: "start_final_wager" })}
           disabled={busy}
-          className="btn btn-gold w-full min-h-12 py-3 font-bold"
+          className="btn btn-gold w-full"
         >
           {confirmAction === "final" ? "Confirm?" : "Final Jeopardy →"}
         </button>
@@ -93,7 +93,7 @@ export default function Controls({ game, players, act, busy }: ControlsProps) {
           <button
             onClick={() => confirmAndAct("next_board", { type: "next_board" })}
             disabled={busy}
-            className="btn btn-ghost w-full min-h-12 py-3 font-semibold"
+            className="btn btn-ghost w-full"
           >
             {confirmAction === "next_board" ? "Confirm?" : "Next Board →"}
           </button>
@@ -156,7 +156,7 @@ export default function Controls({ game, players, act, busy }: ControlsProps) {
         <button
           onClick={() => confirmAndAct("skip", { type: "skip_question" })}
           disabled={busy}
-          className="btn btn-ghost w-full min-h-12 py-3 font-semibold"
+          className="btn btn-ghost w-full"
         >
           {confirmAction === "skip" ? "Confirm Skip?" : "Skip / Void Question"}
         </button>
@@ -193,7 +193,7 @@ export default function Controls({ game, players, act, busy }: ControlsProps) {
           <button
             onClick={() => act({ type: "mark_correct" })}
             disabled={busy}
-            className="btn btn-gold min-h-12 py-8 text-xl font-bold"
+            className="btn btn-lg btn-gold"
           >
             CORRECT
             <br />
@@ -203,7 +203,7 @@ export default function Controls({ game, players, act, busy }: ControlsProps) {
           <button
             onClick={() => act({ type: "mark_incorrect" })}
             disabled={busy}
-            className="btn btn-danger min-h-12 py-8 text-xl font-bold"
+            className="btn btn-lg btn-danger"
           >
             WRONG
             <br />
@@ -221,7 +221,7 @@ export default function Controls({ game, players, act, busy }: ControlsProps) {
         <button
           onClick={() => confirmAndAct("skip", { type: "skip_question" })}
           disabled={busy}
-          className="btn btn-ghost w-full min-h-12 py-3 font-semibold"
+          className="btn btn-ghost w-full"
         >
           {confirmAction === "skip" ? "Confirm Skip?" : "Skip / Void Question"}
         </button>
@@ -254,7 +254,7 @@ export default function Controls({ game, players, act, busy }: ControlsProps) {
         <button
           onClick={() => act({ type: "close_question" })}
           disabled={busy}
-          className="btn btn-gold w-full min-h-12 py-6 text-2xl font-bold"
+          className="btn btn-lg btn-gold w-full"
         >
           CONTINUE →
         </button>

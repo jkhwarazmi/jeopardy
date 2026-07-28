@@ -1,5 +1,5 @@
 {
-  "title": "Office Icebreaker Jeopardy",
+  "title": "Jeopardy",
   "boards": [
     {
       "pointValues": [
@@ -135,12 +135,12 @@
         "answer": "Right next to each other (in the same room)"
       }
     ],
-    "multipliers": [1, 2, 3],
+    "multipliers": [1, 1.5, 2],
     "wagerFloor": 1000
   },
   "timers": {
-    "answerSeconds": 8,
-    "buzzWindowSeconds": 15,
+    "answerSeconds": 10,
+    "buzzWindowSeconds": 20,
     "finalAnswerSeconds": 30
   }
 }

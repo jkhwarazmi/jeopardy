@@ -56,7 +56,7 @@ export default function FinalAnswerForm({
     );
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (expired) return;
 
@@ -201,7 +201,7 @@ export default function FinalAnswerForm({
             <button
               type="submit"
               disabled={submitting || isPencilsDown}
-              className="btn btn-gold w-full text-xl py-5"
+              className="btn btn-lg btn-gold w-full"
             >
               {submitting
                 ? "SUBMITTING..."

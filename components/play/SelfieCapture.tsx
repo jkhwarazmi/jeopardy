@@ -143,13 +143,13 @@ export default function SelfieCapture({ onCapture, skipLabel = "Continue without
             <>
               <button
                 onClick={handleUploadInstead}
-                className="btn btn-ghost flex-1"
+                className="btn btn-sm btn-ghost flex-1"
               >
                 Choose Different
               </button>
               <button
                 onClick={handleRetake}
-                className="btn btn-ghost flex-1"
+                className="btn btn-sm btn-ghost flex-1"
               >
                 Use Camera
               </button>
@@ -158,13 +158,13 @@ export default function SelfieCapture({ onCapture, skipLabel = "Continue without
             <>
               <button
                 onClick={handleRetake}
-                className="btn btn-ghost flex-1"
+                className="btn btn-sm btn-ghost flex-1"
               >
                 Retake
               </button>
               <button
                 onClick={handleUploadInstead}
-                className="btn btn-ghost flex-1"
+                className="btn btn-sm btn-ghost flex-1"
               >
                 Upload Instead
               </button>
@@ -173,7 +173,7 @@ export default function SelfieCapture({ onCapture, skipLabel = "Continue without
         </div>
         <button
           onClick={handleUse}
-          className="btn btn-gold w-full"
+          className="btn btn-lg btn-gold w-full"
         >
           Use This Photo
         </button>
@@ -213,14 +213,14 @@ export default function SelfieCapture({ onCapture, skipLabel = "Continue without
 
         <button
           onClick={handleSnap}
-          className="btn btn-gold w-full"
+          className="btn btn-lg btn-gold w-full"
         >
           Snap
         </button>
 
         <button
           onClick={() => setMode("upload")}
-          className="btn btn-ghost w-full"
+          className="btn btn-sm btn-ghost w-full"
         >
           Upload a photo instead
         </button>
@@ -270,7 +270,7 @@ export default function SelfieCapture({ onCapture, skipLabel = "Continue without
       {!error && (
         <button
           onClick={() => setMode("camera")}
-          className="btn btn-ghost w-full"
+          className="btn btn-sm btn-ghost w-full"
         >
           Use camera instead
         </button>

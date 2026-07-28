@@ -32,7 +32,7 @@ export default function PlayPage({
   const [joinError, setJoinError] = useState("");
   const [editing, setEditing] = useState(false);
 
-  const handleStartJoin = (e: React.FormEvent) => {
+  const handleStartJoin = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (playerName.trim()) {
       setJoinStep("selfie");
@@ -134,7 +134,7 @@ export default function PlayPage({
             <button
               onClick={() => setJoinStep("name")}
               disabled={joining}
-              className="w-full py-3 text-white/70 hover:text-white transition-colors text-sm"
+              className="w-full py-2 text-white/70 hover:text-white transition-colors text-sm"
             >
               Back
             </button>
@@ -180,7 +180,7 @@ export default function PlayPage({
 
             <button
               type="submit"
-              className="btn btn-gold w-full text-xl py-4"
+              className="btn btn-lg btn-gold w-full"
             >
               Next
             </button>

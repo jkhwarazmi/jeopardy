@@ -164,6 +164,23 @@ A fresh session should read CLAUDE.md → BUILD_PROMPT.md → this file, then re
     `editing` state, cleared on successful submit. Buzzer "locked" copy
     corrected ("If they get it wrong, you can buzz again").
 
+- **Button size system** (`npm run build` clean):
+  - Root cause of inconsistent button padding: `.btn` had NO padding — every
+    call site rolled its own (`py-4 text-xl font-bold`, `px-3 py-1`, or
+    nothing). `.btn` now carries default padding (0.75rem 1.25rem); new
+    `.btn-sm` (chips/inline/row controls) and `.btn-lg` (hero CTAs) size
+    modifiers. Convention (documented in globals.css): call sites never add
+    their own padding/font-size/weight utilities — pick a size class.
+  - All ~76 button call sites across 17 files normalized (frontend-builder
+    sweep + architect pass on new/join/PasswordGate). Exempt by design:
+    Buzzer circles, board cells, and tertiary text-link buttons (standard
+    recipe `py-2 text-white/70 hover:text-white transition-colors text-sm`;
+    danger-zone toggle is the red variant). Admin error-banner ✕ got a
+    `p-2 -m-2` tap target + aria-label (was zero-padding).
+  - All 7 `React.FormEvent` handler params typed as
+    `React.FormEvent<HTMLFormElement>` (bare alias deprecated in current
+    @types/react).
+
 ## Next
 
 - Nothing — build complete. Remaining items are user-side (see Known gaps below).

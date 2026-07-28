@@ -8,19 +8,20 @@ export default function Home() {
           JEOPARDY!
         </h1>
         <p className="text-xl md:text-2xl text-white/90 max-w-md">
-          The live quiz show — grab your phone and buzz in
+          The live quiz show <br></br>
+          Grab your phone and buzz in
         </p>
 
         <div className="flex flex-col sm:flex-row gap-6 w-full max-w-md">
           <Link
             href="/join"
-            className="flex-1 btn btn-gold py-6 px-8 text-xl font-bold"
+            className="flex-1 btn btn-lg btn-gold"
           >
             Join a Game
           </Link>
           <Link
             href="/new"
-            className="flex-1 btn btn-blue py-6 px-8 text-xl font-bold"
+            className="flex-1 btn btn-lg btn-blue"
           >
             Host a New Game
           </Link>

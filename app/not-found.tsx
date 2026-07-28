@@ -16,7 +16,7 @@ export default function NotFound() {
 
         <Link
           href="/"
-          className="btn btn-gold px-8 py-4 text-xl font-bold"
+          className="btn btn-lg btn-gold"
         >
           Go to homepage
         </Link>

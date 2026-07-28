@@ -125,7 +125,7 @@ export default function EditProfile({ self, onSave, onClose }: EditProfileProps)
               type="button"
               onClick={handleChangePhoto}
               disabled={saving}
-              className="btn btn-ghost text-sm"
+              className="btn btn-sm btn-ghost"
             >
               Change Photo
             </button>
@@ -134,7 +134,7 @@ export default function EditProfile({ self, onSave, onClose }: EditProfileProps)
                 type="button"
                 onClick={handleRemovePhoto}
                 disabled={saving}
-                className="btn btn-ghost text-sm"
+                className="btn btn-sm btn-ghost"
               >
                 Remove Photo
               </button>

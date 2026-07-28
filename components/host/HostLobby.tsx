@@ -72,7 +72,7 @@ export default function HostLobby({ game, players, joinUrl }: HostLobbyProps) {
             <ol className="text-white space-y-3 text-base leading-relaxed">
               <li className="flex gap-3">
                 <span className="font-display text-jeopardy-gold">1</span>
-                <span>Scan the QR code (or open the link) and enter the join code — add your name and a selfie.</span>
+                <span>Scan the QR code (or open the link) and enter the join code. Add your name and an optional selfie.</span>
               </li>
               <li className="flex gap-3">
                 <span className="font-display text-jeopardy-gold">2</span>
@@ -80,7 +80,7 @@ export default function HostLobby({ game, players, joinUrl }: HostLobbyProps) {
               </li>
               <li className="flex gap-3">
                 <span className="font-display text-jeopardy-gold">3</span>
-                <span>When the buzzer goes live, buzz in! Answer right to win the money and pick next. Answer wrong and it&apos;s deducted — everyone else can buzz again.</span>
+                <span>When the buzzer goes live, buzz in! Answer right to win the money and pick next. Answer wrong and it&apos;s deducted, everyone else can buzz again.</span>
               </li>
               <li className="flex gap-3">
                 <span className="font-display text-jeopardy-gold">4</span>
@@ -88,7 +88,7 @@ export default function HostLobby({ game, players, joinUrl }: HostLobbyProps) {
               </li>
               <li className="flex gap-3">
                 <span className="font-display text-jeopardy-gold">5</span>
-                <span>The Final: {final.questions.length} big question{final.questions.length > 1 ? 's' : ''} with rising stakes ({final.multipliers.map(m => `×${m}`).join(", ")}). Everyone wagers in secret before each clue — you can always wager at least {money(final.wagerFloor)}, even from behind. Right answer: win your wager × the multiplier. Wrong: lose the same.</span>
+                <span>The Final: {final.questions.length} big question{final.questions.length > 1 ? 's' : ''} with rising stakes ({final.multipliers.map(m => `×${m}`).join(", ")}). Everyone wagers in secret before each clue. You can always wager at least {money(final.wagerFloor)}, even from behind. Right answer: win your wager × the multiplier. Wrong: lose the same.</span>
               </li>
               <li className="flex gap-3">
                 <span className="font-display text-jeopardy-gold">6</span>

@@ -124,7 +124,8 @@ export default function AdminPage({
             <p className="text-sm flex-1">{error}</p>
             <button
               onClick={() => setError(null)}
-              className="text-red-200 hover:text-white transition-colors"
+              aria-label="Dismiss error"
+              className="p-2 -m-2 text-red-200 hover:text-white transition-colors"
             >
               ✕
             </button>
@@ -152,7 +153,7 @@ export default function AdminPage({
             <button
               onClick={() => act({ type: "end_game" })}
               disabled={busy}
-              className="btn btn-danger w-full py-3 font-semibold"
+              className="btn btn-danger w-full"
             >
               End Game
             </button>
@@ -168,7 +169,7 @@ export default function AdminPage({
                 }
               }}
               disabled={busy}
-              className="btn btn-danger w-full py-3 font-semibold opacity-80"
+              className="btn btn-danger w-full opacity-80"
             >
               {confirmReset
                 ? "Confirm Reset? (Wipes all scores)"
