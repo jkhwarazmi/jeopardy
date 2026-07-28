@@ -261,6 +261,12 @@ A fresh session should read CLAUDE.md → BUILD_PROMPT.md → this file, then re
     means that step isn't done; then npm run build, update this entry to
     done, commit.
 
+- **No PlayerRail during Final Jeopardy** (`npm run build` clean): host page
+  (app/host/[gameId]/page.tsx) no longer renders the bottom player-icon rail
+  in final_wager / final_answer / final_reveal — FinalRound already shows every
+  player's photo/name/score in its wager & reveal panels, so the rail was
+  redundant. Rail unchanged for playing / question / reveal phases.
+
 ## Next
 
 - Nothing — build complete. Remaining items are user-side (see Known gaps below).

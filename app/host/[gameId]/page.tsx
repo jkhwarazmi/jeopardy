@@ -384,15 +384,14 @@ export default function HostPage({
         </>
       )}
 
+      {/* No PlayerRail during the final round — FinalRound already shows every
+          player's photo/name/score in its wager & reveal panels. */}
       {(game.status === "final_wager" ||
         game.status === "final_answer" ||
         game.status === "final_reveal") && (
-        <>
-          <div className="flex-1 overflow-hidden min-h-0">
-            <FinalRound game={game} players={players} />
-          </div>
-          <PlayerRail players={players} game={game} />
-        </>
+        <div className="flex-1 overflow-hidden min-h-0">
+          <FinalRound game={game} players={players} />
+        </div>
       )}
 
       {game.status === "finished" && (
