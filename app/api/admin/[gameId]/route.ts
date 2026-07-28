@@ -113,6 +113,11 @@ async function applyAction(
   const game = gameSnap.data() as GameDoc;
 
   switch (action.type) {
+    case "verify": {
+      // Password already checked in POST; nothing to mutate.
+      return;
+    }
+
     case "start_game": {
       if (game.status !== "lobby") fail("Game already started");
       const players = activePlayers(await getPlayers(tx, playersRef));
@@ -423,6 +428,11 @@ export async function POST(
         { ok: false, error: "Wrong password" },
         { status: 401 }
       );
+    }
+
+    // Pure password check — no state to touch.
+    if (body.action.type === "verify") {
+      return NextResponse.json({ ok: true });
     }
 
     if (CLEARS_BUZZES_BEFORE.has(body.action.type)) {

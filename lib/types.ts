@@ -151,6 +151,8 @@ export const SETTLE_CALL_DELAY_MS = 300;
 // ---------------------------------------------------------------------------
 
 export type AdminAction =
+  /** No-op after the password check — used to gate host/admin UIs on entry. */
+  | { type: "verify" }
   | { type: "start_game" }
   | { type: "toggle_lobby_locked"; locked: boolean }
   | { type: "open_cell"; cat: number; row: number }

@@ -35,6 +35,18 @@ export async function GET(
 
     const db = getAdminDb();
     const gamesRef = db.collection("games");
+
+    // Fast path: the join code IS the doc ID for games created after the
+    // short-URL change.
+    const direct = await gamesRef.doc(normalizedCode).get();
+    if (direct.exists) {
+      return NextResponse.json({
+        ok: true,
+        gameId: direct.id,
+      });
+    }
+
+    // Legacy fallback: older games used auto IDs with joinCode as a field.
     const snapshot = await gamesRef
       .where("joinCode", "==", normalizedCode)
       .limit(1)
@@ -50,10 +62,9 @@ export async function GET(
       );
     }
 
-    const gameDoc = snapshot.docs[0];
     return NextResponse.json({
       ok: true,
-      gameId: gameDoc.id,
+      gameId: snapshot.docs[0].id,
     });
   } catch (error) {
     console.error("Error looking up game:", error);

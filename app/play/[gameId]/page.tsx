@@ -16,7 +16,9 @@ export default function PlayPage({
 }: {
   params: Promise<{ gameId: string }>;
 }) {
-  const { gameId } = use(params);
+  const { gameId: rawGameId } = use(params);
+  // Join codes are uppercase; normalize so typed lowercase URLs still work.
+  const gameId = rawGameId.toUpperCase();
   const { game, loading: gameLoading, error: gameError } = useGame(gameId);
   const { self, uid, loading: sessionLoading, join, updateProfile } = usePlayerSession(gameId);
   const { players } = usePlayers(gameId);

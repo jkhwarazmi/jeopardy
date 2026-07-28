@@ -25,15 +25,19 @@ export default function HostPage({
 }: {
   params: Promise<{ gameId: string }>;
 }) {
-  const { gameId } = use(params);
+  const { gameId: rawGameId } = use(params);
+  // Join codes are uppercase; normalize so typed lowercase URLs still work.
+  const gameId = rawGameId.toUpperCase();
   const { game, loading: gameLoading, error: gameError } = useGame(gameId);
   const { players, loading: playersLoading } = usePlayers(gameId);
   const { expired } = useCountdown(game?.timerEndsAt ?? null);
 
   const [origin, setOrigin] = useState("");
-  const [password, setPassword] = useState("");
+  /** null = still verifying the stored credential; "" = needs password entry. */
+  const [password, setPassword] = useState<string | null>(null);
   const [passwordInput, setPasswordInput] = useState("");
-  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [gateError, setGateError] = useState("");
   const [errorBanner, setErrorBanner] = useState("");
 
   // Track last fired timer to prevent duplicate calls
@@ -58,22 +62,28 @@ export default function HostPage({
     setOrigin(window.location.origin);
   }, []);
 
-  // Load stored password on mount
+  // Verify the stored password on entry (server-checked via the no-op
+  // "verify" action). Wrong/absent credential → full-page gate.
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    let cancelled = false;
     const stored = localStorage.getItem(ADMIN_PW_KEY(gameId));
-    if (stored) {
-      setPassword(stored);
+    if (!stored) {
+      setPassword("");
+      return;
     }
+    adminAction(gameId, stored, { type: "verify" }).then((result) => {
+      if (cancelled) return;
+      if (result.ok) {
+        setPassword(stored);
+      } else {
+        localStorage.removeItem(ADMIN_PW_KEY(gameId));
+        setPassword("");
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [gameId]);
-
-  // Show password form if password is missing and game is not in lobby
-  useEffect(() => {
-    if (!game) return;
-    if (game.status !== "lobby" && !password) {
-      setShowPasswordForm(true);
-    }
-  }, [game, password]);
 
   const joinUrl = useMemo(() => {
     if (!origin || !gameId) return "";
@@ -202,10 +212,7 @@ export default function HostPage({
 
   // Handle cell click
   const handlePickCell = async (cat: number, row: number) => {
-    if (!password) {
-      setShowPasswordForm(true);
-      return;
-    }
+    if (!password) return; // entry gate guarantees this in practice
 
     const result = await adminAction(gameId, password, {
       type: "open_cell",
@@ -215,24 +222,32 @@ export default function HostPage({
 
     if (!result.ok) {
       if (result.error === "Wrong password") {
-        // Clear stored password and re-show form
+        // Password changed under us (e.g. game reset) — back to the gate.
         localStorage.removeItem(ADMIN_PW_KEY(gameId));
         setPassword("");
-        setShowPasswordForm(true);
       }
       setErrorBanner(result.error || "Failed to open cell");
       setTimeout(() => setErrorBanner(""), 3000);
     }
   };
 
-  // Handle password submit
-  const handlePasswordSubmit = (e: React.FormEvent) => {
+  // Entry-gate submit: verify against the server before letting the host in.
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (passwordInput.trim()) {
-      localStorage.setItem(ADMIN_PW_KEY(gameId), passwordInput.trim());
-      setPassword(passwordInput.trim());
-      setShowPasswordForm(false);
+    const attempt = passwordInput.trim();
+    if (!attempt || verifying) return;
+
+    setVerifying(true);
+    setGateError("");
+    const result = await adminAction(gameId, attempt, { type: "verify" });
+    setVerifying(false);
+
+    if (result.ok) {
+      localStorage.setItem(ADMIN_PW_KEY(gameId), attempt);
+      setPassword(attempt);
       setPasswordInput("");
+    } else {
+      setGateError(result.error || "Wrong password");
     }
   };
 
@@ -260,6 +275,57 @@ export default function HostPage({
     );
   }
 
+  // Entry gate: verifying stored credential…
+  if (password === null) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-jeopardy-dark">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-jeopardy-gold border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-white/70 text-xl">Checking access...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Entry gate: password required before the board is shown.
+  if (password === "") {
+    return (
+      <div className="h-screen flex items-center justify-center bg-jeopardy-dark p-6">
+        <form
+          onSubmit={handlePasswordSubmit}
+          className="bg-jeopardy-blue-dark border-4 border-jeopardy-gold rounded-lg p-8 max-w-md w-full space-y-6"
+        >
+          <h2 className="text-jeopardy-gold font-display text-3xl text-center">
+            Host Board
+          </h2>
+          <p className="text-white/80 text-center">
+            Enter the admin password to control the board
+          </p>
+          {gateError && (
+            <div className="bg-red-900/50 border-2 border-red-500 text-red-200 px-4 py-3 rounded text-sm text-center">
+              {gateError}
+            </div>
+          )}
+          <input
+            type="password"
+            value={passwordInput}
+            onChange={(e) => setPasswordInput(e.target.value)}
+            className="w-full px-4 py-3 rounded-lg bg-jeopardy-blue border-2 border-jeopardy-gold text-white text-xl focus:outline-none focus:ring-4 focus:ring-jeopardy-gold"
+            placeholder="Admin password"
+            autoFocus
+          />
+          <button
+            type="submit"
+            disabled={verifying}
+            className="w-full bg-jeopardy-gold hover:bg-jeopardy-gold-dark disabled:opacity-60 text-jeopardy-blue-dark font-display text-xl font-bold py-3 rounded-lg transition-colors"
+          >
+            {verifying ? "Checking..." : "Enter"}
+          </button>
+        </form>
+      </div>
+    );
+  }
+
   return (
     <div className="h-screen flex flex-col bg-jeopardy-dark overflow-hidden">
       {/* Error banner */}
@@ -277,37 +343,6 @@ export default function HostPage({
         >
           🔇 Enable Sound
         </button>
-      )}
-
-      {/* Password overlay */}
-      {showPasswordForm && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-6">
-          <form
-            onSubmit={handlePasswordSubmit}
-            className="bg-jeopardy-blue-dark border-4 border-jeopardy-gold rounded-lg p-8 max-w-md w-full space-y-6"
-          >
-            <h2 className="text-jeopardy-gold font-display text-3xl text-center">
-              Enter Admin Password
-            </h2>
-            <p className="text-white/80 text-center">
-              Password required to control the board
-            </p>
-            <input
-              type="password"
-              value={passwordInput}
-              onChange={(e) => setPasswordInput(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg bg-jeopardy-blue border-2 border-jeopardy-gold text-white text-xl focus:outline-none focus:ring-4 focus:ring-jeopardy-gold"
-              placeholder="Admin password"
-              autoFocus
-            />
-            <button
-              type="submit"
-              className="w-full bg-jeopardy-gold hover:bg-jeopardy-gold-dark text-jeopardy-blue-dark font-display text-xl font-bold py-3 rounded-lg transition-colors"
-            >
-              Submit
-            </button>
-          </form>
-        </div>
       )}
 
       {/* Status-based rendering */}
