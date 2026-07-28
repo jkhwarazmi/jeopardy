@@ -64,6 +64,25 @@ service cloud.firestore {
           && request.resource.data.diff(resource.data).affectedKeys()
                .hasOnly(['name', 'photoBase64', 'connected',
                          'finalWager', 'finalAnswer'])
+          // Rename: same constraints as join (1..30 chars).
+          && (
+            !request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['name'])
+            || (
+              request.resource.data.name is string
+              && request.resource.data.name.size() >= 1
+              && request.resource.data.name.size() <= 30
+            )
+          )
+          // Photo change: same size cap as join ('' = no photo).
+          && (
+            !request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['photoBase64'])
+            || (
+              request.resource.data.photoBase64 is string
+              && request.resource.data.photoBase64.size() < 120000
+            )
+          )
           // Wagers: only during final_wager, 0..current score.
           && (
             !request.resource.data.diff(resource.data).affectedKeys()

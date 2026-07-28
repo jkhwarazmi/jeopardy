@@ -5,9 +5,11 @@ import { blobToSelfieDataUrl, canvasToSelfieDataUrl } from "@/lib/selfie";
 
 interface SelfieCaptureProps {
   onCapture: (photoBase64: string) => void;
+  skipLabel?: string;
+  onCancel?: () => void;
 }
 
-export default function SelfieCapture({ onCapture }: SelfieCaptureProps) {
+export default function SelfieCapture({ onCapture, skipLabel = "Continue without photo", onCancel }: SelfieCaptureProps) {
   const [mode, setMode] = useState<"camera" | "upload">("camera");
   const [preview, setPreview] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -106,10 +108,14 @@ export default function SelfieCapture({ onCapture }: SelfieCaptureProps) {
   };
 
   const handleRetake = () => {
+    setError("");
     setPreview(null);
-    if (!error) {
-      setMode("camera");
-    }
+    setMode("camera");
+  };
+
+  const handleUploadInstead = () => {
+    setPreview(null);
+    setMode("upload");
   };
 
   const handleUse = () => {
@@ -133,21 +139,35 @@ export default function SelfieCapture({ onCapture }: SelfieCaptureProps) {
             onClick={handleRetake}
             className="flex-1 py-3 bg-jeopardy-blue hover:bg-jeopardy-blue-dark text-white font-semibold rounded-lg transition-colors"
           >
-            Retake
+            Retake Photo
           </button>
           <button
-            onClick={handleUse}
-            className="flex-1 py-3 bg-jeopardy-gold hover:bg-jeopardy-gold-dark text-jeopardy-dark font-bold rounded-lg transition-colors"
+            onClick={handleUploadInstead}
+            className="flex-1 py-3 bg-jeopardy-blue hover:bg-jeopardy-blue-dark text-white font-semibold rounded-lg transition-colors"
           >
-            Use This Photo
+            Upload Instead
           </button>
         </div>
+        <button
+          onClick={handleUse}
+          className="w-full py-4 bg-jeopardy-gold hover:bg-jeopardy-gold-dark text-jeopardy-dark font-bold text-lg rounded-lg transition-colors"
+        >
+          Use This Photo
+        </button>
         <button
           onClick={() => onCapture("")}
           className="w-full py-2 text-white/70 hover:text-white transition-colors text-sm"
         >
-          Continue without photo
+          {skipLabel}
         </button>
+        {onCancel && (
+          <button
+            onClick={onCancel}
+            className="w-full py-2 text-white/70 hover:text-white transition-colors text-sm"
+          >
+            Cancel
+          </button>
+        )}
       </div>
     );
   }
@@ -186,8 +206,16 @@ export default function SelfieCapture({ onCapture }: SelfieCaptureProps) {
           onClick={() => onCapture("")}
           className="w-full py-2 text-white/70 hover:text-white transition-colors text-sm"
         >
-          Continue without photo
+          {skipLabel}
         </button>
+        {onCancel && (
+          <button
+            onClick={onCancel}
+            className="w-full py-2 text-white/70 hover:text-white transition-colors text-sm"
+          >
+            Cancel
+          </button>
+        )}
       </div>
     );
   }
@@ -229,8 +257,16 @@ export default function SelfieCapture({ onCapture }: SelfieCaptureProps) {
         onClick={() => onCapture("")}
         className="w-full py-2 text-white/70 hover:text-white transition-colors text-sm"
       >
-        Continue without photo
+        {skipLabel}
       </button>
+      {onCancel && (
+        <button
+          onClick={onCancel}
+          className="w-full py-2 text-white/70 hover:text-white transition-colors text-sm"
+        >
+          Cancel
+        </button>
+      )}
     </div>
   );
 }

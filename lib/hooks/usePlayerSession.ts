@@ -20,6 +20,47 @@ export interface UsePlayerSession {
   loading: boolean;
   join: (name: string, photoBase64: string) => Promise<void>;
   setConnected: (connected: boolean) => Promise<void>;
+  updateProfile: (updates: { name?: string; photoBase64?: string }) => Promise<void>;
+}
+
+/**
+ * Normalize and deduplicate a player name against existing players in the game.
+ * - Trims and slices to 30 chars max
+ * - Falls back to "Player" if empty
+ * - Case-insensitive dedupe: appends " 2", " 3", etc. if name already taken by OTHER players
+ */
+async function resolveName(
+  gameId: string,
+  uid: string,
+  rawName: string
+): Promise<string> {
+  // Trim name to 1..30 chars
+  let trimmedName = rawName.trim().slice(0, 30);
+  if (trimmedName.length === 0) {
+    trimmedName = "Player";
+  }
+
+  // Check for name collision (case-insensitive) and append " 2", " 3", etc.
+  const playersRef = collection(db, "games", gameId, "players");
+  const snapshot = await getDocs(playersRef);
+  const existingNames = new Set<string>();
+
+  snapshot.docs.forEach((doc) => {
+    const data = doc.data() as PlayerDoc;
+    // Only consider OTHER players (not self)
+    if (doc.id !== uid) {
+      existingNames.add(data.name.toLowerCase());
+    }
+  });
+
+  let finalName = trimmedName;
+  let suffix = 2;
+  while (existingNames.has(finalName.toLowerCase())) {
+    finalName = `${trimmedName} ${suffix}`;
+    suffix++;
+  }
+
+  return finalName;
 }
 
 export function usePlayerSession(gameId: string): UsePlayerSession {
@@ -86,31 +127,7 @@ export function usePlayerSession(gameId: string): UsePlayerSession {
         throw new Error("Not authenticated");
       }
 
-      // Trim name to 1..30 chars
-      let trimmedName = name.trim().slice(0, 30);
-      if (trimmedName.length === 0) {
-        trimmedName = "Player";
-      }
-
-      // Check for name collision (case-insensitive) and append " 2", " 3", etc.
-      const playersRef = collection(db, "games", gameId, "players");
-      const snapshot = await getDocs(playersRef);
-      const existingNames = new Set<string>();
-
-      snapshot.docs.forEach((doc) => {
-        const data = doc.data() as PlayerDoc;
-        // Only consider OTHER players (not self)
-        if (doc.id !== uid) {
-          existingNames.add(data.name.toLowerCase());
-        }
-      });
-
-      let finalName = trimmedName;
-      let suffix = 2;
-      while (existingNames.has(finalName.toLowerCase())) {
-        finalName = `${trimmedName} ${suffix}`;
-        suffix++;
-      }
+      const finalName = await resolveName(gameId, uid, name);
 
       // Create player doc with exact initial shape required by rules
       const playerDoc: WithFieldValue<PlayerDoc> = {
@@ -157,6 +174,50 @@ export function usePlayerSession(gameId: string): UsePlayerSession {
     [uid, gameId]
   );
 
+  const updateProfile = useCallback(
+    async (updates: { name?: string; photoBase64?: string }) => {
+      if (!uid) {
+        throw new Error("Not authenticated");
+      }
+
+      // Short-circuit if no updates provided
+      if (!updates.name && !updates.photoBase64) {
+        return;
+      }
+
+      // Resolve name if provided (with dedupe)
+      let resolvedName: string | undefined;
+      if (updates.name !== undefined) {
+        resolvedName = await resolveName(gameId, uid, updates.name);
+      }
+
+      // Build typed update payload with only provided fields
+      const payload: Partial<Pick<PlayerDoc, "name" | "photoBase64">> = {};
+      if (resolvedName !== undefined) {
+        payload.name = resolvedName;
+      }
+      if (updates.photoBase64 !== undefined) {
+        payload.photoBase64 = updates.photoBase64;
+      }
+
+      // Update Firestore doc (let errors propagate)
+      await updateDoc(doc(db, "games", gameId, "players", uid), payload);
+
+      // Refresh localStorage if name changed
+      if (resolvedName !== undefined) {
+        try {
+          localStorage.setItem(
+            "jeopardy:lastGame",
+            JSON.stringify({ gameId, name: resolvedName })
+          );
+        } catch (err) {
+          console.warn("Failed to update localStorage:", err);
+        }
+      }
+    },
+    [uid, gameId]
+  );
+
   // Register best-effort presence handlers
   useEffect(() => {
     if (!uid || !self) return;
@@ -186,5 +247,6 @@ export function usePlayerSession(gameId: string): UsePlayerSession {
     loading,
     join,
     setConnected,
+    updateProfile,
   };
 }

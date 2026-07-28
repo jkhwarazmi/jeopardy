@@ -9,6 +9,7 @@ import PlayerStatus from "@/components/play/PlayerStatus";
 import Buzzer from "@/components/play/Buzzer";
 import WagerForm from "@/components/play/WagerForm";
 import FinalAnswerForm from "@/components/play/FinalAnswerForm";
+import EditProfile from "@/components/play/EditProfile";
 
 export default function PlayPage({
   params,
@@ -17,13 +18,14 @@ export default function PlayPage({
 }) {
   const { gameId } = use(params);
   const { game, loading: gameLoading, error: gameError } = useGame(gameId);
-  const { self, uid, loading: sessionLoading, join } = usePlayerSession(gameId);
+  const { self, uid, loading: sessionLoading, join, updateProfile } = usePlayerSession(gameId);
   const { players } = usePlayers(gameId);
 
   const [joinStep, setJoinStep] = useState<"name" | "selfie" | null>(null);
   const [playerName, setPlayerName] = useState("");
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState("");
+  const [editing, setEditing] = useState(false);
 
   const handleStartJoin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -173,7 +175,25 @@ export default function PlayPage({
   if (game.status === "lobby") {
     return (
       <div className="flex-1 flex items-center justify-center px-6 py-12">
-        <PlayerStatus self={self} game={game} />
+        <div className="w-full max-w-md space-y-6 flex flex-col items-center">
+          {editing ? (
+            <EditProfile
+              self={self}
+              onSave={updateProfile}
+              onClose={() => setEditing(false)}
+            />
+          ) : (
+            <>
+              <PlayerStatus self={self} game={game} />
+              <button
+                onClick={() => setEditing(true)}
+                className="w-full py-2 text-white/70 hover:text-white transition-colors text-sm"
+              >
+                Edit Name or Photo
+              </button>
+            </>
+          )}
+        </div>
       </div>
     );
   }
