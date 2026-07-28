@@ -141,6 +141,6 @@
   "timers": {
     "answerSeconds": 10,
     "buzzWindowSeconds": 20,
-    "finalAnswerSeconds": 30
+    "finalAnswerSeconds": null
   }
 }

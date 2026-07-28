@@ -14,6 +14,7 @@ import type {
 } from "firebase-admin/firestore";
 import { getAdminDb, FieldValue, Timestamp } from "@/lib/firebase-admin";
 import { verifyPassword } from "@/lib/password";
+import { finalStake } from "@/lib/format";
 import {
   cellKey,
   normalizeGameDoc,
@@ -300,9 +301,12 @@ async function applyAction(
 
     case "start_final_answer": {
       if (game.status !== "final_wager") fail("Not in wager phase");
+      // null = untimed: host ends the phase via start_final_reveal. The
+      // Firestore rules' answer-write clause already tolerates a null deadline.
+      const finalSeconds = game.config.timers.finalAnswerSeconds;
       tx.update(gameRef, {
         status: "final_answer",
-        timerEndsAt: endsIn(game.config.timers.finalAnswerSeconds),
+        timerEndsAt: finalSeconds != null ? endsIn(finalSeconds) : null,
       });
       return;
     }
@@ -323,7 +327,7 @@ async function applyAction(
       const player = snap.data() as PlayerDoc;
       const multiplier =
         game.config.final.multipliers[game.finalQuestionIndex] ?? 1;
-      const stake = (player.finalWager ?? 0) * multiplier;
+      const stake = finalStake(player.finalWager ?? 0, multiplier);
       // Re-mark safe: apply the DIFFERENCE vs. what was already applied,
       // so the admin can correct a misclick without double-counting.
       const applied =

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { Game, Player, AdminAction } from "@/lib/types";
 import { useCountdown } from "@/lib/hooks/useCountdown";
-import { money, moneyDelta } from "@/lib/format";
+import { money, moneyDelta, finalStake } from "@/lib/format";
 
 interface FinalControlsProps {
   game: Game;
@@ -152,6 +152,9 @@ export default function FinalControls({
   if (game.status === "final_answer") {
     const answersIn = participants.filter((p) => p.finalAnswer !== null).length;
     const total = participants.length;
+    // Untimed mode (finalAnswerSeconds: null): no deadline exists, so the
+    // "timer not expired" warning would be nonsense — plain confirm instead.
+    const untimed = game.timerEndsAt === null;
     const timerExpired = secondsLeft === 0;
 
     return (
@@ -230,7 +233,7 @@ export default function FinalControls({
           className="btn btn-lg btn-gold w-full"
         >
           {confirmAction === "start_reveal"
-            ? timerExpired
+            ? untimed || timerExpired
               ? "Confirm?"
               : "Timer not expired — Confirm?"
             : "START REVEAL →"}
@@ -242,7 +245,7 @@ export default function FinalControls({
   // FINAL REVEAL PHASE
   if (game.status === "final_reveal") {
     // Stable queue: pre-judgment score ascending (for sync with host)
-    const stakeOf = (p: Player) => (p.finalWager ?? 0) * multiplier;
+    const stakeOf = (p: Player) => finalStake(p.finalWager ?? 0, multiplier);
     const preScore = (p: Player) =>
       p.score - (p.finalCorrect === null ? 0 : p.finalCorrect ? stakeOf(p) : -stakeOf(p));
     const queue = [...participants].sort(

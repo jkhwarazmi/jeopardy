@@ -12,7 +12,7 @@ import Buzzer from "@/components/play/Buzzer";
 import WagerForm from "@/components/play/WagerForm";
 import FinalAnswerForm from "@/components/play/FinalAnswerForm";
 import EditProfile from "@/components/play/EditProfile";
-import { money, moneyDelta, ordinal } from "@/lib/format";
+import { money, moneyDelta, ordinal, finalStake } from "@/lib/format";
 
 export default function PlayPage({
   params,
@@ -302,7 +302,7 @@ export default function PlayPage({
     const qLabel = final.questions.length > 1
       ? `Question ${qIndex + 1} of ${final.questions.length}` : null;
 
-    const stake = (self.finalWager ?? 0) * multiplier;
+    const stake = finalStake(self.finalWager ?? 0, multiplier);
     const wagerDisplay =
       self.finalWager !== null ? money(self.finalWager) : "N/A";
     const answerDisplay = self.finalAnswer || "(no answer)";

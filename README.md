@@ -77,7 +77,7 @@ Games are defined by a JSON file that you upload or paste when creating a new ga
   "timers": {
     "answerSeconds": 8,
     "buzzWindowSeconds": 15,
-    "finalAnswerSeconds": 30
+    "finalAnswerSeconds": null
   }
 }
 ```
@@ -94,13 +94,13 @@ Games are defined by a JSON file that you upload or paste when creating a new ga
       - **`answer`** (string): The correct response.
 - **`final`** (object): Final round — one or more questions with rising stakes:
   - **`questions[]`** (array, 1–5): Each has `category`, `question`, `answer`. Played in order.
-  - **`multipliers[]`** (array of positive integers, optional): Stake multiplier per question — a judged answer moves the player's score by ±(wager × multiplier). Must match `questions` length. Defaults to 1, 2, 3, …
+  - **`multipliers[]`** (array of positive numbers, optional): Stake multiplier per question — a judged answer moves the player's score by ±(wager × multiplier), rounded to the nearest whole pound. Fractional values like 1.5 are fine. Must match `questions` length. Defaults to 1, 2, 3, …
   - **`wagerFloor`** (number, optional, default 1000): Every player may wager at least this much regardless of score, so trailing players stay in the game. Leaders may wager up to their score.
   - The legacy single-question shape (`{ "category", "question", "answer" }`) is still accepted and upgraded to a one-question round with multiplier ×1.
 - **`timers`** (object, all optional with defaults below):
   - **`answerSeconds`** (number): Time to answer after buzzing (default: 8).
   - **`buzzWindowSeconds`** (number): Time window for players to buzz, including reading the clue aloud (default: 15).
-  - **`finalAnswerSeconds`** (number): Time to type each final answer (default: 30).
+  - **`finalAnswerSeconds`** (number or null): Time to type each final answer. `null` or omitted = no time limit — players can answer until the host taps "Start Reveal" on the admin phone (default: null).
 
 ## Sounds
 

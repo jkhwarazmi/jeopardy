@@ -40,7 +40,8 @@ export interface FinalConfig {
   /** 1–5 questions, played in order. */
   questions: FinalQuestionConfig[];
   /** Wager-outcome multiplier per question (same length as questions).
-   *  Defaults to 1, 2, 3, … */
+   *  May be fractional (e.g. 1.5); stakes are rounded to whole pounds via
+   *  finalStake() in lib/format.ts. Defaults to 1, 2, 3, … */
   multipliers: number[];
   /** Everyone may wager at least this much regardless of score (default 1000)
    *  — keeps losing players in the game. Leaders may wager up to their score. */
@@ -91,8 +92,9 @@ export interface TimersConfig {
   /** Seconds players may buzz before auto-reveal — includes the host reading
    *  the question aloud (default 15) */
   buzzWindowSeconds: number;
-  /** Seconds to type each Final Jeopardy answer (default 30) */
-  finalAnswerSeconds: number;
+  /** Seconds to type each Final Jeopardy answer. null/omitted = no time
+   *  limit — the host ends the phase manually via "Start Reveal". */
+  finalAnswerSeconds: number | null;
 }
 
 export interface GameConfig {

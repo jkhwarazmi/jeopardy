@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import type { Game, Player } from "@/lib/types";
 import PlayerAvatar from "@/components/shared/PlayerAvatar";
 import TimerCorner from "@/components/host/TimerCorner";
-import { money, moneyDelta } from "@/lib/format";
+import { money, moneyDelta, finalStake } from "@/lib/format";
 
 interface FinalRoundProps {
   game: Game;
@@ -24,7 +24,7 @@ export default function FinalRound({ game, players }: FinalRoundProps) {
   // Reveal-phase derivations — computed unconditionally because the linger
   // hooks below must run on every render (Rules of Hooks).
   const participants = players.filter((p) => p.finalWager !== null);
-  const stakeOf = (p: Player) => (p.finalWager ?? 0) * multiplier;
+  const stakeOf = (p: Player) => finalStake(p.finalWager ?? 0, multiplier);
   const preScore = (p: Player) =>
     p.score -
     (p.finalCorrect === null ? 0 : p.finalCorrect ? stakeOf(p) : -stakeOf(p));
@@ -245,7 +245,7 @@ export default function FinalRound({ game, players }: FinalRoundProps) {
       const isJudged = displayedPlayer.finalCorrect !== null;
       const answerText = displayedPlayer.finalAnswer || "(no answer)";
       const wagerAmount = displayedPlayer.finalWager ?? 0;
-      const stakeAmount = wagerAmount * multiplier;
+      const stakeAmount = finalStake(wagerAmount, multiplier);
 
       return (
         <div className="h-full flex flex-col items-center justify-center px-12 py-8">
