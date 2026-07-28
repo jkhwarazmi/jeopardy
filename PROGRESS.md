@@ -227,6 +227,40 @@ A fresh session should read CLAUDE.md → BUILD_PROMPT.md → this file, then re
     rules deploy needed. sample-game.json `buzzWindowSeconds: null`; README
     updated.
 
+- **Instant buzzer — tap dead-zones removed** (`npm run build` clean; user:
+  buzzer must act instantly for all players; there was a delay and sometimes a
+  tap was dropped so you had to buzz twice — DONE, all plan steps below
+  implemented as written):
+  - DIAGNOSIS (verified in code): the buzz WRITE path is already optimal —
+    lib/buzz.ts uses a single rules-guarded `updateDoc` (first-writer-wins
+    enforced by firestore.rules' buzzedPlayerId clause) with instant local
+    echo, NOT a slow transaction. The dropped taps come from CLIENT-SIDE TAP
+    GATING: Buzzer.tsx only accepts taps once `Date.now() >= buzzLiveAt`
+    (server wall clock vs phone clock — mobile skew is routinely ±seconds →
+    long "GET READY" dead window where taps are silently ignored), plus the
+    deliberate 500ms anti-jump (BUZZ_ANTI_JUMP_MS) — after a wrong answer
+    primed players tap into that window and lose the tap → "buzz twice".
+    A 100ms re-render tick delays the flip further. Websockets are NOT the
+    answer: onSnapshot is already a push stream (~100–300ms fan-out) and
+    Vercel can't host sockets; the tie-break already smooths racing.
+  - FIX PLAN (all client gating removed; server stays fairness authority):
+    1. lib/types.ts — delete BUZZ_ANTI_JUMP_MS; buzzLiveAt comment: now the
+       exact (re)open moment, used ONLY by settle-buzz's stale-record filter.
+    2. app/api/admin/[gameId]/route.ts buzzWindowFields() — buzzLiveAt = now,
+       timerEndsAt = now + bw (no +500ms).
+    3. app/api/timer-expire/route.ts reopen branch — same, drop the import.
+    4. components/play/Buzzer.tsx — LIVE whenever status === question_open,
+       nobody buzzed, not locked out. No clock math, no 100ms tick, no
+       armed/GET READY dead state. onPointerDown always registers.
+    5. components/host/QuestionView.tsx — BUZZERS OPEN indicator = status
+       check only (drop the effect + timer math).
+    6. settle-buzz route — UNCHANGED (buzzLiveAt−1s epsilon filter still
+       valid; buzzes are pre-cleared server-side before every (re)open).
+    7. firestore.rules — UNCHANGED, no deploy needed.
+  - Resume point if interrupted: grep BUZZ_ANTI_JUMP_MS — any remaining hit
+    means that step isn't done; then npm run build, update this entry to
+    done, commit.
+
 ## Next
 
 - Nothing — build complete. Remaining items are user-side (see Known gaps below).

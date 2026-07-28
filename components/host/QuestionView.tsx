@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import type { Game, Player } from "@/lib/types";
 import TimerCorner from "./TimerCorner";
 import PlayerAvatar from "@/components/shared/PlayerAvatar";
@@ -12,8 +11,6 @@ interface QuestionViewProps {
 }
 
 export default function QuestionView({ game, players }: QuestionViewProps) {
-  const [buzzersLive, setBuzzersLive] = useState(false);
-
   const currentCell = game.currentCell;
   if (!currentCell) {
     return null;
@@ -26,39 +23,9 @@ export default function QuestionView({ game, players }: QuestionViewProps) {
 
   const buzzedPlayer = players.find((p) => p.id === game.buzzedPlayerId);
 
-  // Compute buzz-live moment: buzzLiveAt is authoritative (works with
-  // untimed windows); legacy docs fall back to timerEndsAt - buzzWindow.
-  useEffect(() => {
-    if (game.status !== "question_open") {
-      setBuzzersLive(false);
-      return;
-    }
-
-    const liveAt =
-      game.buzzLiveAt?.toMillis() ??
-      (game.timerEndsAt && game.config.timers.buzzWindowSeconds != null
-        ? game.timerEndsAt.toMillis() -
-          game.config.timers.buzzWindowSeconds * 1000
-        : null);
-    if (liveAt === null) {
-      setBuzzersLive(false);
-      return;
-    }
-    const now = Date.now();
-
-    if (now >= liveAt) {
-      setBuzzersLive(true);
-    } else {
-      const delay = liveAt - now;
-      const timeout = setTimeout(() => setBuzzersLive(true), delay);
-      return () => clearTimeout(timeout);
-    }
-  }, [
-    game.status,
-    game.buzzLiveAt,
-    game.timerEndsAt,
-    game.config.timers.buzzWindowSeconds,
-  ]);
+  // Buzzers are live the instant the question opens — no anti-jump delay and
+  // no wall-clock math (mirrors Buzzer.tsx; see lib/types.ts note).
+  const buzzersLive = game.status === "question_open";
 
   return (
     <div className="relative w-full h-full flex flex-col overflow-hidden">

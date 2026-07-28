@@ -15,7 +15,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminDb, FieldValue, Timestamp } from "@/lib/firebase-admin";
 import {
-  BUZZ_ANTI_JUMP_MS,
   cellKey as makeCellKey,
   normalizeGameDoc,
   type GameDoc,
@@ -124,21 +123,21 @@ export async function POST(
           buzzLiveAt: null,
         });
       } else {
-        // Reopen buzzing: fresh buzzLiveAt after the anti-jump delay; the
-        // window countdown only runs when buzzWindowSeconds is set (untimed
-        // windows stay open until the admin ends the question).
+        // Reopen buzzing: buzzLiveAt = now (settle stale-record filter base;
+        // NO anti-jump — buzzers are live the instant clients see the reopen,
+        // so primed taps are never dropped). The window countdown only runs
+        // when buzzWindowSeconds is set (untimed windows stay open until the
+        // admin ends the question).
         const bw = game.config.timers.buzzWindowSeconds;
         tx.update(gameRef, {
           status: "question_open",
           lockedOutIds: newLockedOut,
           buzzedPlayerId: null,
           buzzSettledCellKey: null,
-          buzzLiveAt: Timestamp.fromMillis(Date.now() + BUZZ_ANTI_JUMP_MS),
+          buzzLiveAt: Timestamp.now(),
           timerEndsAt:
             bw != null
-              ? Timestamp.fromMillis(
-                  Date.now() + bw * 1000 + BUZZ_ANTI_JUMP_MS
-                )
+              ? Timestamp.fromMillis(Date.now() + bw * 1000)
               : null,
         });
       }
