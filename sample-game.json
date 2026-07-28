@@ -13,11 +13,11 @@
           "cells": [
             {
               "question": "This highly anticipated Rockstar Games sequel will finally arrive in 2026 after a 13 year wait.",
-              "answer": "Grand Theft Auto VI (GTA 6)"
+              "answer": "Grand Theft Auto VI"
             },
             {
               "question": "This is the exact number of matches won by the England men's national football team during their run to third place at the 2026 FIFA World Cup.",
-              "answer": "6 wins; 1 draw; 1 loss"
+              "answer": "6 wins"
             },
             {
               "question": "This iconic New York City arena served as the wedding location where global pop superstar Taylor Swift tied the knot with NFL star Travis Kelce.",
@@ -30,15 +30,15 @@
           "cells": [
             {
               "question": "Black, Key, White",
-              "answer": "Board"
+              "answer": "Board (blackboard, keyboard, whiteboard)"
             },
             {
               "question": "Gown, Stand, Club",
-              "answer": "Night"
+              "answer": "Night (nightgown, nightstand, nightclub)"
             },
             {
               "question": "Dial, Flower, Room",
-              "answer": "Sun"
+              "answer": "Sun (sundial, sunflower, sunroom)"
             }
           ]
         },
@@ -77,7 +77,7 @@
       {
         "category": "HS2",
         "question": "Before being reduced in later resets to cut costs, this was the originally intended top speed of HS2 trains, which would have made them the fastest conventional trains in the world.",
-        "answer": "360km/h or 400 km/h (or 220 / 250 mph)"
+        "answer": "360km/h (220 mph)"
       }
     ],
     "multipliers": [
