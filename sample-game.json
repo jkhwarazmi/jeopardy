@@ -5,112 +5,57 @@
       "pointValues": [
         100,
         200,
-        300,
-        400
+        300
       ],
       "categories": [
         {
-          "name": "Corporate Jargon Decoded",
+          "name": "2026 in Review",
           "cells": [
             {
-              "question": "Finding the intersection of ideas to achieve mutual gains",
-              "answer": "Synergy"
+              "question": "This highly anticipated Rockstar Games sequel will finally arrive in 2026 after a 13 year wait.",
+              "answer": "Grand Theft Auto VI (GTA 6)"
             },
             {
-              "question": "Let's reschedule a discussion for a later time to revisit this topic",
-              "answer": "Circle back"
+              "question": "This is the exact number of matches won by the England men's national football team during their run to third place at the 2026 FIFA World Cup.",
+              "answer": "6 wins; 1 draw; 1 loss"
             },
             {
-              "question": "Attempt an ambitious project with unclear outcomes or massive scope",
-              "answer": "Boil the ocean"
-            },
-            {
-              "question": "Improve a key metric or objective by taking decisive action",
-              "answer": "Move the needle"
+              "question": "This iconic New York City arena served as the wedding location where global pop superstar Taylor Swift tied the knot with NFL star Travis Kelce.",
+              "answer": "Madison Square Garden"
             }
           ]
         },
         {
-          "name": "Famous Logos",
+          "name": "Missing Link",
           "cells": [
             {
-              "question": "A swoosh mark, often seen on athletic shoes and apparel",
-              "answer": "Nike"
+              "question": "Black, Key, White",
+              "answer": "Board"
             },
             {
-              "question": "Four interlocking rings arranged in a circle",
-              "answer": "Audi"
+              "question": "Gown, Stand, Club",
+              "answer": "Night"
             },
             {
-              "question": "A golden arches forming the letter M",
-              "answer": "McDonald's"
-            },
-            {
-              "question": "A bitten piece of fruit in grayscale or monochrome",
-              "answer": "Apple"
+              "question": "Dial, Flower, Room",
+              "answer": "Sun"
             }
           ]
         },
         {
-          "name": "Email Etiquette or Crime?",
+          "name": "BIDMAS",
           "cells": [
             {
-              "question": "Replying-all to a company-wide email to share a funny meme",
-              "answer": "Crime"
+              "question": "8 - 10 + 5 + 2",
+              "answer": "5"
             },
             {
-              "question": "Proofing your email before sending to check for typos and professionalism",
-              "answer": "Etiquette"
+              "question": "6 ÷ 2 + 2 x 3",
+              "answer": "9"
             },
             {
-              "question": "Forwarding the same message to 50 coworkers with 'See Below' and no context",
-              "answer": "Crime"
-            },
-            {
-              "question": "Cc-ing someone's boss to notify them of a completed project milestone",
-              "answer": "Etiquette"
-            }
-          ]
-        },
-        {
-          "name": "Office Movie & TV Lines",
-          "cells": [
-            {
-              "question": "I love lamp. Do you really love the lamp or are you just saying things?",
-              "answer": "Anchorman"
-            },
-            {
-              "question": "That would be great, if you could come in on Saturday... that'd be great.",
-              "answer": "Office Space"
-            },
-            {
-              "question": "Did you get the memo? Updated memo on the memo distribution list.",
-              "answer": "Office Space"
-            },
-            {
-              "question": "Threat level midnight. I am running away from my responsibilities.",
-              "answer": "The Office"
-            }
-          ]
-        },
-        {
-          "name": "Tech or Star Trek?",
-          "cells": [
-            {
-              "question": "Kubernetes: a system for automating containerized application deployment",
-              "answer": "Tech"
-            },
-            {
-              "question": "Heisenberg compensator: a fictional device that corrects quantum uncertainty",
-              "answer": "Star Trek"
-            },
-            {
-              "question": "Dilithium crystals: a power source for warp drive engines",
-              "answer": "Star Trek"
-            },
-            {
-              "question": "Machine learning: a subset of artificial intelligence that learns patterns from data",
-              "answer": "Tech"
+              "question": "8² - 10² + 5² + 2²",
+              "answer": "-7"
             }
           ]
         }
@@ -120,27 +65,31 @@
   "final": {
     "questions": [
       {
-        "category": "Company History",
-        "question": "In what year did the founder of Microsoft drop out of Harvard to pursue his business venture?",
-        "answer": "1975"
+        "category": "Greek Mythology",
+        "question": "In Homer's Odyssey, the hero's decade-long journey home is constantly thwarted by this Greek god of the sea after Odysseus blinds his cyclops son.",
+        "answer": "Poseidon"
       },
       {
-        "category": "Office Firsts",
-        "question": "This everyday office fixture was invented in 1849 and its design has barely changed since — you probably bent one out of shape today.",
-        "answer": "The paper clip"
+        "category": "Formula One",
+        "question": "Sharing the all-time record of seven titles each, name either of the two drivers who have won the most Formula One World Drivers' Championships.",
+        "answer": "Michael Schumacher or Lewis Hamilton"
       },
       {
-        "category": "Famous Emails",
-        "question": "Sent in 1971, the very first networked email traveled between two computers that were sitting in this relative position to each other.",
-        "answer": "Right next to each other (in the same room)"
+        "category": "HS2",
+        "question": "Before being reduced in later resets to cut costs, this was the originally intended top speed of HS2 trains, which would have made them the fastest conventional trains in the world.",
+        "answer": "360km/h or 400 km/h (or 220 / 250 mph)"
       }
     ],
-    "multipliers": [1, 1.5, 2],
+    "multipliers": [
+      1,
+      1.5,
+      2
+    ],
     "wagerFloor": 1000
   },
   "timers": {
     "answerSeconds": 10,
     "buzzWindowSeconds": null,
-    "finalAnswerSeconds": null
+    "finalAnswerSeconds": 30
   }
 }
