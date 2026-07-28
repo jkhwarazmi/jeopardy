@@ -25,7 +25,6 @@ export default function Buzzer({
   gameId,
   players,
 }: BuzzerProps) {
-  const [, tick] = useState(0);
   const buzzedRef = useRef(false);
   /** Optimistic: flips to true synchronously on tap so "YOU BUZZED" renders
    *  in the same frame — the game doc confirms (or corrects) moments later. */
@@ -36,34 +35,19 @@ export default function Buzzer({
   const isLockedOut = game.lockedOutIds.includes(uid);
   const buzzedPlayerId = game.buzzedPlayerId;
 
-  // While waiting for buzzers to go live, re-render every 100ms so the
-  // armed→live flip happens on time (display/arming only — the server-side
-  // rules and settle route remain the authority on buzz validity).
-  useEffect(() => {
-    if (game.status !== "question_open" || buzzedPlayerId !== null) return;
-    const id = setInterval(() => tick((t) => t + 1), 100);
-    return () => clearInterval(id);
-  }, [game.status, buzzedPlayerId]);
-
-  // Derived purely from the game doc + wall clock each render.
-  // Buzz-live moment: buzzLiveAt is authoritative (works with untimed
-  // windows); legacy docs fall back to timerEndsAt - buzzWindowSeconds.
+  // Derived purely from the game doc each render. Deliberately NO wall-clock
+  // gating: the buzzer is LIVE the instant this device sees question_open.
+  // Phone clocks skew by seconds, so any Date.now()-vs-server-timestamp gate
+  // creates a dead window that silently drops taps (the old "had to buzz
+  // twice" bug). Fairness is server-side: rules enforce first-writer-wins and
+  // /api/settle-buzz tie-breaks near-simultaneous buzzes.
   const localState: BuzzerState = (() => {
     if (buzzedPlayerId === uid) return "you";
     if (buzzedPlayerId !== null) return "locked";
     if (isLockedOut) return "out";
     // Optimistic: we tapped and no contradicting buzz has arrived yet.
     if (pendingBuzz && game.status === "question_open") return "you";
-    if (game.status === "question_open" && cell) {
-      const liveAt =
-        game.buzzLiveAt?.toMillis() ??
-        (game.timerEndsAt && game.config.timers.buzzWindowSeconds != null
-          ? game.timerEndsAt.toMillis() -
-            game.config.timers.buzzWindowSeconds * 1000
-          : null);
-      if (liveAt === null) return "armed";
-      return Date.now() < liveAt ? "armed" : "live";
-    }
+    if (game.status === "question_open" && cell) return "live";
     return "armed";
   })();
 
@@ -108,7 +92,9 @@ export default function Buzzer({
     });
   };
 
-  // ARMED: dimmed blue, disabled
+  // ARMED: dimmed blue, disabled. Fallback only — during question_open the
+  // buzzer is always live (see localState above), so this renders solely in
+  // transitional non-question states.
   if (localState === "armed") {
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-6 pb-safe">

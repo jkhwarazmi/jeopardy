@@ -18,7 +18,6 @@ import { finalStake } from "@/lib/format";
 import {
   cellKey,
   normalizeGameDoc,
-  BUZZ_ANTI_JUMP_MS,
   type AdminAction,
   type AdminRequest,
   type AdminResponse,
@@ -74,9 +73,11 @@ function currentPoints(game: GameDoc): number {
 }
 
 /**
- * Timestamps for (re)opening the buzz window. buzzLiveAt (armed→live flip,
- * settle-buzz filter) is always set; timerEndsAt is the auto-reveal deadline,
- * or null when buzzWindowSeconds is null (untimed — admin ends the question).
+ * Timestamps for (re)opening the buzz window. buzzLiveAt = now (settle-buzz's
+ * stale-record filter base — NO anti-jump delay: buzzers are live the instant
+ * clients see question_open, so taps are never dropped); timerEndsAt is the
+ * auto-reveal deadline, or null when buzzWindowSeconds is null (untimed —
+ * admin ends the question).
  */
 function buzzWindowFields(game: GameDoc): {
   buzzLiveAt: Timestamp;
@@ -84,8 +85,8 @@ function buzzWindowFields(game: GameDoc): {
 } {
   const bw = game.config.timers.buzzWindowSeconds;
   return {
-    buzzLiveAt: Timestamp.fromMillis(Date.now() + BUZZ_ANTI_JUMP_MS),
-    timerEndsAt: bw != null ? endsIn(bw, BUZZ_ANTI_JUMP_MS) : null,
+    buzzLiveAt: Timestamp.now(),
+    timerEndsAt: bw != null ? endsIn(bw) : null,
   };
 }
 

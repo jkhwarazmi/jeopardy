@@ -152,12 +152,13 @@ export interface GameDoc {
   /** Wall-clock authoritative deadline for the active countdown */
   timerEndsAt: Timestamp | null;
   /**
-   * Wall-clock moment buzzing goes live for the current question (anti-jump
-   * delay already applied). Set on open_cell and every buzz-window reopen.
-   * Authoritative source for the buzzer's armed→live flip AND settle-buzz's
-   * stale-record filter — required because timerEndsAt is null when
-   * buzzWindowSeconds is null (untimed). Older docs lack it; readers fall
-   * back to timerEndsAt − buzzWindowSeconds via normalizeGameDoc's null.
+   * Wall-clock moment the buzz window (re)opened. Set on open_cell and every
+   * buzz-window reopen; cleared on question end. Used ONLY server-side by
+   * /api/settle-buzz to filter stale buzz records from earlier rounds —
+   * clients must NEVER gate taps on it (phone clocks skew by seconds; any
+   * wall-clock gate creates a dead window that silently drops taps). The
+   * client buzzer is live whenever status == 'question_open'. Older docs
+   * lack it; settle falls back to timerEndsAt − buzzWindowSeconds.
    */
   buzzLiveAt: Timestamp | null;
   /** When true, new players may not join (rules-enforced) */
@@ -207,10 +208,10 @@ export function cellKey(board: number, cat: number, row: number): string {
   return `${board}:${cat}:${row}`;
 }
 
-/** Buzzers go live this long after a cell opens (anti-jump). The moment is
- *  stored on the game doc as buzzLiveAt (legacy docs: readers fall back to
- *  timerEndsAt - buzzWindowSeconds*1000). */
-export const BUZZ_ANTI_JUMP_MS = 500;
+// NOTE: there is deliberately NO anti-jump delay and NO client-side timing
+// gate on the buzzer. Buzzers are live the instant a device sees
+// status == 'question_open' — taps are never dropped. Fairness across
+// network/clock differences is handled server-side by the settle tie-break.
 /** Two buzzes within this window tie-break to the lower current score. */
 export const BUZZ_SETTLE_MS = 150;
 /** Host client waits this long after seeing a provisional buzz before calling
