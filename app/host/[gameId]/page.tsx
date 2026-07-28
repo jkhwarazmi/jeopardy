@@ -1,6 +1,8 @@
 "use client";
 
 import { use, useMemo, useEffect, useState, useRef } from "react";
+import { notFound } from "next/navigation";
+import Link from "next/link";
 import { useGame } from "@/lib/hooks/useGame";
 import { usePlayers } from "@/lib/hooks/usePlayers";
 import { useCountdown } from "@/lib/hooks/useCountdown";
@@ -262,14 +264,26 @@ export default function HostPage({
     );
   }
 
+  if (gameError === "Game not found") {
+    notFound();
+  }
+
   if (gameError || !game) {
     return (
       <div className="flex-1 flex items-center justify-center bg-jeopardy-dark px-6">
-        <div className="bg-red-900/50 border-2 border-red-500 text-red-200 px-8 py-6 rounded-lg text-center max-w-2xl">
-          <p className="font-semibold text-2xl mb-2">Game not found</p>
-          <p className="text-lg">
-            {gameError || "This game does not exist or has been deleted."}
-          </p>
+        <div className="bg-red-900/50 border-2 border-red-500 text-red-200 px-8 py-6 rounded-lg text-center max-w-2xl space-y-6">
+          <div>
+            <p className="font-semibold text-2xl mb-2">Something went wrong</p>
+            <p className="text-lg">
+              {gameError || "This game does not exist or has been deleted."}
+            </p>
+          </div>
+          <Link
+            href="/"
+            className="inline-block text-jeopardy-gold hover:text-jeopardy-gold-dark underline text-lg transition-colors"
+          >
+            Go to homepage
+          </Link>
         </div>
       </div>
     );

@@ -1,6 +1,8 @@
 "use client";
 
 import { use, useState, useEffect } from "react";
+import { notFound } from "next/navigation";
+import Link from "next/link";
 import { useGame } from "@/lib/hooks/useGame";
 import { usePlayers } from "@/lib/hooks/usePlayers";
 import { adminAction, ADMIN_PW_KEY } from "@/lib/admin-api";
@@ -72,14 +74,26 @@ export default function AdminPage({
     );
   }
 
+  if (gameError === "Game not found") {
+    notFound();
+  }
+
   if (gameError || !game) {
     return (
       <div className="flex-1 flex items-center justify-center px-6">
-        <div className="bg-red-900/50 border-2 border-red-500 text-red-200 px-6 py-4 rounded-lg text-center max-w-md">
-          <p className="font-semibold mb-2">Game not found</p>
-          <p className="text-sm">
-            {gameError || "This game does not exist or has been deleted."}
-          </p>
+        <div className="bg-red-900/50 border-2 border-red-500 text-red-200 px-6 py-4 rounded-lg text-center max-w-md space-y-4">
+          <div>
+            <p className="font-semibold mb-2">Something went wrong</p>
+            <p className="text-sm">
+              {gameError || "This game does not exist or has been deleted."}
+            </p>
+          </div>
+          <Link
+            href="/"
+            className="inline-block text-jeopardy-gold hover:text-jeopardy-gold-dark underline text-sm transition-colors"
+          >
+            Go to homepage
+          </Link>
         </div>
       </div>
     );

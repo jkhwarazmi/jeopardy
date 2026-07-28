@@ -16,6 +16,7 @@ import { getAdminDb, Timestamp } from "@/lib/firebase-admin";
 import {
   BUZZ_SETTLE_MS,
   cellKey as makeCellKey,
+  normalizeGameDoc,
   type GameDoc,
   type PlayerDoc,
   type SettleBuzzRequest,
@@ -52,7 +53,7 @@ export async function POST(
     const result = await db.runTransaction(async (tx) => {
       const gameSnap = await tx.get(gameRef);
       if (!gameSnap.exists) return { settled: false, winnerId: null };
-      const game = gameSnap.data() as GameDoc;
+      const game = normalizeGameDoc(gameSnap.data() as GameDoc);
 
       // Idempotency / phase guards. The provisional winner exists but the
       // status is still 'question_open' (clients cannot change status).
