@@ -230,8 +230,8 @@ export default function PlayPage({
 
           {isPicking && (
             <div className="card-gold p-6 text-center animate-pop-in">
-              <p className="font-display text-3xl text-jeopardy-dark mb-2 uppercase">YOU PICK!</p>
-              <p className="text-jeopardy-dark/80 text-sm">
+              <p className="font-display text-3xl text-white mb-2 uppercase">YOU PICK!</p>
+              <p className="text-white/80 text-sm">
                 Tell the host your category and amount
               </p>
             </div>
