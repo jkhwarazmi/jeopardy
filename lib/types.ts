@@ -53,6 +53,39 @@ export function maxFinalWager(config: FinalConfig, score: number): number {
   return Math.max(config.wagerFloor, score);
 }
 
+/** Shape of `config.final` in game docs created before multi-question finals. */
+export type LegacyFinalConfig = FinalQuestionConfig;
+
+/**
+ * Upgrade a game doc read from Firestore that may predate the multi-question
+ * final round: legacy single-question `config.final` and no
+ * `finalQuestionIndex`. Mirrors the zod upgrade in lib/config-schema.ts (which
+ * only runs at game creation) for docs already stored. Every read boundary
+ * (`useGame`, admin route) MUST pass raw doc data through this — never cast
+ * `snapshot.data()` to GameDoc directly.
+ */
+export function normalizeGameDoc<T extends GameDoc>(docData: T): T {
+  const rawFinal = docData.config.final as FinalConfig | LegacyFinalConfig;
+  const final: FinalConfig =
+    "questions" in rawFinal && Array.isArray(rawFinal.questions)
+      ? {
+          questions: rawFinal.questions,
+          multipliers:
+            rawFinal.multipliers ?? rawFinal.questions.map((_, i) => i + 1),
+          wagerFloor: rawFinal.wagerFloor ?? 1000,
+        }
+      : {
+          questions: [rawFinal as LegacyFinalConfig],
+          multipliers: [1],
+          wagerFloor: 1000,
+        };
+  return {
+    ...docData,
+    finalQuestionIndex: docData.finalQuestionIndex ?? 0,
+    config: { ...docData.config, final },
+  };
+}
+
 export interface TimersConfig {
   /** Seconds a buzzed player has to answer (default 8) */
   answerSeconds: number;

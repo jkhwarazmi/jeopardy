@@ -16,6 +16,7 @@ import { getAdminDb, FieldValue, Timestamp } from "@/lib/firebase-admin";
 import { verifyPassword } from "@/lib/password";
 import {
   cellKey,
+  normalizeGameDoc,
   BUZZ_ANTI_JUMP_MS,
   type AdminAction,
   type AdminRequest,
@@ -110,7 +111,9 @@ async function applyAction(
 ): Promise<void> {
   const gameSnap = await tx.get(gameRef);
   if (!gameSnap.exists) fail("Game not found");
-  const game = gameSnap.data() as GameDoc;
+  // normalizeGameDoc: upgrade docs that predate multi-question finals so
+  // final_mark / next_final_question never hit an undefined questions array.
+  const game = normalizeGameDoc(gameSnap.data() as GameDoc);
 
   switch (action.type) {
     case "verify": {
@@ -448,7 +451,7 @@ export async function POST(
         { status: 404 }
       );
     }
-    const game = gameSnap.data() as GameDoc;
+    const game = normalizeGameDoc(gameSnap.data() as GameDoc);
     if (!verifyPassword(body.password, game.adminPassHash)) {
       return NextResponse.json(
         { ok: false, error: "Wrong password" },

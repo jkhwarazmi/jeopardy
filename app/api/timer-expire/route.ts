@@ -17,6 +17,7 @@ import { getAdminDb, FieldValue, Timestamp } from "@/lib/firebase-admin";
 import {
   BUZZ_ANTI_JUMP_MS,
   cellKey as makeCellKey,
+  normalizeGameDoc,
   type GameDoc,
   type PlayerDoc,
   type TimerExpireRequest,
@@ -67,7 +68,7 @@ export async function POST(
     const applied = await db.runTransaction(async (tx) => {
       const gameSnap = await tx.get(gameRef);
       if (!gameSnap.exists) return false;
-      const game = gameSnap.data() as GameDoc;
+      const game = normalizeGameDoc(gameSnap.data() as GameDoc);
 
       if (game.timerEndsAt === null || Date.now() < game.timerEndsAt.toMillis())
         return false;

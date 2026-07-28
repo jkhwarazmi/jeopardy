@@ -122,6 +122,21 @@ A fresh session should read CLAUDE.md → BUILD_PROMPT.md → this file, then re
   - sample-game.json: 3 final questions, multipliers [1,2,3], floor 1000.
     README: final schema docs + runbook step 9 rewritten.
 
+- **Legacy-doc normalization + graceful 404** (`npm run build` clean):
+  - Crash fix: pre-multi-question game docs (old `config.final`
+    `{category,question,answer}` shape, no `finalQuestionIndex`) blew up the
+    new Final UI (`final.questions.length` TypeError in FinalControls).
+    Added `normalizeGameDoc()` to `lib/types.ts` (architect) — upgrades
+    legacy `config.final` → `{questions:[…], multipliers:[1], wagerFloor:1000}`
+    and defaults `finalQuestionIndex` to 0, mirroring the zod creation-time
+    upgrade for docs already stored. Wired at EVERY read boundary: `useGame`,
+    admin route (applyAction + verify fast-path), settle-buzz, timer-expire.
+    Invariant documented: never cast `snapshot.data()` to GameDoc directly.
+  - Graceful 404: new themed `app/not-found.tsx` ($404 board-cell headline,
+    gold "Go to homepage" button). Host/admin/play pages call `notFound()`
+    when `gameError === "Game not found"`; other errors keep the red card,
+    retitled "Something went wrong", now with a homepage link.
+
 ## Next
 
 - Nothing — build complete. Remaining items are user-side (see Known gaps below).

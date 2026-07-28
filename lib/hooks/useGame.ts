@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db, ensureAnonymousAuth } from "@/lib/firebase";
-import type { Game, GameDoc } from "@/lib/types";
+import { normalizeGameDoc, type Game, type GameDoc } from "@/lib/types";
 
 export function useGame(gameId: string): {
   game: Game | null;
@@ -38,7 +38,9 @@ export function useGame(gameId: string): {
               return;
             }
 
-            const data = snapshot.data() as GameDoc;
+            // normalizeGameDoc upgrades docs created before the
+            // multi-question final round (legacy config.final shape).
+            const data = normalizeGameDoc(snapshot.data() as GameDoc);
             const gameWithId: Game = {
               ...data,
               id: snapshot.id,
