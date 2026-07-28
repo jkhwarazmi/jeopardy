@@ -16,9 +16,9 @@ export default function Board({ game, onPickCell }: BoardProps) {
 
   return (
     <div className="w-full h-full p-4 min-h-0">
-      <div className="bg-black/60 rounded-lg p-2 h-full min-h-0">
+      <div className="bg-black/60 rounded-lg p-3 h-full min-h-0">
         <div
-          className="grid gap-1 h-full min-h-0"
+          className="grid gap-2 md:gap-3 h-full min-h-0"
           style={{
             gridTemplateColumns: `repeat(${categories.length}, 1fr)`,
             gridTemplateRows: `auto repeat(${pointValues.length}, 1fr)`,
@@ -52,7 +52,7 @@ export default function Board({ game, onPickCell }: BoardProps) {
                     ${
                       isUsed
                         ? "board-cell-used cursor-default"
-                        : "board-cell cursor-pointer hover:scale-105 hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-jeopardy-gold"
+                        : "board-cell cursor-pointer hover:scale-[1.02] hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-jeopardy-gold"
                     }
                   `}
                 >
