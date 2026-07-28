@@ -327,16 +327,56 @@ export default function PlayPage({
   }
 
   if (game.status === "finished") {
+    // Determine winner(s) and self's rank
+    const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
+    const maxScore = sortedPlayers.length > 0 ? sortedPlayers[0].score : 0;
+    const winners = sortedPlayers.filter((p) => p.score === maxScore);
+    const isWinner = winners.some((w) => w.id === uid);
+
+    // Calculate rank
+    const selfRank = sortedPlayers.findIndex((p) => p.id === uid) + 1;
+
     return (
-      <div className="flex-1 flex items-center justify-center px-6">
-        <div className="bg-jeopardy-blue-dark rounded-lg p-6 text-center max-w-md">
-          <p className="text-white font-display text-4xl mb-4">GAME OVER!</p>
-          <div className="bg-jeopardy-dark rounded p-4">
-            <p className="text-white/70 text-sm mb-1">Your Final Score</p>
-            <p className="text-jeopardy-gold font-display text-3xl">
-              ${self.score}
-            </p>
-          </div>
+      <div className="flex-1 flex items-center justify-center px-6 py-12">
+        <div className="w-full max-w-md space-y-6">
+          {isWinner ? (
+            // YOU WON
+            <div className="bg-gradient-to-br from-jeopardy-gold to-jeopardy-gold-dark rounded-2xl p-8 text-center border-4 border-jeopardy-gold shadow-2xl">
+              <div className="text-7xl mb-4">🏆</div>
+              <p className="text-jeopardy-dark font-display text-5xl mb-4">
+                YOU WON!
+              </p>
+              <p className="text-jeopardy-dark font-bold text-3xl">
+                ${self.score.toLocaleString()}
+              </p>
+            </div>
+          ) : (
+            // You didn't win
+            <div className="bg-jeopardy-blue-dark rounded-2xl p-8 text-center border-2 border-jeopardy-blue space-y-6">
+              <p className="text-white font-display text-3xl mb-4">GAME OVER</p>
+
+              {/* Winner announcement */}
+              <div className="bg-jeopardy-dark rounded-lg p-4">
+                <p className="text-white/70 text-sm mb-2">Winner{winners.length > 1 ? "s" : ""}</p>
+                <p className="text-jeopardy-gold font-display text-2xl">
+                  {winners.map((w) => w.name).join(" & ")}
+                </p>
+              </div>
+
+              {/* Your final score and rank */}
+              <div className="bg-jeopardy-dark rounded-lg p-4">
+                <p className="text-white/70 text-sm mb-1">Your Final Score</p>
+                <p className="text-jeopardy-gold font-display text-4xl mb-3">
+                  ${self.score.toLocaleString()}
+                </p>
+                {selfRank > 0 && (
+                  <p className="text-white/80 text-lg">
+                    You finished <strong className="text-white">{selfRank}{selfRank === 1 ? "st" : selfRank === 2 ? "nd" : selfRank === 3 ? "rd" : "th"}</strong> of {sortedPlayers.length}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
