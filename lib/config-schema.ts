@@ -102,12 +102,15 @@ const timersConfigSchema = z
       .positive("answerSeconds must be positive")
       .max(300, "answerSeconds must be ≤300")
       .default(8),
+    // null/omitted = untimed — no countdown or auto-reveal; the admin ends
+    // the question manually (Reveal Answer / Skip).
     buzzWindowSeconds: z
       .number()
       .int()
       .positive("buzzWindowSeconds must be positive")
       .max(300, "buzzWindowSeconds must be ≤300")
-      .default(15),
+      .nullable()
+      .default(null),
     // null/omitted = untimed — the host ends the answer phase manually.
     finalAnswerSeconds: z
       .number()
@@ -119,7 +122,7 @@ const timersConfigSchema = z
   })
   .default({
     answerSeconds: 8,
-    buzzWindowSeconds: 15,
+    buzzWindowSeconds: null,
     finalAnswerSeconds: null,
   });
 

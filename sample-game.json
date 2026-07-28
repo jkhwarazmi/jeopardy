@@ -140,7 +140,7 @@
   },
   "timers": {
     "answerSeconds": 10,
-    "buzzWindowSeconds": 20,
+    "buzzWindowSeconds": null,
     "finalAnswerSeconds": null
   }
 }

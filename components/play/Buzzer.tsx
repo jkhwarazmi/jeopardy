@@ -46,18 +46,22 @@ export default function Buzzer({
   }, [game.status, buzzedPlayerId]);
 
   // Derived purely from the game doc + wall clock each render.
-  // Buzz-live moment: the anti-jump delay is already baked into timerEndsAt,
-  // so liveAt is simply timerEndsAt - buzzWindowSeconds.
+  // Buzz-live moment: buzzLiveAt is authoritative (works with untimed
+  // windows); legacy docs fall back to timerEndsAt - buzzWindowSeconds.
   const localState: BuzzerState = (() => {
     if (buzzedPlayerId === uid) return "you";
     if (buzzedPlayerId !== null) return "locked";
     if (isLockedOut) return "out";
     // Optimistic: we tapped and no contradicting buzz has arrived yet.
     if (pendingBuzz && game.status === "question_open") return "you";
-    if (game.status === "question_open" && cell && game.timerEndsAt) {
+    if (game.status === "question_open" && cell) {
       const liveAt =
-        game.timerEndsAt.toMillis() -
-        game.config.timers.buzzWindowSeconds * 1000;
+        game.buzzLiveAt?.toMillis() ??
+        (game.timerEndsAt && game.config.timers.buzzWindowSeconds != null
+          ? game.timerEndsAt.toMillis() -
+            game.config.timers.buzzWindowSeconds * 1000
+          : null);
+      if (liveAt === null) return "armed";
       return Date.now() < liveAt ? "armed" : "live";
     }
     return "armed";

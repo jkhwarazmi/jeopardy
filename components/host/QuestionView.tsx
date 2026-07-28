@@ -26,16 +26,24 @@ export default function QuestionView({ game, players }: QuestionViewProps) {
 
   const buzzedPlayer = players.find((p) => p.id === game.buzzedPlayerId);
 
-  // Compute buzz-live moment
+  // Compute buzz-live moment: buzzLiveAt is authoritative (works with
+  // untimed windows); legacy docs fall back to timerEndsAt - buzzWindow.
   useEffect(() => {
-    if (game.status !== "question_open" || !game.timerEndsAt) {
+    if (game.status !== "question_open") {
       setBuzzersLive(false);
       return;
     }
 
     const liveAt =
-      game.timerEndsAt.toMillis() -
-      game.config.timers.buzzWindowSeconds * 1000;
+      game.buzzLiveAt?.toMillis() ??
+      (game.timerEndsAt && game.config.timers.buzzWindowSeconds != null
+        ? game.timerEndsAt.toMillis() -
+          game.config.timers.buzzWindowSeconds * 1000
+        : null);
+    if (liveAt === null) {
+      setBuzzersLive(false);
+      return;
+    }
     const now = Date.now();
 
     if (now >= liveAt) {
@@ -45,7 +53,12 @@ export default function QuestionView({ game, players }: QuestionViewProps) {
       const timeout = setTimeout(() => setBuzzersLive(true), delay);
       return () => clearTimeout(timeout);
     }
-  }, [game.status, game.timerEndsAt, game.config.timers.buzzWindowSeconds]);
+  }, [
+    game.status,
+    game.buzzLiveAt,
+    game.timerEndsAt,
+    game.config.timers.buzzWindowSeconds,
+  ]);
 
   return (
     <div className="relative w-full h-full flex flex-col overflow-hidden">
@@ -137,7 +150,7 @@ export default function QuestionView({ game, players }: QuestionViewProps) {
               </p>
             ) : (
               <p className="text-white/60 text-xl md:text-2xl">
-                Time&apos;s up — nobody got it
+                Nobody got it
               </p>
             )}
           </div>

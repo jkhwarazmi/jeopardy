@@ -90,6 +90,7 @@ export async function POST(
           status: "answer_reveal",
           usedCells: FieldValue.arrayUnion(key),
           timerEndsAt: null,
+          buzzLiveAt: null,
         });
         return true;
       }
@@ -120,18 +121,25 @@ export async function POST(
           buzzSettledCellKey: null,
           usedCells: FieldValue.arrayUnion(key),
           timerEndsAt: null,
+          buzzLiveAt: null,
         });
       } else {
+        // Reopen buzzing: fresh buzzLiveAt after the anti-jump delay; the
+        // window countdown only runs when buzzWindowSeconds is set (untimed
+        // windows stay open until the admin ends the question).
+        const bw = game.config.timers.buzzWindowSeconds;
         tx.update(gameRef, {
           status: "question_open",
           lockedOutIds: newLockedOut,
           buzzedPlayerId: null,
           buzzSettledCellKey: null,
-          timerEndsAt: Timestamp.fromMillis(
-            Date.now() +
-              game.config.timers.buzzWindowSeconds * 1000 +
-              BUZZ_ANTI_JUMP_MS
-          ),
+          buzzLiveAt: Timestamp.fromMillis(Date.now() + BUZZ_ANTI_JUMP_MS),
+          timerEndsAt:
+            bw != null
+              ? Timestamp.fromMillis(
+                  Date.now() + bw * 1000 + BUZZ_ANTI_JUMP_MS
+                )
+              : null,
         });
       }
       return true;

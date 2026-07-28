@@ -200,6 +200,33 @@ A fresh session should read CLAUDE.md → BUILD_PROMPT.md → this file, then re
     omitted field → null; omitted timers object → null; negative multiplier
     rejected).
 
+- **Untimed buzz window (regular questions)** (`npm run build` clean):
+  - What the user actually asked for ("I meant during the general questions
+    where currently it's at 20s"): `timers.buzzWindowSeconds` is now
+    `number | null`; null/omitted = no countdown and no auto-reveal (new
+    default) — the question stays open until someone buzzes or the admin ends
+    it. `answerSeconds` (post-buzz) stays timed.
+  - New game-doc field `buzzLiveAt: Timestamp | null` — the armed→live moment
+    (anti-jump already applied) was previously DERIVED as
+    `timerEndsAt − buzzWindowSeconds×1000` in Buzzer, QuestionView, and
+    settle-buzz's stale-record filter, which all broke when timerEndsAt is
+    null. Now written by every buzz-window (re)open: admin route
+    `buzzWindowFields()` (open_cell + wrong-answer reopen) and timer-expire's
+    answer_timeout reopen; cleared (null) on every question end. All three
+    readers use buzzLiveAt first with the legacy derivation as fallback for
+    in-flight old docs (`normalizeGameDoc` defaults it to null).
+  - settle-buzz: bail guard now `buzzLiveAt === null && timerEndsAt === null`
+    (legacy-safe); filter base = buzzLiveAt ?? legacy derivation.
+  - New admin action `reveal_answer` (question_open, no buzz → answer_reveal,
+    cell marked used, no score change — the "nobody knows" ending, mirrors
+    buzz_window_timeout). Confirm-gated gold "Reveal Answer" button in admin
+    Controls above Skip; disabled once someone buzzes. Skip remains the
+    void-without-showing-answer option. Host reveal copy "Time's up — nobody
+    got it" → "Nobody got it" (true in both timed and untimed modes).
+  - firestore.rules unchanged (buzz clauses never reference timerEndsAt) — no
+    rules deploy needed. sample-game.json `buzzWindowSeconds: null`; README
+    updated.
+
 ## Next
 
 - Nothing — build complete. Remaining items are user-side (see Known gaps below).

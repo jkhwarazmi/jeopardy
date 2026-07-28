@@ -73,6 +73,22 @@ function currentPoints(game: GameDoc): number {
   return points;
 }
 
+/**
+ * Timestamps for (re)opening the buzz window. buzzLiveAt (armed→live flip,
+ * settle-buzz filter) is always set; timerEndsAt is the auto-reveal deadline,
+ * or null when buzzWindowSeconds is null (untimed — admin ends the question).
+ */
+function buzzWindowFields(game: GameDoc): {
+  buzzLiveAt: Timestamp;
+  timerEndsAt: Timestamp | null;
+} {
+  const bw = game.config.timers.buzzWindowSeconds;
+  return {
+    buzzLiveAt: Timestamp.fromMillis(Date.now() + BUZZ_ANTI_JUMP_MS),
+    timerEndsAt: bw != null ? endsIn(bw, BUZZ_ANTI_JUMP_MS) : null,
+  };
+}
+
 /** Reopen buzzing for everyone except lockedOut, or reveal if nobody is left. */
 function reopenOrReveal(
   tx: Transaction,
@@ -92,6 +108,7 @@ function reopenOrReveal(
       buzzSettledCellKey: null,
       usedCells: FieldValue.arrayUnion(currentCellKey(game)),
       timerEndsAt: null,
+      buzzLiveAt: null,
     });
   } else {
     tx.update(gameRef, {
@@ -99,7 +116,7 @@ function reopenOrReveal(
       lockedOutIds: newLockedOut,
       buzzedPlayerId: null,
       buzzSettledCellKey: null,
-      timerEndsAt: endsIn(game.config.timers.buzzWindowSeconds, BUZZ_ANTI_JUMP_MS),
+      ...buzzWindowFields(game),
     });
   }
 }
@@ -156,10 +173,7 @@ async function applyAction(
         buzzedPlayerId: null,
         buzzSettledCellKey: null,
         lockedOutIds: [],
-        timerEndsAt: endsIn(
-          game.config.timers.buzzWindowSeconds,
-          BUZZ_ANTI_JUMP_MS
-        ),
+        ...buzzWindowFields(game),
       });
       return;
     }
@@ -176,6 +190,7 @@ async function applyAction(
         currentPickerId: game.buzzedPlayerId,
         usedCells: FieldValue.arrayUnion(currentCellKey(game)),
         timerEndsAt: null,
+        buzzLiveAt: null,
       });
       return;
     }
@@ -196,6 +211,21 @@ async function applyAction(
       return;
     }
 
+    case "reveal_answer": {
+      // The "nobody knows" ending for untimed buzz windows (also usable to
+      // cut a timed window short). Mirrors buzz_window_timeout exactly.
+      if (game.status !== "question_open") fail("No open question");
+      if (game.buzzedPlayerId !== null)
+        fail("Someone buzzed — judge their answer instead");
+      tx.update(gameRef, {
+        status: "answer_reveal",
+        usedCells: FieldValue.arrayUnion(currentCellKey(game)),
+        timerEndsAt: null,
+        buzzLiveAt: null,
+      });
+      return;
+    }
+
     case "skip_question": {
       if (
         game.status !== "question_open" &&
@@ -213,6 +243,7 @@ async function applyAction(
           ? FieldValue.arrayUnion(currentCellKey(game))
           : game.usedCells,
         timerEndsAt: null,
+        buzzLiveAt: null,
       });
       return;
     }
@@ -226,6 +257,7 @@ async function applyAction(
         buzzSettledCellKey: null,
         lockedOutIds: [],
         timerEndsAt: null,
+        buzzLiveAt: null,
       });
       return;
     }
@@ -241,6 +273,7 @@ async function applyAction(
         buzzSettledCellKey: null,
         lockedOutIds: [],
         timerEndsAt: null,
+        buzzLiveAt: null,
       });
       return;
     }
@@ -388,6 +421,7 @@ async function applyAction(
         lockedOutIds: [],
         usedCells: [],
         timerEndsAt: null,
+        buzzLiveAt: null,
         lobbyLocked: false,
         finalQuestionIndex: 0,
       });
@@ -424,6 +458,7 @@ const CLEARS_BUZZES_BEFORE: ReadonlySet<AdminAction["type"]> = new Set([
 
 /** Pure hygiene: question is over, rules already block new buzz writes. */
 const CLEARS_BUZZES_AFTER: ReadonlySet<AdminAction["type"]> = new Set([
+  "reveal_answer",
   "skip_question",
   "close_question",
   "next_board",
