@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import QRCode from "qrcode";
 import type { CreateGameRequest, CreateGameResponse } from "@/lib/types";
 import sampleGame from "@/sample-game.json";
 
@@ -14,8 +15,34 @@ export default function NewGamePage() {
     gameId: string;
     joinCode: string;
   } | null>(null);
+  const [qrDataUrl, setQrDataUrl] = useState<string>("");
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Clear any pending copied-feedback timer on unmount
+  useEffect(() => {
+    return () => {
+      if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
+    };
+  }, []);
+
+  // Generate QR code when game is created
+  useEffect(() => {
+    if (!created) return;
+
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const playUrl = `${origin}/play/${created.gameId}`;
+
+    QRCode.toDataURL(playUrl, {
+      width: 512,
+      margin: 1,
+      color: { dark: "#000000", light: "#ffffff" },
+    })
+      .then((url) => setQrDataUrl(url))
+      .catch(() => setQrDataUrl(""));
+  }, [created]);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -79,8 +106,11 @@ export default function NewGamePage() {
     }
   };
 
-  const copyToClipboard = (text: string) => {
+  const copyToClipboard = (text: string, key: string) => {
     navigator.clipboard.writeText(text);
+    setCopiedKey(key);
+    if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
+    copiedTimerRef.current = setTimeout(() => setCopiedKey(null), 1500);
   };
 
   if (created) {
@@ -96,11 +126,32 @@ export default function NewGamePage() {
             Game Created!
           </h1>
 
+          {qrDataUrl && (
+            <div className="flex flex-col items-center">
+              <div className="bg-white p-3 rounded-lg">
+                <img
+                  src={qrDataUrl}
+                  alt="QR code to join"
+                  className="w-40 h-40 mx-auto"
+                />
+              </div>
+              <p className="text-white/70 text-sm mt-2">Scan to join</p>
+            </div>
+          )}
+
           <div className="bg-jeopardy-dark rounded p-6 text-center">
             <p className="text-white/70 text-sm mb-2">Join Code</p>
-            <p className="font-display text-5xl text-jeopardy-gold tracking-widest">
-              {created.joinCode}
-            </p>
+            <div className="flex items-center justify-center gap-4">
+              <p className="font-display text-5xl text-jeopardy-gold tracking-widest">
+                {created.joinCode}
+              </p>
+              <button
+                onClick={() => copyToClipboard(created.joinCode, "code")}
+                className="px-3 py-1 bg-jeopardy-blue hover:bg-jeopardy-blue-dark text-white text-sm rounded transition-colors whitespace-nowrap"
+              >
+                {copiedKey === "code" ? "Copied!" : "Copy"}
+              </button>
+            </div>
           </div>
 
           <div className="space-y-3">
@@ -111,17 +162,20 @@ export default function NewGamePage() {
             <LinkCard
               label="Host Board (for laptop/screen share)"
               url={hostUrl}
-              onCopy={() => copyToClipboard(hostUrl)}
+              onCopy={() => copyToClipboard(hostUrl, "host")}
+              copied={copiedKey === "host"}
             />
             <LinkCard
               label="Admin Panel (your phone)"
               url={adminUrl}
-              onCopy={() => copyToClipboard(adminUrl)}
+              onCopy={() => copyToClipboard(adminUrl, "admin")}
+              copied={copiedKey === "admin"}
             />
             <LinkCard
               label="Player Join Link"
               url={playUrl}
-              onCopy={() => copyToClipboard(playUrl)}
+              onCopy={() => copyToClipboard(playUrl, "play")}
+              copied={copiedKey === "play"}
             />
           </div>
         </div>
@@ -220,10 +274,12 @@ function LinkCard({
   label,
   url,
   onCopy,
+  copied,
 }: {
   label: string;
   url: string;
   onCopy: () => void;
+  copied: boolean;
 }) {
   return (
     <div className="bg-jeopardy-dark rounded p-4">
@@ -234,7 +290,7 @@ function LinkCard({
           onClick={onCopy}
           className="px-3 py-1 bg-jeopardy-blue hover:bg-jeopardy-blue-dark text-white text-sm rounded transition-colors whitespace-nowrap"
         >
-          Copy
+          {copied ? "Copied!" : "Copy"}
         </button>
       </div>
     </div>
