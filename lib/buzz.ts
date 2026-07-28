@@ -1,39 +1,40 @@
 /**
  * Client-side buzz path
  *
- * Two concurrent writes on every buzz attempt:
+ * Two concurrent fire-and-forget writes on every buzz attempt:
  *  1. A record in games/{gameId}/buzzes with a serverTimestamp (rules-enforced)
  *     — raw material for the 150ms lower-score tie-break in /api/settle-buzz.
- *  2. A Firestore transaction setting games/{gameId}.buzzedPlayerId to our uid
- *     IF it is still null (first-writer wins provisionally). Security rules
- *     allow exactly this one field, only during status === 'question_open',
- *     only to the caller's own uid, only when not locked out.
+ *  2. A plain updateDoc setting games/{gameId}.buzzedPlayerId to our uid.
+ *     Security rules enforce first-writer-wins server-side (only allowed while
+ *     status == 'question_open', buzzedPlayerId == null, own uid, not locked
+ *     out) — so no client transaction is needed.
  *
- * The provisional winner may be swapped by the settle route within the 150ms
- * window; clients must treat game.buzzedPlayerId as the sole source of truth.
+ * WHY updateDoc and NOT runTransaction: Firestore transactions get no latency
+ * compensation — local snapshots don't reflect the write until the server
+ * commits (2+ RTTs), which made the buzzer feel laggy. updateDoc echoes into
+ * the local cache immediately (onSnapshot fires with hasPendingWrites=true),
+ * so the player sees "YOU BUZZED" instantly; if the rules reject the write
+ * (someone else got there first), the local echo reverts and the UI corrects
+ * itself. The settle route remains the final authority on the winner.
  */
 import {
   addDoc,
   collection,
   doc,
-  runTransaction,
   serverTimestamp,
+  updateDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import type { GameDoc } from "@/lib/types";
 
-export type BuzzResult = "won" | "lost" | "error";
+export type BuzzResult = "won" | "lost";
 
-export async function attemptBuzz(
+export function attemptBuzz(
   gameId: string,
   uid: string,
   cellKeyStr: string
 ): Promise<BuzzResult> {
-  const gameRef = doc(db, "games", gameId);
-  const buzzesRef = collection(db, "games", gameId, "buzzes");
-
-  // Fire the evidence write immediately; don't let it delay the transaction.
-  const recordPromise = addDoc(buzzesRef, {
+  // Evidence write for the tie-break — concurrent, never blocks the buzz.
+  addDoc(collection(db, "games", gameId, "buzzes"), {
     playerId: uid,
     at: serverTimestamp(),
     cellKey: cellKeyStr,
@@ -41,25 +42,11 @@ export async function attemptBuzz(
     // Rules reject buzzes once the question closes — harmless race, ignore.
   });
 
-  try {
-    const result = await runTransaction(db, async (tx) => {
-      const snap = await tx.get(gameRef);
-      if (!snap.exists()) return "error" as const;
-      const game = snap.data() as GameDoc;
-      if (
-        game.status !== "question_open" ||
-        game.buzzedPlayerId !== null ||
-        game.lockedOutIds.includes(uid)
-      ) {
-        return "lost" as const;
-      }
-      tx.update(gameRef, { buzzedPlayerId: uid });
-      return "won" as const;
-    });
-    await recordPromise;
-    return result;
-  } catch {
-    await recordPromise;
-    return "error";
-  }
+  // The buzz itself. Resolves "lost" when rules reject it (someone else won
+  // the race or the question closed) — the reverted local echo already fixed
+  // the UI by then.
+  return updateDoc(doc(db, "games", gameId), { buzzedPlayerId: uid }).then(
+    () => "won" as const,
+    () => "lost" as const
+  );
 }

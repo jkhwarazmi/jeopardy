@@ -30,11 +30,21 @@ export default function FinalControls({
     }
   };
 
+  // Shared derivation
+  const final = game.config.final;
+  const qIndex = Math.min(game.finalQuestionIndex, final.questions.length - 1);
+  const fq = final.questions[qIndex];
+  const multiplier = final.multipliers[qIndex] ?? 1;
+  const qLabel = final.questions.length > 1
+    ? `Question ${qIndex + 1} of ${final.questions.length}` : null;
+  const hasNextQuestion = qIndex + 1 < final.questions.length;
+
   const participants = players.filter((p) => p.finalWager !== null);
-  const eligiblePlayers = players.filter((p) => p.score > 0);
 
   // FINAL WAGER PHASE
   if (game.status === "final_wager") {
+    // All players are eligible (wagerFloor ensures everyone can wager)
+    const eligiblePlayers = players;
     const wagersIn = eligiblePlayers.filter((p) => p.finalWager !== null).length;
     const total = eligiblePlayers.length;
     const allWagersIn = wagersIn === total && total > 0;
@@ -46,13 +56,27 @@ export default function FinalControls({
             Final Jeopardy — Wagers
           </h3>
 
+          {qLabel && (
+            <p className="text-white/70 text-sm uppercase tracking-wide mb-2">
+              {qLabel}
+            </p>
+          )}
+
+          {multiplier > 1 && (
+            <div className="mb-3">
+              <span className="inline-block bg-jeopardy-gold text-jeopardy-dark font-bold text-sm px-3 py-1 rounded">
+                ×{multiplier} STAKES
+              </span>
+            </div>
+          )}
+
           <div className="space-y-3 mb-4">
             <div>
               <p className="text-white/70 text-sm uppercase tracking-wide">
                 Category
               </p>
               <p className="text-white font-semibold text-lg">
-                {game.config.final.category}
+                {fq.category}
               </p>
             </div>
 
@@ -61,7 +85,7 @@ export default function FinalControls({
                 Answer (for your eyes)
               </p>
               <p className="text-jeopardy-gold font-semibold">
-                {game.config.final.answer}
+                {fq.answer}
               </p>
             </div>
           </div>
@@ -75,15 +99,10 @@ export default function FinalControls({
             </p>
           </div>
 
-          {eligiblePlayers.length === 0 && (
-            <p className="text-white/70 text-sm text-center py-2">
-              No players have a positive score
-            </p>
-          )}
-
           <div className="space-y-2">
             {eligiblePlayers.map((player) => {
               const hasWagered = player.finalWager !== null;
+              const maxWager = Math.max(final.wagerFloor, player.score);
               return (
                 <div
                   key={player.id}
@@ -96,7 +115,9 @@ export default function FinalControls({
                       }`}
                     />
                     <p className="text-white font-semibold">{player.name}</p>
-                    <p className="text-white/50 text-sm">${player.score}</p>
+                    <p className="text-white/50 text-sm">
+                      ${player.score} (max: ${maxWager})
+                    </p>
                   </div>
                   {hasWagered && (
                     <p className="text-jeopardy-gold font-display text-lg">
@@ -138,6 +159,12 @@ export default function FinalControls({
           <h3 className="text-jeopardy-gold font-display text-2xl mb-3">
             Final Answer Phase
           </h3>
+
+          {qLabel && (
+            <p className="text-white/70 text-sm uppercase tracking-wide mb-3">
+              {qLabel}
+            </p>
+          )}
 
           {secondsLeft !== null && (
             <div
@@ -213,23 +240,16 @@ export default function FinalControls({
 
   // FINAL REVEAL PHASE
   if (game.status === "final_reveal") {
-    // Sort participants by score ascending (lowest first)
-    const orderedParticipants = [...participants].sort(
-      (a, b) => a.score - b.score
+    // Stable queue: pre-judgment score ascending (for sync with host)
+    const stakeOf = (p: Player) => (p.finalWager ?? 0) * multiplier;
+    const preScore = (p: Player) =>
+      p.score - (p.finalCorrect === null ? 0 : p.finalCorrect ? stakeOf(p) : -stakeOf(p));
+    const queue = [...participants].sort(
+      (a, b) => preScore(a) - preScore(b) || a.id.localeCompare(b.id)
     );
+    const upNow = queue.find((p) => p.finalCorrect === null);
 
-    const nextUnrevealed = orderedParticipants.find(
-      (p) => p.finalCorrect === null
-    );
-
-    const allJudged = orderedParticipants.every((p) => p.finalCorrect !== null);
-
-    const currentSpotlight = game.finalSpotlightId
-      ? players.find((p) => p.id === game.finalSpotlightId)
-      : null;
-
-    const isCurrentSpotlightJudged =
-      currentSpotlight && currentSpotlight.finalCorrect !== null;
+    const allJudged = queue.every((p) => p.finalCorrect !== null);
 
     return (
       <div className="space-y-4">
@@ -238,51 +258,73 @@ export default function FinalControls({
             Final Reveal
           </h3>
 
+          {qLabel && (
+            <p className="text-white/70 text-sm uppercase tracking-wide mb-2">
+              {qLabel}
+            </p>
+          )}
+
+          {multiplier > 1 && (
+            <div className="mb-3">
+              <span className="inline-block bg-jeopardy-gold text-jeopardy-dark font-bold text-sm px-3 py-1 rounded">
+                ×{multiplier} STAKES
+              </span>
+            </div>
+          )}
+
           <div className="mb-3">
             <p className="text-jeopardy-gold text-xs uppercase tracking-wide mb-1">
               Correct Answer
             </p>
-            <p className="text-white font-semibold">{game.config.final.answer}</p>
+            <p className="text-white font-semibold">{fq.answer}</p>
           </div>
         </div>
 
         {participants.length === 0 && (
-          <div className="bg-jeopardy-blue-dark rounded-lg p-6 text-center">
+          <div className="bg-jeopardy-blue-dark rounded-lg p-6 text-center space-y-3">
             <p className="text-white/70 mb-4">Nobody could wager</p>
-            <button
-              onClick={() => act({ type: "end_game" })}
-              disabled={busy}
-              className="w-full bg-jeopardy-gold hover:bg-jeopardy-gold-dark text-jeopardy-dark font-bold text-xl py-4 rounded-lg transition-colors focus:outline-none focus:ring-4 focus:ring-jeopardy-gold/50 disabled:opacity-50"
-            >
-              END GAME
-            </button>
+            <div className="space-y-3">
+              {hasNextQuestion && (
+                <button
+                  onClick={() =>
+                    confirmAndAct("next_final_question", { type: "next_final_question" })
+                  }
+                  disabled={busy}
+                  className="w-full bg-jeopardy-gold hover:bg-jeopardy-gold-dark text-jeopardy-dark font-bold text-xl py-4 rounded-lg transition-colors focus:outline-none focus:ring-4 focus:ring-jeopardy-gold/50 disabled:opacity-50"
+                >
+                  {confirmAction === "next_final_question"
+                    ? "Confirm?"
+                    : `NEXT QUESTION (×${final.multipliers[qIndex + 1] ?? (qIndex + 2)} STAKES) →`}
+                </button>
+              )}
+              <button
+                onClick={() =>
+                  confirmAndAct("end_game", { type: "end_game" })
+                }
+                disabled={busy}
+                className={`w-full ${
+                  hasNextQuestion
+                    ? "bg-jeopardy-blue-dark hover:bg-jeopardy-blue text-white border border-white/30"
+                    : "bg-jeopardy-gold hover:bg-jeopardy-gold-dark text-jeopardy-dark"
+                } font-bold text-xl py-4 rounded-lg transition-colors focus:outline-none focus:ring-4 focus:ring-jeopardy-gold/50 disabled:opacity-50`}
+              >
+                {confirmAction === "end_game" ? "Confirm?" : "END GAME"}
+              </button>
+            </div>
           </div>
         )}
 
         {participants.length > 0 && (
           <>
-            {/* Next player to spotlight */}
-            {nextUnrevealed && !currentSpotlight && (
-              <button
-                onClick={() =>
-                  act({
-                    type: "final_spotlight",
-                    playerId: nextUnrevealed.id,
-                  })
-                }
-                disabled={busy}
-                className="w-full bg-jeopardy-gold hover:bg-jeopardy-gold-dark text-jeopardy-dark font-bold text-2xl py-8 rounded-lg transition-colors focus:outline-none focus:ring-4 focus:ring-jeopardy-gold/50 disabled:opacity-50"
-              >
-                SPOTLIGHT {nextUnrevealed.name.toUpperCase()}
-              </button>
-            )}
-
-            {/* Current spotlight judging */}
-            {currentSpotlight && !isCurrentSpotlightJudged && (
+            {/* Up Now card */}
+            {upNow && (
               <div className="space-y-4">
                 <div className="bg-jeopardy-blue-dark rounded-lg p-6 border-2 border-jeopardy-blue">
-                  <p className="text-white font-display text-2xl mb-4 text-center">
-                    {currentSpotlight.name}
+                  <p className="text-jeopardy-gold text-xs uppercase tracking-wide mb-2">
+                    UP NOW
+                  </p>
+                  <p className="text-white font-display text-2xl mb-4">
+                    {upNow.name}
                   </p>
 
                   <div className="space-y-3">
@@ -291,7 +333,7 @@ export default function FinalControls({
                         Their Answer
                       </p>
                       <p className="text-white font-semibold text-lg">
-                        {currentSpotlight.finalAnswer || "(no answer)"}
+                        {upNow.finalAnswer || "(no answer)"}
                       </p>
                     </div>
 
@@ -299,8 +341,13 @@ export default function FinalControls({
                       <p className="text-white/70 text-xs uppercase tracking-wide mb-1">
                         Wagered
                       </p>
-                      <p className="text-jeopardy-gold font-display text-2xl">
-                        ${currentSpotlight.finalWager}
+                      <p className="text-jeopardy-gold font-display text-xl">
+                        ${upNow.finalWager}
+                        {multiplier > 1 && (
+                          <span className="text-white/70 text-base ml-2">
+                            × {multiplier} = ${stakeOf(upNow)}
+                          </span>
+                        )}
                       </p>
                     </div>
                   </div>
@@ -311,7 +358,7 @@ export default function FinalControls({
                     onClick={() =>
                       act({
                         type: "final_mark",
-                        playerId: currentSpotlight.id,
+                        playerId: upNow.id,
                         correct: true,
                       })
                     }
@@ -320,14 +367,14 @@ export default function FinalControls({
                   >
                     CORRECT
                     <br />
-                    <span className="text-3xl">+${currentSpotlight.finalWager}</span>
+                    <span className="text-3xl">+${stakeOf(upNow)}</span>
                   </button>
 
                   <button
                     onClick={() =>
                       act({
                         type: "final_mark",
-                        playerId: currentSpotlight.id,
+                        playerId: upNow.id,
                         correct: false,
                       })
                     }
@@ -336,7 +383,7 @@ export default function FinalControls({
                   >
                     WRONG
                     <br />
-                    <span className="text-3xl">−${currentSpotlight.finalWager}</span>
+                    <span className="text-3xl">−${stakeOf(upNow)}</span>
                   </button>
                 </div>
               </div>
@@ -348,16 +395,16 @@ export default function FinalControls({
                 Players
               </p>
               <div className="space-y-2">
-                {orderedParticipants.map((player) => {
-                  const isRevealed = player.finalCorrect !== null;
+                {queue.map((player) => {
+                  const isJudged = player.finalCorrect !== null;
                   const isCorrect = player.finalCorrect === true;
-                  const isCurrent = player.id === game.finalSpotlightId;
+                  const isUpNow = player.id === upNow?.id;
 
                   return (
                     <div
                       key={player.id}
                       className={`rounded p-3 flex items-center justify-between ${
-                        isCurrent
+                        isUpNow
                           ? "bg-jeopardy-gold/20 border-2 border-jeopardy-gold"
                           : "bg-jeopardy-dark"
                       }`}
@@ -365,7 +412,7 @@ export default function FinalControls({
                       <div className="flex items-center gap-3">
                         <div
                           className={`w-3 h-3 rounded-full ${
-                            isRevealed
+                            isJudged
                               ? isCorrect
                                 ? "bg-green-500"
                                 : "bg-red-500"
@@ -374,15 +421,34 @@ export default function FinalControls({
                         />
                         <p className="text-white font-semibold">{player.name}</p>
                       </div>
-                      <div className="flex items-center gap-4">
-                        {isRevealed && (
-                          <p
-                            className={`text-sm font-semibold ${
-                              isCorrect ? "text-green-400" : "text-red-400"
-                            }`}
-                          >
-                            {isCorrect ? "✓" : "✗"}
-                          </p>
+                      <div className="flex items-center gap-3">
+                        {isJudged && (
+                          <>
+                            <button
+                              onClick={() =>
+                                confirmAndAct(`flip_${player.id}`, {
+                                  type: "final_mark",
+                                  playerId: player.id,
+                                  correct: !player.finalCorrect,
+                                })
+                              }
+                              disabled={busy}
+                              className="text-xs text-white/70 hover:text-white bg-jeopardy-blue hover:bg-jeopardy-blue-dark px-2 py-1 rounded transition-colors disabled:opacity-50"
+                            >
+                              {confirmAction === `flip_${player.id}`
+                                ? "Confirm flip?"
+                                : isCorrect
+                                ? "↺ mark wrong"
+                                : "↺ mark correct"}
+                            </button>
+                            <p
+                              className={`text-sm font-semibold ${
+                                isCorrect ? "text-green-400" : "text-red-400"
+                              }`}
+                            >
+                              {isCorrect ? "✓" : "✗"}
+                            </p>
+                          </>
                         )}
                         <p className="text-white/70 text-sm">${player.score}</p>
                       </div>
@@ -392,15 +458,36 @@ export default function FinalControls({
               </div>
             </div>
 
-            {/* End game button when all judged */}
+            {/* End game / Next question buttons when all judged */}
             {allJudged && (
-              <button
-                onClick={() => act({ type: "end_game" })}
-                disabled={busy}
-                className="w-full bg-jeopardy-gold hover:bg-jeopardy-gold-dark text-jeopardy-dark font-bold text-2xl py-6 rounded-lg transition-colors focus:outline-none focus:ring-4 focus:ring-jeopardy-gold/50 disabled:opacity-50"
-              >
-                END GAME
-              </button>
+              <div className="space-y-3">
+                {hasNextQuestion && (
+                  <button
+                    onClick={() =>
+                      confirmAndAct("next_final_question", { type: "next_final_question" })
+                    }
+                    disabled={busy}
+                    className="w-full bg-jeopardy-gold hover:bg-jeopardy-gold-dark text-jeopardy-dark font-bold text-2xl py-6 rounded-lg transition-colors focus:outline-none focus:ring-4 focus:ring-jeopardy-gold/50 disabled:opacity-50"
+                  >
+                    {confirmAction === "next_final_question"
+                      ? "Confirm?"
+                      : `NEXT QUESTION (×${final.multipliers[qIndex + 1] ?? (qIndex + 2)} STAKES) →`}
+                  </button>
+                )}
+                <button
+                  onClick={() =>
+                    confirmAndAct("end_game", { type: "end_game" })
+                  }
+                  disabled={busy}
+                  className={`w-full ${
+                    hasNextQuestion
+                      ? "bg-jeopardy-blue-dark hover:bg-jeopardy-blue text-white border border-white/30"
+                      : "bg-jeopardy-gold hover:bg-jeopardy-gold-dark text-jeopardy-dark"
+                  } font-bold text-2xl py-6 rounded-lg transition-colors focus:outline-none focus:ring-4 focus:ring-jeopardy-gold/50 disabled:opacity-50`}
+                >
+                  {confirmAction === "end_game" ? "Confirm?" : "END GAME"}
+                </button>
+              </div>
             )}
           </>
         )}

@@ -8,7 +8,7 @@ rules_version = '2';
 //     where a signed-in player may set buzzedPlayerId to their own uid while a
 //     question is open and nobody has buzzed yet.
 //   - Players may create/update only their own player doc, and never `score`,
-//     `isKicked`, `finalRevealed`, or `finalCorrect`.
+//     `isKicked`, or `finalCorrect`.
 //   - Buzz records may be created only while status == 'question_open', only
 //     for yourself, and only with a server timestamp.
 
@@ -49,7 +49,6 @@ service cloud.firestore {
           && request.resource.data.isKicked == false
           && request.resource.data.finalWager == null
           && request.resource.data.finalAnswer == null
-          && request.resource.data.finalRevealed == false
           && request.resource.data.finalCorrect == null
           && request.resource.data.name is string
           && request.resource.data.name.size() >= 1
@@ -83,7 +82,8 @@ service cloud.firestore {
               && request.resource.data.photoBase64.size() < 120000
             )
           )
-          // Wagers: only during final_wager, 0..current score.
+          // Wagers: only during final_wager, 0..max(wagerFloor, own score) —
+          // the floor keeps trailing players in the game.
           && (
             !request.resource.data.diff(resource.data).affectedKeys()
               .hasAny(['finalWager'])
@@ -91,7 +91,8 @@ service cloud.firestore {
               game().status == 'final_wager'
               && request.resource.data.finalWager is int
               && request.resource.data.finalWager >= 0
-              && request.resource.data.finalWager <= resource.data.score
+              && (request.resource.data.finalWager <= game().config.final.wagerFloor
+                  || request.resource.data.finalWager <= resource.data.score)
             )
           )
           // Answers: only during final_answer, before the deadline.

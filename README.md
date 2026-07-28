@@ -59,13 +59,24 @@ Games are defined by a JSON file that you upload or paste when creating a new ga
     }
   ],
   "final": {
-    "category": "Company History",
-    "question": "In what year did the founder of Microsoft drop out of Harvard to pursue his business venture?",
-    "answer": "1975"
+    "questions": [
+      {
+        "category": "Company History",
+        "question": "In what year did the founder of Microsoft drop out of Harvard to pursue his business venture?",
+        "answer": "1975"
+      },
+      {
+        "category": "Office Firsts",
+        "question": "This everyday office fixture was invented in 1849...",
+        "answer": "The paper clip"
+      }
+    ],
+    "multipliers": [1, 2],
+    "wagerFloor": 1000
   },
   "timers": {
-    "answerSeconds": 5,
-    "buzzWindowSeconds": 10,
+    "answerSeconds": 8,
+    "buzzWindowSeconds": 15,
     "finalAnswerSeconds": 30
   }
 }
@@ -81,14 +92,15 @@ Games are defined by a JSON file that you upload or paste when creating a new ga
     - **`cells[]`** (array): Must have the same length as `pointValues`. Each cell has:
       - **`question`** (string): The clue.
       - **`answer`** (string): The correct response.
-- **`final`** (object): Final Jeopardy round:
-  - **`category`** (string): Category name.
-  - **`question`** (string): The final clue.
-  - **`answer`** (string): The correct response.
+- **`final`** (object): Final round — one or more questions with rising stakes:
+  - **`questions[]`** (array, 1–5): Each has `category`, `question`, `answer`. Played in order.
+  - **`multipliers[]`** (array of positive integers, optional): Stake multiplier per question — a judged answer moves the player's score by ±(wager × multiplier). Must match `questions` length. Defaults to 1, 2, 3, …
+  - **`wagerFloor`** (number, optional, default 1000): Every player may wager at least this much regardless of score, so trailing players stay in the game. Leaders may wager up to their score.
+  - The legacy single-question shape (`{ "category", "question", "answer" }`) is still accepted and upgraded to a one-question round with multiplier ×1.
 - **`timers`** (object, all optional with defaults below):
-  - **`answerSeconds`** (number): Time to read the answer (default: 5).
-  - **`buzzWindowSeconds`** (number): Time window for players to buzz (default: 10).
-  - **`finalAnswerSeconds`** (number): Time for Final Jeopardy answers (default: 30).
+  - **`answerSeconds`** (number): Time to answer after buzzing (default: 8).
+  - **`buzzWindowSeconds`** (number): Time window for players to buzz, including reading the clue aloud (default: 15).
+  - **`finalAnswerSeconds`** (number): Time to type each final answer (default: 30).
 
 ## Sounds
 
@@ -140,15 +152,13 @@ Replace these with real royalty-free audio clips (keep the same filenames). Soun
      - If correct: the buzzed player gets the points and picks next.
      - If wrong: that player is locked out; the buzzer reopens for other players. If nobody else buzzes or 10 seconds pass, the answer is revealed.
 
-9. **Final Jeopardy:**
-   - From the admin phone, tap **Start Wagers**.
-   - All players secretly enter their wager.
-   - Tap **Start Answer Round** to reveal the Final Jeopardy answer.
-   - Players type their response (30 seconds).
-   - Tap **Reveal** to show players one by one (lowest score first).
-   - Judge each answer: **Correct** or **Wrong**.
+9. **Final round** (repeats once per final question, with rising stakes):
+   - From the admin phone, tap **Start Final Round** (or **Next Question** after the first).
+   - Every player secretly enters a wager — everyone may wager at least the wager floor ($1000 by default), so nobody is out of it.
+   - Tap **Reveal Question**; players type their response (30 seconds).
+   - Tap **Start Reveal**. The big screen spotlights players automatically, lowest score first; judge each answer **Correct** or **Wrong** on the admin phone (scores move by ±wager × that question's multiplier). Misjudged? Tap the small ↺ flip button on that player's row.
 
-10. After all Final Jeopardy answers are judged, click **End Game**. The winner celebration plays on the big screen.
+10. After the last final question is judged, tap **End Game**. The winner celebration plays on the big screen.
 
 ### Troubleshooting
 

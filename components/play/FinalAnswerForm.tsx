@@ -18,6 +18,13 @@ export default function FinalAnswerForm({
   uid,
   gameId,
 }: FinalAnswerFormProps) {
+  const final = game.config.final;
+  const qIndex = Math.min(game.finalQuestionIndex, final.questions.length - 1);
+  const fq = final.questions[qIndex];
+  const multiplier = final.multipliers[qIndex] ?? 1;
+  const qLabel = final.questions.length > 1
+    ? `Question ${qIndex + 1} of ${final.questions.length}` : null;
+
   const [answerInput, setAnswerInput] = useState(self.finalAnswer ?? "");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -37,9 +44,11 @@ export default function FinalAnswerForm({
         <div className="w-full max-w-md space-y-6">
           <div className="bg-jeopardy-blue-dark rounded-lg p-6 text-center border-2 border-jeopardy-blue">
             <p className="text-jeopardy-gold font-display text-2xl mb-4">
-              SPECTATOR
+              NO WAGER
             </p>
-            <p className="text-white text-lg">Watch the big screen!</p>
+            <p className="text-white text-lg">
+              You didn&apos;t lock in a wager for this question — watch the big screen!
+            </p>
           </div>
         </div>
       </div>
@@ -83,12 +92,27 @@ export default function FinalAnswerForm({
           <h2 className="font-display text-3xl text-jeopardy-gold">
             FINAL JEOPARDY
           </h2>
+          {qLabel && (
+            <p className="text-white/70 text-xs uppercase tracking-wide">
+              {qLabel}
+            </p>
+          )}
           <p className="text-white/70 text-sm uppercase tracking-wide">
             Category
           </p>
           <p className="text-white text-xl font-semibold mb-4">
-            {game.config.final.category}
+            {fq.category}
           </p>
+          {multiplier > 1 && (
+            <div className="inline-flex items-center gap-2 bg-jeopardy-gold text-jeopardy-dark px-3 py-1 rounded-full text-sm font-bold">
+              <span>×{multiplier} STAKES</span>
+            </div>
+          )}
+          {multiplier > 1 && (
+            <p className="text-white/50 text-xs">
+              Win or lose your wager ×{multiplier}
+            </p>
+          )}
         </div>
 
         <div className="bg-jeopardy-blue-dark rounded-lg p-6 border-2 border-jeopardy-gold">
@@ -96,7 +120,7 @@ export default function FinalAnswerForm({
             Question
           </p>
           <p className="text-white text-lg leading-relaxed">
-            {game.config.final.question}
+            {fq.question}
           </p>
         </div>
 

@@ -98,7 +98,7 @@ export async function POST(
       usedCells: [],
       timerEndsAt: null,
       lobbyLocked: false,
-      finalSpotlightId: null,
+      finalQuestionIndex: 0,
       createdAt: FieldValue.serverTimestamp(),
     };
 
