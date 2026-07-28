@@ -12,6 +12,8 @@ interface SelfieCaptureProps {
 export default function SelfieCapture({ onCapture, skipLabel = "Continue without photo", onCancel }: SelfieCaptureProps) {
   const [mode, setMode] = useState<"camera" | "upload">("camera");
   const [preview, setPreview] = useState<string | null>(null);
+  /** How the current preview was produced — drives the redo-button labels. */
+  const [source, setSource] = useState<"camera" | "upload" | null>(null);
   const [error, setError] = useState("");
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -91,6 +93,7 @@ export default function SelfieCapture({ onCapture, skipLabel = "Continue without
     ctx.drawImage(video, sx, sy, sWidth, sHeight, 0, 0, size, size);
 
     const dataUrl = canvasToSelfieDataUrl(canvas);
+    setSource("camera");
     setPreview(dataUrl);
   };
 
@@ -100,6 +103,7 @@ export default function SelfieCapture({ onCapture, skipLabel = "Continue without
 
     try {
       const dataUrl = await blobToSelfieDataUrl(file);
+      setSource("upload");
       setPreview(dataUrl);
       setError("");
     } catch (err) {
@@ -135,18 +139,37 @@ export default function SelfieCapture({ onCapture, skipLabel = "Continue without
           />
         </div>
         <div className="flex gap-3">
-          <button
-            onClick={handleRetake}
-            className="flex-1 py-3 bg-jeopardy-blue hover:bg-jeopardy-blue-dark text-white font-semibold rounded-lg transition-colors"
-          >
-            Retake Photo
-          </button>
-          <button
-            onClick={handleUploadInstead}
-            className="flex-1 py-3 bg-jeopardy-blue hover:bg-jeopardy-blue-dark text-white font-semibold rounded-lg transition-colors"
-          >
-            Upload Instead
-          </button>
+          {source === "upload" ? (
+            <>
+              <button
+                onClick={handleUploadInstead}
+                className="flex-1 py-3 bg-jeopardy-blue hover:bg-jeopardy-blue-dark text-white font-semibold rounded-lg transition-colors"
+              >
+                Choose a Different Photo
+              </button>
+              <button
+                onClick={handleRetake}
+                className="flex-1 py-3 bg-jeopardy-blue hover:bg-jeopardy-blue-dark text-white font-semibold rounded-lg transition-colors"
+              >
+                Use Camera Instead
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={handleRetake}
+                className="flex-1 py-3 bg-jeopardy-blue hover:bg-jeopardy-blue-dark text-white font-semibold rounded-lg transition-colors"
+              >
+                Retake Photo
+              </button>
+              <button
+                onClick={handleUploadInstead}
+                className="flex-1 py-3 bg-jeopardy-blue hover:bg-jeopardy-blue-dark text-white font-semibold rounded-lg transition-colors"
+              >
+                Upload Instead
+              </button>
+            </>
+          )}
         </div>
         <button
           onClick={handleUse}

@@ -180,8 +180,9 @@ export function usePlayerSession(gameId: string): UsePlayerSession {
         throw new Error("Not authenticated");
       }
 
-      // Short-circuit if no updates provided
-      if (!updates.name && !updates.photoBase64) {
+      // Short-circuit only if no keys were provided at all.
+      // NOTE: photoBase64 === "" is a real update (photo removal).
+      if (updates.name === undefined && updates.photoBase64 === undefined) {
         return;
       }
 
