@@ -287,7 +287,14 @@ function LinkCard({
     <div className="card p-4">
       <p className="text-white/70 text-xs mb-1">{label}</p>
       <div className="flex gap-2 items-center">
-        <p className="flex-1 text-white text-sm font-mono break-all">{url}</p>
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex-1 text-white text-sm font-mono break-all underline decoration-white/30 underline-offset-2 hover:text-jeopardy-gold hover:decoration-jeopardy-gold transition-colors"
+        >
+          {url}
+        </a>
         <button
           onClick={onCopy}
           className="btn btn-sm btn-ghost whitespace-nowrap"
