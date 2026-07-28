@@ -9,6 +9,7 @@ import {
   serverTimestamp,
   collection,
   getDocs,
+  type WithFieldValue,
 } from "firebase/firestore";
 import { db, ensureAnonymousAuth } from "@/lib/firebase";
 import type { Player, PlayerDoc } from "@/lib/types";
@@ -112,11 +113,11 @@ export function usePlayerSession(gameId: string): UsePlayerSession {
       }
 
       // Create player doc with exact initial shape required by rules
-      const playerDoc: PlayerDoc = {
+      const playerDoc: WithFieldValue<PlayerDoc> = {
         name: finalName,
         photoBase64,
         score: 0,
-        joinedAt: serverTimestamp() as any, // Firestore will resolve to Timestamp
+        joinedAt: serverTimestamp(), // resolves to Timestamp server-side
         connected: true,
         finalWager: null,
         finalAnswer: null,
