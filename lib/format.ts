@@ -13,6 +13,15 @@ export function moneyDelta(n: number): string {
   return n >= 0 ? `+${money(n)}` : money(n);
 }
 
+/**
+ * Final-round stake: wager × multiplier, rounded to a whole pound.
+ * Multipliers may be fractional (e.g. 1.5), so this is the ONLY way a stake
+ * may be computed — server and UI must agree on the rounding.
+ */
+export function finalStake(wager: number, multiplier: number): number {
+  return Math.round(wager * multiplier);
+}
+
 /** English ordinal: 1 → "1st", 2 → "2nd", 11 → "11th", 22 → "22nd" */
 export function ordinal(n: number): string {
   const mod100 = Math.abs(n) % 100;

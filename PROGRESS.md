@@ -181,6 +181,25 @@ A fresh session should read CLAUDE.md → BUILD_PROMPT.md → this file, then re
     `React.FormEvent<HTMLFormElement>` (bare alias deprecated in current
     @types/react).
 
+- **Untimed final-answer phase + fractional multipliers** (`npm run build` clean):
+  - `timers.finalAnswerSeconds` is now `number | null`; null/omitted = no time
+    limit (new default). `start_final_answer` sets `timerEndsAt: null` in that
+    case — the host ends the phase via START REVEAL on the admin phone. Every
+    consumer was already null-safe (firestore.rules line 106, FinalAnswerForm,
+    FinalControls, TimerCorner); only copy tweaked: admin confirm shows plain
+    "Confirm?" (not "Timer not expired") when untimed, and the player's
+    submitted hint says "until the reveal starts".
+  - `final.multipliers` may now be fractional (e.g. 1.5 — user edited
+    sample-game.json to `[1, 1.5, 2]`, which previously failed the int check).
+    New `finalStake(wager, multiplier)` in `lib/format.ts` (Math.round to
+    whole pounds) is the ONLY stake computation — used by the admin route
+    `final_mark` and all three client stake sites (FinalControls, FinalRound,
+    play page) so server and UI always agree.
+  - sample-game.json `finalAnswerSeconds: null`; README timers/multipliers
+    docs updated. Schema behaviors verified via tsx script (sample parses;
+    omitted field → null; omitted timers object → null; negative multiplier
+    rejected).
+
 ## Next
 
 - Nothing — build complete. Remaining items are user-side (see Known gaps below).

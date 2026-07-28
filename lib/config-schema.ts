@@ -71,8 +71,10 @@ const finalConfigSchema = z.preprocess(
         .array(finalQuestionSchema)
         .min(1, "At least one final question required")
         .max(5, "At most 5 final questions allowed"),
+      // Fractional multipliers (e.g. 1.5) are allowed; stakes are rounded to
+      // whole pounds at the point of use (see finalStake in lib/format.ts).
       multipliers: z
-        .array(z.number().int().positive("Multipliers must be positive integers"))
+        .array(z.number().positive("Multipliers must be positive"))
         .optional(),
       wagerFloor: z
         .number()
@@ -106,17 +108,19 @@ const timersConfigSchema = z
       .positive("buzzWindowSeconds must be positive")
       .max(300, "buzzWindowSeconds must be ≤300")
       .default(15),
+    // null/omitted = untimed — the host ends the answer phase manually.
     finalAnswerSeconds: z
       .number()
       .int()
       .positive("finalAnswerSeconds must be positive")
       .max(300, "finalAnswerSeconds must be ≤300")
-      .default(30),
+      .nullable()
+      .default(null),
   })
   .default({
     answerSeconds: 8,
     buzzWindowSeconds: 15,
-    finalAnswerSeconds: 30,
+    finalAnswerSeconds: null,
   });
 
 export const gameConfigSchema = z.object({

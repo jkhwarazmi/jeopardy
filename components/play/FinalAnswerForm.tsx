@@ -212,7 +212,9 @@ export default function FinalAnswerForm({
 
             {isSubmitted && !isPencilsDown && (
               <p className="text-green-400 text-center text-sm">
-                Submitted (you can edit until time runs out)
+                {game.timerEndsAt === null
+                  ? "Submitted (you can edit until the reveal starts)"
+                  : "Submitted (you can edit until time runs out)"}
               </p>
             )}
           </form>
