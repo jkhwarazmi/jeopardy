@@ -15,7 +15,7 @@ export default function JoinPage() {
     setError("");
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
 
@@ -84,7 +84,7 @@ export default function JoinPage() {
           <button
             type="submit"
             disabled={loading || code.length !== 6}
-            className="btn btn-gold w-full py-4 text-xl font-bold"
+            className="btn btn-lg btn-gold w-full"
           >
             {loading ? "Joining..." : "Join Game"}
           </button>

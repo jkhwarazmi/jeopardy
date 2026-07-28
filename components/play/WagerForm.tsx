@@ -36,7 +36,7 @@ export default function WagerForm({
   // until the phase closes; isSubmitted alone would keep the form hidden).
   const [editing, setEditing] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true);
     setError("");
@@ -123,7 +123,7 @@ export default function WagerForm({
                 setWagerInput(self.finalWager!);
                 setEditing(true);
               }}
-              className="btn btn-blue w-full"
+              className="btn btn-lg btn-blue w-full"
             >
               Change Wager
             </button>
@@ -162,21 +162,21 @@ export default function WagerForm({
                 <button
                   type="button"
                   onClick={() => handleQuickWager(0)}
-                  className={`btn ${wagerInput === 0 ? 'btn-gold' : 'btn-ghost'}`}
+                  className={`btn btn-sm ${wagerInput === 0 ? 'btn-gold' : 'btn-ghost'}`}
                 >
                   {money(0)}
                 </button>
                 <button
                   type="button"
                   onClick={() => handleQuickWager(0.5)}
-                  className={`btn ${wagerInput === Math.floor(maxWager * 0.5) ? 'btn-gold' : 'btn-ghost'}`}
+                  className={`btn btn-sm ${wagerInput === Math.floor(maxWager * 0.5) ? 'btn-gold' : 'btn-ghost'}`}
                 >
                   Half
                 </button>
                 <button
                   type="button"
                   onClick={() => handleQuickWager(1)}
-                  className={`btn ${wagerInput === maxWager ? 'btn-gold' : 'btn-ghost'}`}
+                  className={`btn btn-sm ${wagerInput === maxWager ? 'btn-gold' : 'btn-ghost'}`}
                 >
                   ALL IN
                 </button>
@@ -192,7 +192,7 @@ export default function WagerForm({
             <button
               type="submit"
               disabled={submitting}
-              className="btn btn-gold w-full text-xl py-5"
+              className="btn btn-lg btn-gold w-full"
             >
               {submitting ? "SUBMITTING..." : "LOCK IT IN"}
             </button>

@@ -9,7 +9,7 @@ interface PasswordGateProps {
 export default function PasswordGate({ onSubmit }: PasswordGateProps) {
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (password.trim()) {
       onSubmit(password.trim());
@@ -46,7 +46,7 @@ export default function PasswordGate({ onSubmit }: PasswordGateProps) {
 
           <button
             type="submit"
-            className="btn btn-gold w-full py-4 text-xl font-bold"
+            className="btn btn-lg btn-gold w-full"
           >
             Unlock
           </button>

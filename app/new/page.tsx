@@ -60,7 +60,7 @@ export default function NewGamePage() {
     setConfigText(JSON.stringify(sampleGame, null, 2));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
 
@@ -147,7 +147,7 @@ export default function NewGamePage() {
               </p>
               <button
                 onClick={() => copyToClipboard(created.joinCode, "code")}
-                className="btn btn-ghost px-3 py-1 text-sm"
+                className="btn btn-sm btn-ghost"
               >
                 {copiedKey === "code" ? "Copied!" : "Copy"}
               </button>
@@ -209,7 +209,7 @@ export default function NewGamePage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="btn btn-ghost px-4"
+                  className="btn btn-ghost"
                 >
                   {showPassword ? "Hide" : "Show"}
                 </button>
@@ -224,14 +224,14 @@ export default function NewGamePage() {
                 <button
                   type="button"
                   onClick={handleLoadSample}
-                  className="btn btn-ghost px-4 py-2 text-sm"
+                  className="btn btn-sm btn-ghost"
                 >
                   Load Sample Game
                 </button>
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="btn btn-ghost px-4 py-2 text-sm"
+                  className="btn btn-sm btn-ghost"
                 >
                   Upload JSON File
                 </button>
@@ -262,7 +262,7 @@ export default function NewGamePage() {
           <button
             type="submit"
             disabled={loading}
-            className="btn btn-gold w-full py-4 text-xl font-bold"
+            className="btn btn-lg btn-gold w-full"
           >
             {loading ? "Creating..." : "Create Game"}
           </button>
@@ -290,7 +290,7 @@ function LinkCard({
         <p className="flex-1 text-white text-sm font-mono break-all">{url}</p>
         <button
           onClick={onCopy}
-          className="btn btn-ghost px-3 py-1 text-sm whitespace-nowrap"
+          className="btn btn-sm btn-ghost whitespace-nowrap"
         >
           {copied ? "Copied!" : "Copy"}
         </button>

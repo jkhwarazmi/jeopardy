@@ -136,7 +136,7 @@ export default function FinalControls({
             confirmAndAct("reveal_question", { type: "start_final_answer" })
           }
           disabled={busy}
-          className="btn btn-gold w-full min-h-12 py-6 text-2xl font-bold"
+          className="btn btn-lg btn-gold w-full"
         >
           {confirmAction === "reveal_question"
             ? allWagersIn
@@ -227,7 +227,7 @@ export default function FinalControls({
             confirmAndAct("start_reveal", { type: "start_final_reveal" })
           }
           disabled={busy}
-          className="btn btn-gold w-full min-h-12 py-6 text-2xl font-bold"
+          className="btn btn-lg btn-gold w-full"
         >
           {confirmAction === "start_reveal"
             ? timerExpired
@@ -291,7 +291,7 @@ export default function FinalControls({
                     confirmAndAct("next_final_question", { type: "next_final_question" })
                   }
                   disabled={busy}
-                  className="btn btn-blue w-full min-h-12 py-4 text-xl font-bold"
+                  className="btn btn-lg btn-blue w-full"
                 >
                   {confirmAction === "next_final_question"
                     ? "Confirm?"
@@ -303,10 +303,10 @@ export default function FinalControls({
                   confirmAndAct("end_game", { type: "end_game" })
                 }
                 disabled={busy}
-                className={`w-full min-h-12 py-4 text-xl font-bold ${
+                className={`btn btn-lg w-full ${
                   hasNextQuestion
-                    ? "btn btn-ghost"
-                    : "btn btn-gold"
+                    ? "btn-ghost"
+                    : "btn-gold"
                 }`}
               >
                 {confirmAction === "end_game" ? "Confirm?" : "END GAME"}
@@ -364,7 +364,7 @@ export default function FinalControls({
                       })
                     }
                     disabled={busy}
-                    className="btn btn-gold min-h-12 py-12 text-xl font-bold"
+                    className="btn btn-lg btn-gold"
                   >
                     CORRECT
                     <br />
@@ -380,7 +380,7 @@ export default function FinalControls({
                       })
                     }
                     disabled={busy}
-                    className="btn btn-danger min-h-12 py-12 text-xl font-bold"
+                    className="btn btn-lg btn-danger"
                   >
                     WRONG
                     <br />
@@ -434,7 +434,7 @@ export default function FinalControls({
                                 })
                               }
                               disabled={busy}
-                              className="btn btn-ghost px-2 py-1 text-xs"
+                              className="btn btn-sm btn-ghost"
                             >
                               {confirmAction === `flip_${player.id}`
                                 ? "Confirm flip?"
@@ -468,7 +468,7 @@ export default function FinalControls({
                       confirmAndAct("next_final_question", { type: "next_final_question" })
                     }
                     disabled={busy}
-                    className="btn btn-blue w-full min-h-12 py-6 text-2xl font-bold"
+                    className="btn btn-lg btn-blue w-full"
                   >
                     {confirmAction === "next_final_question"
                       ? "Confirm?"
@@ -480,10 +480,10 @@ export default function FinalControls({
                     confirmAndAct("end_game", { type: "end_game" })
                   }
                   disabled={busy}
-                  className={`w-full min-h-12 py-6 text-2xl font-bold ${
+                  className={`btn btn-lg w-full ${
                     hasNextQuestion
-                      ? "btn btn-ghost"
-                      : "btn btn-gold"
+                      ? "btn-ghost"
+                      : "btn-gold"
                   }`}
                 >
                   {confirmAction === "end_game" ? "Confirm?" : "END GAME"}

@@ -109,13 +109,13 @@ export default function LiveScoreboard({
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       onClick={() => handleAdjust(player.id, -100)}
-                      className="btn btn-ghost py-2 text-sm font-semibold"
+                      className="btn btn-sm btn-ghost"
                     >
                       −100
                     </button>
                     <button
                       onClick={() => handleAdjust(player.id, 100)}
-                      className="btn btn-ghost py-2 text-sm font-semibold"
+                      className="btn btn-sm btn-ghost"
                     >
                       +100
                     </button>
@@ -141,7 +141,7 @@ export default function LiveScoreboard({
                     />
                     <button
                       onClick={() => handleCustomAdjust(player.id)}
-                      className="btn btn-ghost px-4 py-2 text-sm font-semibold"
+                      className="btn btn-sm btn-ghost"
                     >
                       Apply
                     </button>
@@ -150,7 +150,7 @@ export default function LiveScoreboard({
 
                 <button
                   onClick={() => handleKick(player.id)}
-                  className="btn btn-danger w-full py-2 text-sm font-semibold"
+                  className="btn btn-sm btn-danger w-full"
                 >
                   {confirmKick === player.id ? "Confirm Kick?" : "Kick Player"}
                 </button>

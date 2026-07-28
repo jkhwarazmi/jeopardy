@@ -26,7 +26,7 @@ const merriweather = Merriweather({
 
 export const metadata: Metadata = {
   title: "Jeopardy Live",
-  description: "The live quiz game — join on your phone and buzz in.",
+  description: "The live quiz game."
 };
 
 export default function RootLayout({

@@ -234,7 +234,7 @@ export default function HostPage({
   };
 
   // Entry-gate submit: verify against the server before letting the host in.
-  const handlePasswordSubmit = async (e: React.FormEvent) => {
+  const handlePasswordSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const attempt = passwordInput.trim();
     if (!attempt || verifying) return;
@@ -331,7 +331,7 @@ export default function HostPage({
           <button
             type="submit"
             disabled={verifying}
-            className="btn btn-gold w-full"
+            className="btn btn-lg btn-gold w-full"
           >
             {verifying ? "Checking..." : "Enter"}
           </button>
@@ -353,7 +353,7 @@ export default function HostPage({
       {!unlocked && (
         <button
           onClick={unlock}
-          className="fixed top-4 right-4 z-50 btn btn-gold text-sm"
+          className="fixed top-4 right-4 z-50 btn btn-sm btn-gold shadow-lg"
         >
           🔇 Enable Sound
         </button>
