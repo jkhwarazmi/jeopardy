@@ -121,8 +121,8 @@ export default function NewGamePage() {
 
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
-        <div className="bg-jeopardy-blue-dark rounded-lg p-8 max-w-2xl w-full space-y-6">
-          <h1 className="font-display text-4xl text-jeopardy-gold text-center">
+        <div className="card-gold p-8 max-w-2xl w-full space-y-6">
+          <h1 className="font-display text-money text-4xl text-center">
             Game Created!
           </h1>
 
@@ -139,15 +139,15 @@ export default function NewGamePage() {
             </div>
           )}
 
-          <div className="bg-jeopardy-dark rounded p-6 text-center">
+          <div className="card p-6 text-center">
             <p className="text-white/70 text-sm mb-2">Join Code</p>
             <div className="flex items-center justify-center gap-4">
-              <p className="font-display text-5xl text-jeopardy-gold tracking-widest">
+              <p className="font-display text-money text-5xl tracking-widest">
                 {created.joinCode}
               </p>
               <button
                 onClick={() => copyToClipboard(created.joinCode, "code")}
-                className="px-3 py-1 bg-jeopardy-blue hover:bg-jeopardy-blue-dark text-white text-sm rounded transition-colors whitespace-nowrap"
+                className="btn btn-ghost px-3 py-1 text-sm"
               >
                 {copiedKey === "code" ? "Copied!" : "Copy"}
               </button>
@@ -155,7 +155,7 @@ export default function NewGamePage() {
           </div>
 
           <div className="space-y-3">
-            <p className="text-jeopardy-gold font-semibold text-sm">
+            <p className="font-display text-jeopardy-gold text-sm uppercase tracking-wide">
               Save these links — especially the admin one:
             </p>
 
@@ -186,14 +186,14 @@ export default function NewGamePage() {
   return (
     <div className="flex-1 flex flex-col items-center justify-start px-6 py-12 overflow-y-auto">
       <div className="w-full max-w-2xl space-y-8">
-        <h1 className="font-display text-4xl md:text-5xl text-jeopardy-gold text-center">
+        <h1 className="font-display text-money text-4xl md:text-5xl text-center">
           Create New Game
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="bg-jeopardy-blue-dark rounded-lg p-6 space-y-4">
+          <div className="card p-6 space-y-4">
             <label className="block">
-              <span className="text-white font-semibold mb-2 block">
+              <span className="font-display text-jeopardy-gold text-sm uppercase tracking-wide mb-2 block">
                 Admin Password
               </span>
               <div className="flex gap-2">
@@ -201,7 +201,7 @@ export default function NewGamePage() {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="flex-1 px-4 py-3 bg-jeopardy-dark text-white rounded border-2 border-jeopardy-blue focus:border-jeopardy-gold focus:outline-none"
+                  className="input flex-1"
                   placeholder="Minimum 4 characters"
                   required
                   minLength={4}
@@ -209,7 +209,7 @@ export default function NewGamePage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="px-4 py-3 bg-jeopardy-blue hover:bg-jeopardy-blue-dark text-white rounded transition-colors"
+                  className="btn btn-ghost px-4"
                 >
                   {showPassword ? "Hide" : "Show"}
                 </button>
@@ -217,19 +217,21 @@ export default function NewGamePage() {
             </label>
 
             <div>
-              <p className="text-white font-semibold mb-2">Game Configuration</p>
+              <p className="font-display text-jeopardy-gold text-sm uppercase tracking-wide mb-2">
+                Game Configuration
+              </p>
               <div className="flex flex-wrap gap-2 mb-3">
                 <button
                   type="button"
                   onClick={handleLoadSample}
-                  className="px-4 py-2 bg-jeopardy-gold hover:bg-jeopardy-gold-dark text-jeopardy-dark font-semibold rounded transition-colors text-sm"
+                  className="btn btn-ghost px-4 py-2 text-sm"
                 >
                   Load Sample Game
                 </button>
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="px-4 py-2 bg-jeopardy-blue hover:bg-jeopardy-blue-dark text-white rounded transition-colors text-sm"
+                  className="btn btn-ghost px-4 py-2 text-sm"
                 >
                   Upload JSON File
                 </button>
@@ -244,7 +246,7 @@ export default function NewGamePage() {
               <textarea
                 value={configText}
                 onChange={(e) => setConfigText(e.target.value)}
-                className="w-full h-64 px-4 py-3 bg-jeopardy-dark text-white rounded border-2 border-jeopardy-blue focus:border-jeopardy-gold focus:outline-none font-mono text-sm"
+                className="input w-full h-64 font-mono text-sm resize-none"
                 placeholder="Paste game config JSON or use buttons above..."
                 required
               />
@@ -252,7 +254,7 @@ export default function NewGamePage() {
           </div>
 
           {error && (
-            <div className="bg-red-900/50 border-2 border-red-500 text-red-200 px-4 py-3 rounded">
+            <div className="bg-red-900/50 border-2 border-red-500 text-red-200 px-4 py-3 rounded-lg">
               {error}
             </div>
           )}
@@ -260,7 +262,7 @@ export default function NewGamePage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-jeopardy-gold hover:bg-jeopardy-gold-dark disabled:bg-gray-600 text-jeopardy-dark font-bold text-xl py-4 rounded-lg transition-colors focus:outline-none focus:ring-4 focus:ring-jeopardy-gold/50"
+            className="btn btn-gold w-full py-4 text-xl font-bold"
           >
             {loading ? "Creating..." : "Create Game"}
           </button>
@@ -282,13 +284,13 @@ function LinkCard({
   copied: boolean;
 }) {
   return (
-    <div className="bg-jeopardy-dark rounded p-4">
+    <div className="card p-4">
       <p className="text-white/70 text-xs mb-1">{label}</p>
       <div className="flex gap-2 items-center">
-        <p className="flex-1 text-white text-sm font-mono truncate">{url}</p>
+        <p className="flex-1 text-white text-sm font-mono break-all">{url}</p>
         <button
           onClick={onCopy}
-          className="px-3 py-1 bg-jeopardy-blue hover:bg-jeopardy-blue-dark text-white text-sm rounded transition-colors whitespace-nowrap"
+          className="btn btn-ghost px-3 py-1 text-sm whitespace-nowrap"
         >
           {copied ? "Copied!" : "Copy"}
         </button>

@@ -16,15 +16,7 @@ export default function PlayerAvatar({
     xl: "w-24 h-24 text-3xl",
   };
 
-  const borderClasses = {
-    sm: "border-2",
-    md: "border-3",
-    lg: "border-4",
-    xl: "border-4",
-  };
-
   const sizeClass = sizeClasses[size];
-  const borderClass = borderClasses[size];
 
   // If photo is available, show it
   if (player.photoBase64) {
@@ -32,7 +24,7 @@ export default function PlayerAvatar({
       <img
         src={player.photoBase64}
         alt={player.name}
-        className={`${sizeClass} ${borderClass} border-jeopardy-gold rounded-lg object-cover`}
+        className={`${sizeClass} border border-jeopardy-gold/60 rounded-xl object-cover shadow-md`}
       />
     );
   }
@@ -42,7 +34,7 @@ export default function PlayerAvatar({
 
   return (
     <div
-      className={`${sizeClass} ${borderClass} border-jeopardy-gold rounded-lg bg-jeopardy-blue flex items-center justify-center font-display text-jeopardy-gold`}
+      className={`${sizeClass} border border-jeopardy-gold/60 rounded-xl bg-jeopardy-blue flex items-center justify-center font-display text-jeopardy-gold shadow-md`}
     >
       {initial}
     </div>

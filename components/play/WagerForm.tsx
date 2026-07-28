@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { Game, Player } from "@/lib/types";
 import { maxFinalWager } from "@/lib/types";
 import { submitWager } from "@/lib/final-actions";
+import { money } from "@/lib/format";
 
 interface WagerFormProps {
   game: Game;
@@ -31,6 +32,9 @@ export default function WagerForm({
   );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  // Reopens the form after a wager is locked (rules allow re-submission
+  // until the phase closes; isSubmitted alone would keep the form hidden).
+  const [editing, setEditing] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,6 +43,7 @@ export default function WagerForm({
 
     try {
       await submitWager(gameId, uid, wagerInput);
+      setEditing(false);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to submit wager"
@@ -53,52 +58,55 @@ export default function WagerForm({
     setWagerInput(amount);
   };
 
-  const isSubmitted = self.finalWager !== null;
+  const isSubmitted = self.finalWager !== null && !editing;
 
   return (
     <div className="flex-1 flex items-center justify-center px-6 py-12">
       <div className="w-full max-w-md space-y-6">
-        <div className="text-center space-y-2">
-          <h2 className="font-display text-3xl text-jeopardy-gold">
-            FINAL JEOPARDY
-          </h2>
-          {qLabel && (
-            <p className="text-white/70 text-xs uppercase tracking-wide">
-              {qLabel}
+        <div className="card p-6">
+          <div className="text-center space-y-3">
+            {qLabel && (
+              <p className="font-display text-jeopardy-gold text-xs uppercase tracking-wide">
+                {qLabel}
+              </p>
+            )}
+            <h2 className="font-display text-3xl text-white uppercase">
+              FINAL JEOPARDY
+            </h2>
+            <p className="text-white/70 text-sm uppercase tracking-wide">
+              Category
             </p>
-          )}
-          <p className="text-white/70 text-sm uppercase tracking-wide">
-            Category
-          </p>
-          <p className="text-white text-2xl font-semibold">
-            {fq.category}
-          </p>
-          {multiplier > 1 && (
-            <div className="inline-flex items-center gap-2 bg-jeopardy-gold text-jeopardy-dark px-3 py-1 rounded-full text-sm font-bold">
-              <span>×{multiplier} STAKES</span>
-            </div>
-          )}
-          {multiplier > 1 && (
-            <p className="text-white/50 text-xs">
-              Win or lose your wager ×{multiplier}
+            <p className="text-white text-xl font-semibold">
+              {fq.category}
             </p>
-          )}
-        </div>
+            {multiplier > 1 && (
+              <div className="pt-2 space-y-1">
+                <div className="inline-flex items-center gap-2 bg-jeopardy-gold text-jeopardy-dark px-3 py-1 rounded-full text-sm font-bold">
+                  <span>×{multiplier} STAKES</span>
+                </div>
+                <p className="text-white/50 text-xs">
+                  Win or lose your wager ×{multiplier}
+                </p>
+              </div>
+            )}
+          </div>
 
-        <div className="bg-jeopardy-blue-dark rounded-lg p-4 text-center border-2 border-jeopardy-blue">
-          <p className="text-white/70 text-sm mb-1">Your Score</p>
-          <p className="text-jeopardy-gold font-display text-4xl">
-            ${self.score}
-          </p>
-        </div>
-
-        {self.score < final.wagerFloor && (
-          <div className="text-center">
-            <p className="text-white/60 text-sm">
-              Everyone may wager up to ${final.wagerFloor.toLocaleString()}
+          <div className="mt-6 pt-6 border-t border-white/10 text-center">
+            <p className="text-white/70 text-sm mb-1">Your Score</p>
+            <p className="font-display text-money text-3xl">
+              {money(self.score)}
             </p>
           </div>
-        )}
+
+          {self.score < final.wagerFloor && (
+            <div className="mt-4 text-center">
+              <p className="text-white/60 text-sm">
+                Everyone can wager at least {money(final.wagerFloor)}
+              </p>
+            </div>
+          )}
+
+        </div>
 
         {isSubmitted ? (
           <div className="space-y-4">
@@ -106,20 +114,23 @@ export default function WagerForm({
               <p className="text-green-200 text-sm uppercase tracking-wide mb-2">
                 Wager Locked
               </p>
-              <p className="text-white font-display text-4xl">
-                ${self.finalWager}
+              <p className="font-display text-money text-4xl">
+                {money(self.finalWager!)}
               </p>
             </div>
             <button
-              onClick={() => setWagerInput(self.finalWager!)}
-              className="w-full bg-jeopardy-blue hover:bg-jeopardy-blue-dark text-white font-semibold py-3 rounded-lg transition-colors focus:outline-none focus:ring-4 focus:ring-jeopardy-blue/50"
+              onClick={() => {
+                setWagerInput(self.finalWager!);
+                setEditing(true);
+              }}
+              className="btn btn-blue w-full"
             >
               Change Wager
             </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="bg-jeopardy-blue-dark rounded-lg p-6 space-y-4 border-2 border-jeopardy-blue">
+            <div className="space-y-4">
               <div>
                 <label className="block">
                   <span className="text-white font-semibold mb-2 block">
@@ -136,46 +147,36 @@ export default function WagerForm({
                   />
                 </label>
                 <div className="flex justify-between text-white/50 text-xs mt-1">
-                  <span>$0</span>
-                  <span>${maxWager}</span>
+                  <span>{money(0)}</span>
+                  <span>{money(maxWager)}</span>
                 </div>
               </div>
 
-              <input
-                type="number"
-                min="0"
-                max={maxWager}
-                step="1"
-                value={wagerInput}
-                onChange={(e) => {
-                  const val = Math.min(
-                    maxWager,
-                    Math.max(0, Number(e.target.value))
-                  );
-                  setWagerInput(val);
-                }}
-                className="w-full px-4 py-3 bg-jeopardy-dark text-white text-center text-2xl font-display rounded border-2 border-jeopardy-gold focus:border-jeopardy-gold-dark focus:outline-none"
-              />
+              <div className="text-center">
+                <p className="font-display text-money text-5xl">
+                  {money(wagerInput)}
+                </p>
+              </div>
 
               <div className="grid grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={() => handleQuickWager(0)}
-                  className="bg-jeopardy-dark hover:bg-jeopardy-blue text-white font-semibold py-2 rounded transition-colors"
+                  className={`btn ${wagerInput === 0 ? 'btn-gold' : 'btn-ghost'}`}
                 >
-                  $0
+                  {money(0)}
                 </button>
                 <button
                   type="button"
                   onClick={() => handleQuickWager(0.5)}
-                  className="bg-jeopardy-dark hover:bg-jeopardy-blue text-white font-semibold py-2 rounded transition-colors"
+                  className={`btn ${wagerInput === Math.floor(maxWager * 0.5) ? 'btn-gold' : 'btn-ghost'}`}
                 >
                   Half
                 </button>
                 <button
                   type="button"
                   onClick={() => handleQuickWager(1)}
-                  className="bg-jeopardy-gold hover:bg-jeopardy-gold-dark text-jeopardy-dark font-bold py-2 rounded transition-colors"
+                  className={`btn ${wagerInput === maxWager ? 'btn-gold' : 'btn-ghost'}`}
                 >
                   ALL IN
                 </button>
@@ -191,7 +192,7 @@ export default function WagerForm({
             <button
               type="submit"
               disabled={submitting}
-              className="w-full bg-jeopardy-gold hover:bg-jeopardy-gold-dark text-jeopardy-dark font-bold text-2xl py-6 rounded-lg transition-colors focus:outline-none focus:ring-4 focus:ring-jeopardy-gold/50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn btn-gold w-full text-xl py-5"
             >
               {submitting ? "SUBMITTING..." : "LOCK IT IN"}
             </button>

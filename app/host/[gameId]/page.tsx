@@ -255,7 +255,7 @@ export default function HostPage({
 
   if (gameLoading || playersLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-jeopardy-dark">
+      <div className="flex-1 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-jeopardy-gold border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-white/70 text-xl">Loading game...</p>
@@ -270,11 +270,11 @@ export default function HostPage({
 
   if (gameError || !game) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-jeopardy-dark px-6">
-        <div className="bg-red-900/50 border-2 border-red-500 text-red-200 px-8 py-6 rounded-lg text-center max-w-2xl space-y-6">
+      <div className="flex-1 flex items-center justify-center px-6">
+        <div className="card border-2 border-red-500 px-8 py-6 text-center max-w-2xl space-y-6">
           <div>
-            <p className="font-semibold text-2xl mb-2">Something went wrong</p>
-            <p className="text-lg">
+            <p className="font-semibold text-2xl mb-2 text-red-400">Something went wrong</p>
+            <p className="text-lg text-white/80">
               {gameError || "This game does not exist or has been deleted."}
             </p>
           </div>
@@ -292,7 +292,7 @@ export default function HostPage({
   // Entry gate: verifying stored credential…
   if (password === null) {
     return (
-      <div className="h-screen flex items-center justify-center bg-jeopardy-dark">
+      <div className="h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-jeopardy-gold border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-white/70 text-xl">Checking access...</p>
@@ -304,12 +304,12 @@ export default function HostPage({
   // Entry gate: password required before the board is shown.
   if (password === "") {
     return (
-      <div className="h-screen flex items-center justify-center bg-jeopardy-dark p-6">
+      <div className="h-screen flex items-center justify-center p-6">
         <form
           onSubmit={handlePasswordSubmit}
-          className="bg-jeopardy-blue-dark border-4 border-jeopardy-gold rounded-lg p-8 max-w-md w-full space-y-6"
+          className="card max-w-md w-full space-y-6"
         >
-          <h2 className="text-jeopardy-gold font-display text-3xl text-center">
+          <h2 className="font-display text-jeopardy-gold text-3xl text-center">
             Host Board
           </h2>
           <p className="text-white/80 text-center">
@@ -324,14 +324,14 @@ export default function HostPage({
             type="password"
             value={passwordInput}
             onChange={(e) => setPasswordInput(e.target.value)}
-            className="w-full px-4 py-3 rounded-lg bg-jeopardy-blue border-2 border-jeopardy-gold text-white text-xl focus:outline-none focus:ring-4 focus:ring-jeopardy-gold"
+            className="input w-full"
             placeholder="Admin password"
             autoFocus
           />
           <button
             type="submit"
             disabled={verifying}
-            className="w-full bg-jeopardy-gold hover:bg-jeopardy-gold-dark disabled:opacity-60 text-jeopardy-blue-dark font-display text-xl font-bold py-3 rounded-lg transition-colors"
+            className="btn btn-gold w-full"
           >
             {verifying ? "Checking..." : "Enter"}
           </button>
@@ -341,7 +341,7 @@ export default function HostPage({
   }
 
   return (
-    <div className="h-screen flex flex-col bg-jeopardy-dark overflow-hidden">
+    <div className="h-screen flex flex-col overflow-hidden">
       {/* Error banner */}
       {errorBanner && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg font-semibold animate-fade-in">
@@ -353,7 +353,7 @@ export default function HostPage({
       {!unlocked && (
         <button
           onClick={unlock}
-          className="fixed top-4 right-4 z-50 bg-jeopardy-gold border-2 border-jeopardy-gold-dark text-jeopardy-dark px-4 py-2 rounded-lg font-semibold text-sm hover:bg-jeopardy-gold-dark transition-colors shadow-lg"
+          className="fixed top-4 right-4 z-50 btn btn-gold text-sm"
         >
           🔇 Enable Sound
         </button>
@@ -366,7 +366,7 @@ export default function HostPage({
 
       {game.status === "playing" && (
         <>
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden min-h-0">
             <Board game={game} onPickCell={handlePickCell} />
           </div>
           <PlayerRail players={players} game={game} />
@@ -377,7 +377,7 @@ export default function HostPage({
         game.status === "buzzed" ||
         game.status === "answer_reveal") && (
         <>
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden min-h-0">
             <QuestionView game={game} players={players} />
           </div>
           <PlayerRail players={players} game={game} />
@@ -388,7 +388,7 @@ export default function HostPage({
         game.status === "final_answer" ||
         game.status === "final_reveal") && (
         <>
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden min-h-0">
             <FinalRound game={game} players={players} />
           </div>
           <PlayerRail players={players} game={game} />
@@ -400,6 +400,7 @@ export default function HostPage({
           <WinnerCelebration game={game} players={players} />
         </div>
       )}
+
     </div>
   );
 }

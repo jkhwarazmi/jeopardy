@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Game, Player, AdminAction } from "@/lib/types";
 import { useCountdown } from "@/lib/hooks/useCountdown";
+import { money, moneyDelta } from "@/lib/format";
 
 interface FinalControlsProps {
   game: Game;
@@ -51,8 +52,8 @@ export default function FinalControls({
 
     return (
       <div className="space-y-4">
-        <div className="bg-jeopardy-blue-dark rounded-lg p-4 border-2 border-jeopardy-gold">
-          <h3 className="text-jeopardy-gold font-display text-2xl mb-3">
+        <div className="card-gold p-4">
+          <h3 className="font-display text-jeopardy-gold text-sm uppercase tracking-wide mb-3">
             Final Jeopardy — Wagers
           </h3>
 
@@ -91,10 +92,10 @@ export default function FinalControls({
           </div>
         </div>
 
-        <div className="bg-jeopardy-blue-dark rounded-lg p-4">
+        <div className="card p-4">
           <div className="flex items-center justify-between mb-3">
             <p className="text-white font-semibold">Wagers</p>
-            <p className="text-jeopardy-gold font-display text-xl">
+            <p className="font-display text-money text-xl">
               {wagersIn}/{total}
             </p>
           </div>
@@ -106,7 +107,7 @@ export default function FinalControls({
               return (
                 <div
                   key={player.id}
-                  className="flex items-center justify-between bg-jeopardy-dark rounded p-3"
+                  className="card flex items-center justify-between p-3"
                 >
                   <div className="flex items-center gap-3">
                     <div
@@ -114,14 +115,14 @@ export default function FinalControls({
                         hasWagered ? "bg-green-500" : "bg-white/30"
                       }`}
                     />
-                    <p className="text-white font-semibold">{player.name}</p>
+                    <p className="text-white font-semibold truncate">{player.name}</p>
                     <p className="text-white/50 text-sm">
-                      ${player.score} (max: ${maxWager})
+                      {money(player.score)} (max: {money(maxWager)})
                     </p>
                   </div>
                   {hasWagered && (
-                    <p className="text-jeopardy-gold font-display text-lg">
-                      ${player.finalWager}
+                    <p className="font-display text-money text-lg">
+                      {money(player.finalWager ?? 0)}
                     </p>
                   )}
                 </div>
@@ -135,7 +136,7 @@ export default function FinalControls({
             confirmAndAct("reveal_question", { type: "start_final_answer" })
           }
           disabled={busy}
-          className="w-full bg-jeopardy-gold hover:bg-jeopardy-gold-dark text-jeopardy-dark font-bold text-2xl py-6 rounded-lg transition-colors focus:outline-none focus:ring-4 focus:ring-jeopardy-gold/50 disabled:opacity-50"
+          className="btn btn-gold w-full min-h-12 py-6 text-2xl font-bold"
         >
           {confirmAction === "reveal_question"
             ? allWagersIn
@@ -155,8 +156,8 @@ export default function FinalControls({
 
     return (
       <div className="space-y-4">
-        <div className="bg-jeopardy-blue-dark rounded-lg p-4">
-          <h3 className="text-jeopardy-gold font-display text-2xl mb-3">
+        <div className="card p-4">
+          <h3 className="font-display text-jeopardy-gold text-sm uppercase tracking-wide mb-3">
             Final Answer Phase
           </h3>
 
@@ -169,7 +170,7 @@ export default function FinalControls({
           {secondsLeft !== null && (
             <div
               className={`rounded p-3 mb-3 text-center ${
-                timerExpired ? "bg-red-900/50" : "bg-jeopardy-dark"
+                timerExpired ? "bg-red-900/50" : "card"
               }`}
             >
               <p
@@ -184,7 +185,7 @@ export default function FinalControls({
 
           <div className="flex items-center justify-between mb-3">
             <p className="text-white font-semibold">Answers Submitted</p>
-            <p className="text-jeopardy-gold font-display text-xl">
+            <p className="font-display text-money text-xl">
               {answersIn}/{total}
             </p>
           </div>
@@ -200,7 +201,7 @@ export default function FinalControls({
               return (
                 <div
                   key={player.id}
-                  className="bg-jeopardy-dark rounded p-3 space-y-1"
+                  className="card p-3 space-y-1"
                 >
                   <div className="flex items-center gap-3">
                     <div
@@ -208,7 +209,7 @@ export default function FinalControls({
                         hasAnswered ? "bg-green-500" : "bg-white/30"
                       }`}
                     />
-                    <p className="text-white font-semibold">{player.name}</p>
+                    <p className="text-white font-semibold truncate">{player.name}</p>
                   </div>
                   {answerPreview && (
                     <p className="text-white/70 text-sm pl-6 italic">
@@ -226,7 +227,7 @@ export default function FinalControls({
             confirmAndAct("start_reveal", { type: "start_final_reveal" })
           }
           disabled={busy}
-          className="w-full bg-jeopardy-gold hover:bg-jeopardy-gold-dark text-jeopardy-dark font-bold text-2xl py-6 rounded-lg transition-colors focus:outline-none focus:ring-4 focus:ring-jeopardy-gold/50 disabled:opacity-50"
+          className="btn btn-gold w-full min-h-12 py-6 text-2xl font-bold"
         >
           {confirmAction === "start_reveal"
             ? timerExpired
@@ -253,8 +254,8 @@ export default function FinalControls({
 
     return (
       <div className="space-y-4">
-        <div className="bg-jeopardy-blue-dark rounded-lg p-4 border-2 border-jeopardy-gold">
-          <h3 className="text-jeopardy-gold font-display text-2xl mb-3">
+        <div className="card-gold p-4">
+          <h3 className="font-display text-jeopardy-gold text-sm uppercase tracking-wide mb-3">
             Final Reveal
           </h3>
 
@@ -281,7 +282,7 @@ export default function FinalControls({
         </div>
 
         {participants.length === 0 && (
-          <div className="bg-jeopardy-blue-dark rounded-lg p-6 text-center space-y-3">
+          <div className="card p-6 text-center space-y-3">
             <p className="text-white/70 mb-4">Nobody could wager</p>
             <div className="space-y-3">
               {hasNextQuestion && (
@@ -290,7 +291,7 @@ export default function FinalControls({
                     confirmAndAct("next_final_question", { type: "next_final_question" })
                   }
                   disabled={busy}
-                  className="w-full bg-jeopardy-gold hover:bg-jeopardy-gold-dark text-jeopardy-dark font-bold text-xl py-4 rounded-lg transition-colors focus:outline-none focus:ring-4 focus:ring-jeopardy-gold/50 disabled:opacity-50"
+                  className="btn btn-blue w-full min-h-12 py-4 text-xl font-bold"
                 >
                   {confirmAction === "next_final_question"
                     ? "Confirm?"
@@ -302,11 +303,11 @@ export default function FinalControls({
                   confirmAndAct("end_game", { type: "end_game" })
                 }
                 disabled={busy}
-                className={`w-full ${
+                className={`w-full min-h-12 py-4 text-xl font-bold ${
                   hasNextQuestion
-                    ? "bg-jeopardy-blue-dark hover:bg-jeopardy-blue text-white border border-white/30"
-                    : "bg-jeopardy-gold hover:bg-jeopardy-gold-dark text-jeopardy-dark"
-                } font-bold text-xl py-4 rounded-lg transition-colors focus:outline-none focus:ring-4 focus:ring-jeopardy-gold/50 disabled:opacity-50`}
+                    ? "btn btn-ghost"
+                    : "btn btn-gold"
+                }`}
               >
                 {confirmAction === "end_game" ? "Confirm?" : "END GAME"}
               </button>
@@ -319,8 +320,8 @@ export default function FinalControls({
             {/* Up Now card */}
             {upNow && (
               <div className="space-y-4">
-                <div className="bg-jeopardy-blue-dark rounded-lg p-6 border-2 border-jeopardy-blue">
-                  <p className="text-jeopardy-gold text-xs uppercase tracking-wide mb-2">
+                <div className="card-gold p-6">
+                  <p className="font-display text-jeopardy-gold text-xs uppercase tracking-wide mb-2">
                     UP NOW
                   </p>
                   <p className="text-white font-display text-2xl mb-4">
@@ -341,11 +342,11 @@ export default function FinalControls({
                       <p className="text-white/70 text-xs uppercase tracking-wide mb-1">
                         Wagered
                       </p>
-                      <p className="text-jeopardy-gold font-display text-xl">
-                        ${upNow.finalWager}
+                      <p className="font-display text-money text-xl">
+                        {money(upNow.finalWager ?? 0)}
                         {multiplier > 1 && (
                           <span className="text-white/70 text-base ml-2">
-                            × {multiplier} = ${stakeOf(upNow)}
+                            × {multiplier} = {money(stakeOf(upNow))}
                           </span>
                         )}
                       </p>
@@ -363,11 +364,11 @@ export default function FinalControls({
                       })
                     }
                     disabled={busy}
-                    className="bg-green-600 hover:bg-green-700 text-white font-bold text-xl py-12 rounded-lg transition-colors focus:outline-none focus:ring-4 focus:ring-green-600/50 disabled:opacity-50"
+                    className="btn btn-gold min-h-12 py-12 text-xl font-bold"
                   >
                     CORRECT
                     <br />
-                    <span className="text-3xl">+${stakeOf(upNow)}</span>
+                    <span className="text-3xl">{moneyDelta(stakeOf(upNow))}</span>
                   </button>
 
                   <button
@@ -379,18 +380,18 @@ export default function FinalControls({
                       })
                     }
                     disabled={busy}
-                    className="bg-red-600 hover:bg-red-700 text-white font-bold text-xl py-12 rounded-lg transition-colors focus:outline-none focus:ring-4 focus:ring-red-600/50 disabled:opacity-50"
+                    className="btn btn-danger min-h-12 py-12 text-xl font-bold"
                   >
                     WRONG
                     <br />
-                    <span className="text-3xl">−${stakeOf(upNow)}</span>
+                    <span className="text-3xl">{moneyDelta(-stakeOf(upNow))}</span>
                   </button>
                 </div>
               </div>
             )}
 
             {/* Player queue */}
-            <div className="bg-jeopardy-blue-dark rounded-lg p-4">
+            <div className="card p-4">
               <p className="text-white/70 text-sm uppercase tracking-wide mb-3">
                 Players
               </p>
@@ -403,10 +404,10 @@ export default function FinalControls({
                   return (
                     <div
                       key={player.id}
-                      className={`rounded p-3 flex items-center justify-between ${
+                      className={`card p-3 flex items-center justify-between ${
                         isUpNow
-                          ? "bg-jeopardy-gold/20 border-2 border-jeopardy-gold"
-                          : "bg-jeopardy-dark"
+                          ? "border-2 border-jeopardy-gold"
+                          : ""
                       }`}
                     >
                       <div className="flex items-center gap-3">
@@ -419,7 +420,7 @@ export default function FinalControls({
                               : "bg-white/30"
                           }`}
                         />
-                        <p className="text-white font-semibold">{player.name}</p>
+                        <p className="text-white font-semibold truncate">{player.name}</p>
                       </div>
                       <div className="flex items-center gap-3">
                         {isJudged && (
@@ -433,7 +434,7 @@ export default function FinalControls({
                                 })
                               }
                               disabled={busy}
-                              className="text-xs text-white/70 hover:text-white bg-jeopardy-blue hover:bg-jeopardy-blue-dark px-2 py-1 rounded transition-colors disabled:opacity-50"
+                              className="btn btn-ghost px-2 py-1 text-xs"
                             >
                               {confirmAction === `flip_${player.id}`
                                 ? "Confirm flip?"
@@ -450,7 +451,7 @@ export default function FinalControls({
                             </p>
                           </>
                         )}
-                        <p className="text-white/70 text-sm">${player.score}</p>
+                        <p className="text-white/70 text-sm">{money(player.score)}</p>
                       </div>
                     </div>
                   );
@@ -467,7 +468,7 @@ export default function FinalControls({
                       confirmAndAct("next_final_question", { type: "next_final_question" })
                     }
                     disabled={busy}
-                    className="w-full bg-jeopardy-gold hover:bg-jeopardy-gold-dark text-jeopardy-dark font-bold text-2xl py-6 rounded-lg transition-colors focus:outline-none focus:ring-4 focus:ring-jeopardy-gold/50 disabled:opacity-50"
+                    className="btn btn-blue w-full min-h-12 py-6 text-2xl font-bold"
                   >
                     {confirmAction === "next_final_question"
                       ? "Confirm?"
@@ -479,11 +480,11 @@ export default function FinalControls({
                     confirmAndAct("end_game", { type: "end_game" })
                   }
                   disabled={busy}
-                  className={`w-full ${
+                  className={`w-full min-h-12 py-6 text-2xl font-bold ${
                     hasNextQuestion
-                      ? "bg-jeopardy-blue-dark hover:bg-jeopardy-blue text-white border border-white/30"
-                      : "bg-jeopardy-gold hover:bg-jeopardy-gold-dark text-jeopardy-dark"
-                  } font-bold text-2xl py-6 rounded-lg transition-colors focus:outline-none focus:ring-4 focus:ring-jeopardy-gold/50 disabled:opacity-50`}
+                      ? "btn btn-ghost"
+                      : "btn btn-gold"
+                  }`}
                 >
                   {confirmAction === "end_game" ? "Confirm?" : "END GAME"}
                 </button>

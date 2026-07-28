@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import type { Game, Player } from "@/lib/types";
 import { submitFinalAnswer } from "@/lib/final-actions";
 import { useCountdown } from "@/lib/hooks/useCountdown";
+import { money } from "@/lib/format";
 
 interface FinalAnswerFormProps {
   game: Game;
@@ -41,12 +42,12 @@ export default function FinalAnswerForm({
   if (self.finalWager === null) {
     return (
       <div className="flex-1 flex items-center justify-center px-6 py-12">
-        <div className="w-full max-w-md space-y-6">
-          <div className="bg-jeopardy-blue-dark rounded-lg p-6 text-center border-2 border-jeopardy-blue">
-            <p className="text-jeopardy-gold font-display text-2xl mb-4">
+        <div className="w-full max-w-md">
+          <div className="card p-6 text-center">
+            <p className="font-display text-jeopardy-gold text-2xl mb-4">
               NO WAGER
             </p>
-            <p className="text-white text-lg">
+            <p className="text-white/70">
               You didn&apos;t lock in a wager for this question — watch the big screen!
             </p>
           </div>
@@ -88,40 +89,42 @@ export default function FinalAnswerForm({
   return (
     <div className="flex-1 flex items-center justify-center px-6 py-12">
       <div className="w-full max-w-md space-y-6">
-        <div className="text-center space-y-2">
-          <h2 className="font-display text-3xl text-jeopardy-gold">
-            FINAL JEOPARDY
-          </h2>
-          {qLabel && (
-            <p className="text-white/70 text-xs uppercase tracking-wide">
-              {qLabel}
+        <div className="card p-6">
+          <div className="text-center space-y-3">
+            {qLabel && (
+              <p className="font-display text-jeopardy-gold text-xs uppercase tracking-wide">
+                {qLabel}
+              </p>
+            )}
+            <h2 className="font-display text-3xl text-white uppercase">
+              FINAL JEOPARDY
+            </h2>
+            <p className="text-white/70 text-sm uppercase tracking-wide">
+              Category
             </p>
-          )}
-          <p className="text-white/70 text-sm uppercase tracking-wide">
-            Category
-          </p>
-          <p className="text-white text-xl font-semibold mb-4">
-            {fq.category}
-          </p>
-          {multiplier > 1 && (
-            <div className="inline-flex items-center gap-2 bg-jeopardy-gold text-jeopardy-dark px-3 py-1 rounded-full text-sm font-bold">
-              <span>×{multiplier} STAKES</span>
-            </div>
-          )}
-          {multiplier > 1 && (
-            <p className="text-white/50 text-xs">
-              Win or lose your wager ×{multiplier}
+            <p className="text-white text-xl font-semibold">
+              {fq.category}
             </p>
-          )}
-        </div>
+            {multiplier > 1 && (
+              <div className="pt-2 space-y-1">
+                <div className="inline-flex items-center gap-2 bg-jeopardy-gold text-jeopardy-dark px-3 py-1 rounded-full text-sm font-bold">
+                  <span>×{multiplier} STAKES</span>
+                </div>
+                <p className="text-white/50 text-xs">
+                  Win or lose your wager ×{multiplier}
+                </p>
+              </div>
+            )}
+          </div>
 
-        <div className="bg-jeopardy-blue-dark rounded-lg p-6 border-2 border-jeopardy-gold">
-          <p className="text-white/70 text-sm uppercase tracking-wide mb-2">
-            Question
-          </p>
-          <p className="text-white text-lg leading-relaxed">
-            {fq.question}
-          </p>
+          <div className="mt-6 pt-6 border-t border-white/10">
+            <p className="text-white/70 text-sm uppercase tracking-wide mb-2">
+              Question
+            </p>
+            <p className="text-white text-lg leading-relaxed">
+              {fq.question}
+            </p>
+          </div>
         </div>
 
         {secondsLeft !== null && (
@@ -132,8 +135,8 @@ export default function FinalAnswerForm({
               isPencilsDown
                 ? "bg-red-900/50 border-red-500"
                 : isWarning
-                ? "bg-red-600 border-red-400 animate-pulse"
-                : "bg-jeopardy-dark border-jeopardy-gold"
+                ? "bg-red-600/80 border-red-400"
+                : "card"
             }
           `}
           >
@@ -181,7 +184,7 @@ export default function FinalAnswerForm({
                   rows={4}
                   placeholder="What is...?"
                   disabled={isPencilsDown}
-                  className="w-full px-4 py-3 bg-jeopardy-dark text-white rounded border-2 border-jeopardy-blue focus:border-jeopardy-gold focus:outline-none resize-none disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="input w-full text-base resize-none"
                 />
               </label>
               <p className="text-white/50 text-xs text-right mt-1">
@@ -198,7 +201,7 @@ export default function FinalAnswerForm({
             <button
               type="submit"
               disabled={submitting || isPencilsDown}
-              className="w-full bg-jeopardy-gold hover:bg-jeopardy-gold-dark text-jeopardy-dark font-bold text-2xl py-6 rounded-lg transition-colors focus:outline-none focus:ring-4 focus:ring-jeopardy-gold/50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn btn-gold w-full text-xl py-5"
             >
               {submitting
                 ? "SUBMITTING..."

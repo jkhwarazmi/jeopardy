@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import type { Game, Player } from "@/lib/types";
 import PlayerAvatar from "@/components/shared/PlayerAvatar";
 import TimerCorner from "@/components/host/TimerCorner";
+import { money, moneyDelta } from "@/lib/format";
 
 interface FinalRoundProps {
   game: Game;
@@ -66,58 +67,53 @@ export default function FinalRound({ game, players }: FinalRoundProps) {
   if (game.status === "final_wager") {
     return (
       <div className="h-full flex flex-col items-center justify-center px-12 py-8">
-        <h1 className="font-display text-8xl text-jeopardy-gold mb-6 animate-fade-in">
+        <h1 className="font-display text-money text-[clamp(3rem,6vw,5rem)] mb-6 animate-fade-in">
           FINAL JEOPARDY
         </h1>
 
         {qLabel && (
-          <p className="text-white/70 text-3xl uppercase tracking-wider mb-4">
+          <p className="text-white/70 text-2xl uppercase tracking-wider mb-4">
             {qLabel}
           </p>
         )}
 
         {multiplier > 1 && (
-          <div className="bg-jeopardy-gold text-jeopardy-dark font-display text-5xl px-10 py-4 rounded-xl mb-8 shadow-xl">
+          <div className="bg-jeopardy-gold text-jeopardy-ink font-display text-4xl px-8 py-3 rounded-full mb-8">
             ×{multiplier} STAKES
           </div>
         )}
 
-        <div className="bg-jeopardy-blue border-4 border-jeopardy-gold rounded-2xl p-12 max-w-5xl w-full mb-12 shadow-2xl">
-          <p className="text-white/70 text-2xl uppercase tracking-wider text-center mb-4">
-            Category
-          </p>
-          <p className="text-white font-display text-6xl text-center leading-tight">
-            {fq.category}
-          </p>
+        <div className="bg-jeopardy-blue/50 backdrop-blur-sm rounded-2xl font-display text-money text-[clamp(2rem,5vw,4rem)] px-12 py-8 mb-10 text-center animate-[marquee_3s_linear_infinite]">
+          {fq.category}
         </div>
 
         {players.length > 0 ? (
-          <div className="flex flex-wrap justify-center gap-6 max-w-6xl">
+          <div className="flex flex-wrap justify-center gap-4 max-w-6xl">
             {players.map((player) => {
               const hasWagered = player.finalWager !== null;
               return (
                 <div
                   key={player.id}
-                  className="flex flex-col items-center gap-3 p-4 bg-jeopardy-blue-dark rounded-lg border-2 border-jeopardy-blue min-w-[140px] relative"
+                  className="card flex flex-col items-center gap-2 p-3 min-w-[120px] relative"
                 >
                   {hasWagered && (
-                    <div className="absolute -top-3 -right-3 bg-jeopardy-gold text-jeopardy-dark w-8 h-8 rounded-full flex items-center justify-center font-bold text-xl">
+                    <div className="absolute -top-2 -right-2 bg-jeopardy-gold text-jeopardy-ink w-7 h-7 rounded-full flex items-center justify-center font-bold">
                       ✓
                     </div>
                   )}
                   <PlayerAvatar player={player} size="lg" />
-                  <p className="text-white font-semibold text-center text-lg">
+                  <p className="text-white font-semibold text-center text-sm">
                     {player.name}
                   </p>
-                  <p className="text-jeopardy-gold font-display text-xl">
-                    ${player.score}
+                  <p className="font-display text-money text-lg">
+                    {money(player.score)}
                   </p>
                 </div>
               );
             })}
           </div>
         ) : (
-          <p className="text-white/70 text-3xl text-center">
+          <p className="text-white/70 text-2xl text-center">
             Waiting for players…
           </p>
         )}
@@ -132,43 +128,43 @@ export default function FinalRound({ game, players }: FinalRoundProps) {
         <TimerCorner timerEndsAt={game.timerEndsAt} warning />
 
         {qLabel && (
-          <p className="text-white/70 text-2xl uppercase tracking-wider mb-2">
+          <p className="text-white/70 text-xl uppercase tracking-wider mb-2">
             {qLabel}
           </p>
         )}
 
-        <p className="text-jeopardy-gold text-3xl uppercase tracking-wider mb-6">
+        <p className="text-jeopardy-gold text-2xl uppercase tracking-wider mb-4">
           {fq.category}
         </p>
 
         {multiplier > 1 && (
-          <div className="bg-jeopardy-gold text-jeopardy-dark font-display text-3xl px-6 py-2 rounded-lg mb-6 shadow-lg">
+          <div className="bg-jeopardy-gold text-jeopardy-ink font-display text-2xl px-4 py-1 rounded-full mb-4">
             ×{multiplier} STAKES
           </div>
         )}
 
-        <div className="bg-jeopardy-blue border-4 border-jeopardy-gold rounded-2xl p-16 max-w-6xl w-full mb-12 shadow-2xl">
-          <p className="text-white font-display text-5xl text-center leading-relaxed">
+        <div className="card p-12 max-w-5xl w-full mb-8">
+          <p className="font-clue clue-shadow text-white text-[clamp(2rem,4vw,3.5rem)] text-center leading-relaxed">
             {fq.question}
           </p>
         </div>
 
         {participants.length > 0 && (
-          <div className="flex flex-wrap justify-center gap-4 max-w-6xl">
+          <div className="flex flex-wrap justify-center gap-3 max-w-6xl">
             {participants.map((player) => {
               const hasAnswered = player.finalAnswer !== null;
               return (
                 <div
                   key={player.id}
-                  className="flex flex-col items-center gap-2 p-3 bg-jeopardy-blue-dark rounded-lg border-2 border-jeopardy-blue min-w-[120px] relative"
+                  className="bg-jeopardy-gold/20 rounded-full px-4 py-2 flex items-center gap-2 relative"
                 >
                   {hasAnswered && (
-                    <div className="absolute -top-2 -right-2 bg-jeopardy-gold text-jeopardy-dark w-7 h-7 rounded-full flex items-center justify-center font-bold text-lg">
+                    <div className="absolute -top-1 -right-1 bg-jeopardy-gold text-jeopardy-ink w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs">
                       ✓
                     </div>
                   )}
-                  <PlayerAvatar player={player} size="md" />
-                  <p className="text-white font-semibold text-center text-sm">
+                  <PlayerAvatar player={player} size="sm" />
+                  <p className="text-white font-semibold text-sm">
                     {player.name}
                   </p>
                 </div>
@@ -200,11 +196,11 @@ export default function FinalRound({ game, players }: FinalRoundProps) {
 
       return (
         <div className="h-full flex flex-col items-center justify-center px-12 py-8">
-          <h1 className="font-display text-6xl text-jeopardy-gold mb-10 animate-fade-in">
+          <h1 className="font-display text-money text-[clamp(2.5rem,5vw,4rem)] mb-8 animate-fade-in">
             Scores after {qLabel ?? "the Final Question"}
           </h1>
 
-          <div className="flex flex-col gap-4 max-w-4xl w-full mb-6">
+          <div className="flex flex-col gap-3 max-w-4xl w-full mb-6 overflow-y-auto">
             {standings.map((player) => {
               const isCorrect = player.finalCorrect === true;
               const ringColor = isCorrect ? "border-green-500" : "border-red-500";
@@ -212,21 +208,21 @@ export default function FinalRound({ game, players }: FinalRoundProps) {
               return (
                 <div
                   key={player.id}
-                  className={`flex items-center gap-6 p-6 bg-jeopardy-blue-dark rounded-lg border-4 ${ringColor}`}
+                  className={`card flex items-center gap-4 p-4 border-2 ${ringColor}`}
                 >
                   <PlayerAvatar player={player} size="lg" />
-                  <p className="text-white font-display text-3xl flex-1">
+                  <p className="text-white font-display text-xl flex-1 truncate">
                     {player.name}
                   </p>
-                  <p className="text-jeopardy-gold font-display text-4xl">
-                    ${player.score}
+                  <p className="font-display text-money text-2xl">
+                    {money(player.score)}
                   </p>
                 </div>
               );
             })}
           </div>
 
-          <p className="text-white/60 text-xl italic">
+          <p className="text-white/60 text-lg italic">
             Waiting for the host…
           </p>
         </div>
@@ -237,7 +233,7 @@ export default function FinalRound({ game, players }: FinalRoundProps) {
     if (participants.length === 0) {
       return (
         <div className="h-full flex flex-col items-center justify-center px-12 py-8">
-          <p className="text-white/70 text-3xl text-center">
+          <p className="text-white/70 text-2xl text-center">
             No wagers came in — waiting for the host…
           </p>
         </div>
@@ -254,56 +250,60 @@ export default function FinalRound({ game, players }: FinalRoundProps) {
       return (
         <div className="h-full flex flex-col items-center justify-center px-12 py-8">
           {/* Spotlight player */}
-          <div className="flex flex-col items-center mb-10 animate-fade-in">
-            <PlayerAvatar player={displayedPlayer} size="xl" />
-            <p className="text-white font-display text-5xl mt-6">
-              {displayedPlayer.name}
-            </p>
+          <div className="card-gold p-6 animate-pop-in mb-8">
+            <div className="flex flex-col items-center">
+              <PlayerAvatar player={displayedPlayer} size="xl" />
+              <p className="text-white font-display text-3xl mt-4">
+                {displayedPlayer.name}
+              </p>
+            </div>
           </div>
 
           {/* Their answer */}
-          <div className="bg-white border-4 border-jeopardy-blue rounded-2xl p-10 max-w-4xl w-full mb-8 shadow-2xl">
-            <p className="text-jeopardy-blue-dark text-2xl mb-4 uppercase tracking-wide">
+          <div className="bg-white rounded-xl p-8 max-w-3xl w-full mb-6">
+            <p className="text-jeopardy-ink text-lg mb-3 uppercase tracking-wide">
               They wrote:
             </p>
-            <p className="text-jeopardy-dark font-display text-4xl leading-relaxed">
+            <p className="font-clue text-jeopardy-ink text-3xl leading-relaxed">
               {answerText}
             </p>
           </div>
 
           {/* Their wager */}
-          <div className="mb-8">
-            <p className="text-jeopardy-gold font-display text-5xl text-center">
-              Wagered ${wagerAmount}
+          <div className="mb-6">
+            <p className="font-display text-money text-3xl text-center">
+              Wagered {money(wagerAmount)}
             </p>
             {multiplier > 1 && (
-              <p className="text-jeopardy-gold font-display text-3xl text-center mt-2">
-                ×{multiplier} = ${stakeAmount} at stake
+              <p className="font-display text-money text-xl text-center mt-2">
+                ×{multiplier} = {money(stakeAmount)} at stake
               </p>
             )}
           </div>
 
           {/* Result stamp */}
           {isJudged && (
-            <div className="mb-10 animate-fade-in">
+            <div className="mb-8 animate-fade-in">
               {displayedPlayer.finalCorrect ? (
-                <div className="bg-green-600 border-4 border-green-400 rounded-2xl px-12 py-6 shadow-2xl">
-                  <p className="text-white font-display text-6xl">CORRECT</p>
+                <div className="bg-green-600/90 rounded-xl px-10 py-4">
+                  <p className="text-white font-display text-5xl -rotate-3">CORRECT</p>
                 </div>
               ) : (
-                <div className="bg-red-600 border-4 border-red-400 rounded-2xl px-12 py-6 shadow-2xl">
-                  <p className="text-white font-display text-6xl">WRONG</p>
+                <div className="bg-red-600/90 rounded-xl px-10 py-4">
+                  <p className="text-white font-display text-5xl rotate-3">WRONG</p>
                 </div>
               )}
-              <p className="text-white font-display text-4xl text-center mt-6">
-                New Score: ${displayedPlayer.score}
+              <p className="font-display text-money text-3xl text-center mt-4">
+                {displayedPlayer.finalCorrect ? moneyDelta(stakeAmount) : moneyDelta(-stakeAmount)}
+                {" → "}
+                {money(displayedPlayer.score)}
               </p>
             </div>
           )}
 
           {/* Already-judged players strip */}
           {judgedPlayers.length > 0 && (
-            <div className="flex flex-wrap justify-center gap-4 mt-auto max-w-6xl">
+            <div className="flex flex-wrap justify-center gap-3 mt-auto max-w-6xl">
               {judgedPlayers
                 .filter((p) => p.id !== displayedPlayer.id)
                 .map((player) => {
@@ -315,10 +315,10 @@ export default function FinalRound({ game, players }: FinalRoundProps) {
                   return (
                     <div
                       key={player.id}
-                      className={`flex flex-col items-center gap-2 p-3 bg-jeopardy-blue-dark rounded-lg border-2 ${ringColor} min-w-[100px] opacity-70`}
+                      className={`card flex flex-col items-center gap-1 p-2 border ${ringColor} min-w-[80px] opacity-70`}
                     >
                       <PlayerAvatar player={player} size="sm" />
-                      <p className="text-white text-xs font-semibold text-center">
+                      <p className="text-white text-xs font-semibold text-center truncate max-w-[80px]">
                         {player.name}
                       </p>
                     </div>

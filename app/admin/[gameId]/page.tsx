@@ -81,10 +81,10 @@ export default function AdminPage({
   if (gameError || !game) {
     return (
       <div className="flex-1 flex items-center justify-center px-6">
-        <div className="bg-red-900/50 border-2 border-red-500 text-red-200 px-6 py-4 rounded-lg text-center max-w-md space-y-4">
+        <div className="card border-2 border-red-500 bg-red-900/30 p-6 text-center max-w-md space-y-4">
           <div>
-            <p className="font-semibold mb-2">Something went wrong</p>
-            <p className="text-sm">
+            <p className="font-semibold text-red-200 mb-2">Something went wrong</p>
+            <p className="text-sm text-red-200/80">
               {gameError || "This game does not exist or has been deleted."}
             </p>
           </div>
@@ -104,10 +104,10 @@ export default function AdminPage({
   }
 
   return (
-    <div className="flex-1 flex flex-col px-6 py-8 max-w-2xl mx-auto w-full">
+    <div className="flex-1 flex flex-col px-6 py-8 max-w-2xl mx-auto w-full space-y-6">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="font-display text-3xl text-jeopardy-gold mb-2">
+      <div>
+        <h1 className="font-display text-money text-3xl mb-2">
           Admin Control
         </h1>
         <div className="flex items-center gap-3 text-white/70 text-sm">
@@ -119,7 +119,7 @@ export default function AdminPage({
 
       {/* Error banner */}
       {error && (
-        <div className="mb-6 bg-red-900/50 border-2 border-red-500 text-red-200 px-4 py-3 rounded-lg">
+        <div className="bg-red-900/50 border-2 border-red-500 text-red-200 px-4 py-3 rounded-lg">
           <div className="flex items-start justify-between gap-3">
             <p className="text-sm flex-1">{error}</p>
             <button
@@ -133,14 +133,10 @@ export default function AdminPage({
       )}
 
       {/* Controls */}
-      <div className="mb-6">
-        <Controls game={game} players={players} act={act} busy={busy} />
-      </div>
+      <Controls game={game} players={players} act={act} busy={busy} />
 
       {/* Scoreboard */}
-      <div className="mb-6">
-        <LiveScoreboard players={players} game={game} act={act} />
-      </div>
+      <LiveScoreboard players={players} game={game} act={act} />
 
       {/* Danger zone */}
       <div className="border-t border-red-900/50 pt-6">
@@ -156,7 +152,7 @@ export default function AdminPage({
             <button
               onClick={() => act({ type: "end_game" })}
               disabled={busy}
-              className="w-full bg-red-900 hover:bg-red-950 text-red-200 font-semibold py-3 rounded-lg transition-colors disabled:opacity-50"
+              className="btn btn-danger w-full py-3 font-semibold"
             >
               End Game
             </button>
@@ -172,7 +168,7 @@ export default function AdminPage({
                 }
               }}
               disabled={busy}
-              className="w-full bg-red-950 hover:bg-black text-red-300 font-semibold py-3 rounded-lg transition-colors disabled:opacity-50"
+              className="btn btn-danger w-full py-3 font-semibold opacity-80"
             >
               {confirmReset
                 ? "Confirm Reset? (Wipes all scores)"

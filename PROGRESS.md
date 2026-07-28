@@ -137,6 +137,33 @@ A fresh session should read CLAUDE.md → BUILD_PROMPT.md → this file, then re
     when `gameError === "Game not found"`; other errors keep the red card,
     retitled "Something went wrong", now with a homepage link.
 
+- **Modern restyle + UK localisation + review fixes** (`npm run build` clean,
+  code-reviewer pass):
+  - Full visual refresh across all 27 pages/components: design tokens +
+    utility classes in `globals.css` (`card`, `card-gold`, `btn`/`btn-gold`/
+    `btn-blue`/`btn-ghost`, `input`, `text-money`, `font-display` Anton +
+    `font-clue` Merriweather), motion library (`fade-in`, `pop-in`, `rise-in`,
+    `winner-zoom`, `crown-bob`, `gold-pulse`), Jeopardy deep-blue/gold palette.
+  - New `lib/format.ts`: `money()`/`moneyDelta()` — the ONLY currency
+    renderers (en-GB "£", proper minus sign) — plus `ordinal()`. Repo-wide
+    sweep: zero `$`/hand-formatted currency remains (404 page's decorative
+    "£404" headline included).
+  - No user-visible icebreaker/business wording anywhere; players see a
+    normal quiz game.
+  - HostLobby "How to Play" rewritten: 6 accurate steps incl. multi-question
+    Final (dynamic multipliers list, wagerFloor, losses also × multiplier —
+    all verified against admin route + rules behavior).
+  - Review-pass fixes: `fade-in` promoted to globals.css (FinalRound used
+    `animate-fade-in` with no definition in scope — silent no-op; duplicated
+    styled-jsx blocks in QuestionView/host page removed); off-palette grays →
+    `bg-jeopardy-ink/10` skeleton, `bg-white/30` offline dot; finished-screen
+    ordinal bug (11st/12nd/13rd) fixed via `ordinal()`.
+  - Functional bug found in architect spot-check: WagerForm's "Change Wager"
+    was a dead button (`isSubmitted` derived only from Firestore, form never
+    reopened despite rules allowing re-submission). Fixed with local
+    `editing` state, cleared on successful submit. Buzzer "locked" copy
+    corrected ("If they get it wrong, you can buzz again").
+
 ## Next
 
 - Nothing — build complete. Remaining items are user-side (see Known gaps below).

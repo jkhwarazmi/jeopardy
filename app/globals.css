@@ -1,30 +1,58 @@
 @import "tailwindcss";
 
+/* ---------------------------------------------------------------------------
+   Design tokens — TV-studio Jeopardy: deep indigo stage, saturated board
+   blue, warm two-tone gold. Minimal surfaces, strong typography.
+--------------------------------------------------------------------------- */
 :root {
-  /* Jeopardy color palette */
-  --jeopardy-blue: #060CE9;
-  --jeopardy-blue-dark: #04077a;
-  --jeopardy-blue-darker: #03055c;
-  --jeopardy-gold: #FFCC00;
-  --jeopardy-gold-dark: #E5A00D;
+  /* Stage (page) darks */
+  --ink: #04051c;
+  --ink-deep: #02030f;
+
+  /* Board blue family */
+  --jeopardy-blue: #060ce9;
+  --jeopardy-blue-hi: #2334f0;
+  --jeopardy-blue-dark: #050d8a;
+  --jeopardy-blue-darker: #04053a;
+
+  /* Warm golds (values, accents, buttons) */
+  --jeopardy-gold: #f2b93b;
+  --jeopardy-gold-dark: #c9861f;
+  --gold-hi: #ffe27a;
+  --gold-mid: #f2b93b;
+  --gold-lo: #b87a14;
 }
 
 @theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  /* Jeopardy color tokens */
   --color-jeopardy-blue: var(--jeopardy-blue);
+  --color-jeopardy-blue-hi: var(--jeopardy-blue-hi);
   --color-jeopardy-blue-dark: var(--jeopardy-blue-dark);
   --color-jeopardy-dark: var(--jeopardy-blue-darker);
+  --color-jeopardy-ink: var(--ink);
   --color-jeopardy-gold: var(--jeopardy-gold);
   --color-jeopardy-gold-dark: var(--jeopardy-gold-dark);
 }
 
+/* Stage backdrop: soft spotlight from above, vignette below. */
 body {
   font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  color: #fff;
+  background-color: var(--ink);
+  background-image:
+    radial-gradient(120% 85% at 50% -25%, rgba(31, 42, 160, 0.85) 0%, rgba(31, 42, 160, 0) 60%),
+    radial-gradient(140% 100% at 50% 130%, rgba(9, 13, 66, 0.9) 0%, rgba(9, 13, 66, 0) 55%),
+    linear-gradient(var(--ink), var(--ink-deep));
+  background-attachment: fixed;
 }
 
+/* ---------------------------------------------------------------------------
+   Typography
+--------------------------------------------------------------------------- */
+
+/* Condensed display — headings, values, join codes. */
 .font-display {
   font-family: var(--font-display), system-ui, -apple-system, sans-serif;
   font-weight: 400;
@@ -32,7 +60,201 @@ body {
   letter-spacing: 0.05em;
 }
 
-/* Winner celebration animations */
+/* Serif clue face — the question text on the big screen. */
+.font-clue {
+  font-family: var(--font-clue), Georgia, "Times New Roman", serif;
+}
+
+/* Warm gold gradient fill for money values & marquee headings.
+   Compose with .font-display: <span className="font-display text-money">£400</span> */
+.text-money {
+  background-image: linear-gradient(
+    180deg,
+    var(--gold-hi) 0%,
+    var(--gold-mid) 55%,
+    var(--gold-lo) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 2px 1px rgba(0, 0, 0, 0.55));
+}
+
+/* Heavy shadow for light text over the board blue (clue legibility on
+   compressed screen-shares). */
+.clue-shadow {
+  text-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.8),
+    0 1px 0 rgba(0, 0, 0, 0.6);
+}
+
+/* ---------------------------------------------------------------------------
+   Surfaces
+--------------------------------------------------------------------------- */
+
+/* Default panel: translucent indigo, hairline border, soft depth. */
+.card {
+  background: linear-gradient(180deg, rgba(26, 32, 116, 0.5), rgba(8, 11, 52, 0.72));
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 1rem;
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* Gold-edged emphasis panel (join code, buzz banner, winner). */
+.card-gold {
+  background: linear-gradient(180deg, rgba(38, 44, 140, 0.6), rgba(10, 12, 60, 0.85));
+  border: 1px solid rgba(242, 185, 59, 0.55);
+  border-radius: 1rem;
+  box-shadow:
+    0 0 0 1px rgba(242, 185, 59, 0.15),
+    0 12px 36px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* Board cell face — saturated blue with a machined bevel. */
+.board-cell {
+  background: linear-gradient(180deg, #212fee 0%, #0812c9 45%, #050b86 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -12px 24px rgba(0, 0, 0, 0.45);
+}
+.board-cell-used {
+  background: #05062e;
+  box-shadow: inset 0 2px 14px rgba(0, 0, 0, 0.65);
+}
+
+/* ---------------------------------------------------------------------------
+   Controls
+--------------------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition:
+    transform 0.12s ease,
+    filter 0.12s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+.btn:active {
+  transform: translateY(1px);
+}
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  filter: none;
+}
+.btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(242, 185, 59, 0.45);
+}
+
+.btn-gold {
+  background: linear-gradient(180deg, #ffdd66 0%, #f0b429 55%, #d18f1f 100%);
+  color: #241a02;
+  box-shadow:
+    0 4px 14px rgba(240, 180, 41, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+.btn-gold:hover:not(:disabled) {
+  filter: brightness(1.07);
+}
+
+.btn-blue {
+  background: linear-gradient(180deg, #2436e8 0%, #0d18b6 100%);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 4px 14px rgba(13, 24, 182, 0.4);
+}
+.btn-blue:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+
+.btn-ghost {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+.btn-ghost:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.btn-danger {
+  background: linear-gradient(180deg, #e8434f 0%, #b31d2b 100%);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(179, 29, 43, 0.35);
+}
+.btn-danger:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+/* Text/number inputs */
+.input {
+  background: rgba(3, 5, 32, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 0.75rem;
+  color: #fff;
+  padding: 0.75rem 1rem;
+}
+.input::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+.input:focus {
+  outline: none;
+  border-color: var(--jeopardy-gold);
+  box-shadow: 0 0 0 3px rgba(242, 185, 59, 0.25);
+}
+
+/* ---------------------------------------------------------------------------
+   Motion
+--------------------------------------------------------------------------- */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out;
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-pop-in {
+  animation: pop-in 0.3s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-rise-in {
+  animation: rise-in 0.35s ease-out;
+}
+
 @keyframes winner-zoom {
   0% {
     opacity: 0;
@@ -46,25 +268,39 @@ body {
     transform: scale(1);
   }
 }
-
 .animate-winner-zoom {
   animation: winner-zoom 1s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 @keyframes crown-bob {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0) rotate(-5deg);
   }
   50% {
     transform: translateY(-10px) rotate(5deg);
   }
 }
-
 .animate-crown-bob {
   animation: crown-bob 2s ease-in-out infinite;
 }
 
 .shadow-winner-glow {
-  box-shadow: 0 0 60px 20px rgba(255, 204, 0, 0.6),
-              0 0 100px 40px rgba(255, 204, 0, 0.3);
+  box-shadow:
+    0 0 60px 20px rgba(242, 185, 59, 0.55),
+    0 0 100px 40px rgba(242, 185, 59, 0.28);
+}
+
+/* Buzzers-open pulse (gold ring breathing) */
+@keyframes gold-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(242, 185, 59, 0.55);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(242, 185, 59, 0);
+  }
+}
+.animate-gold-pulse {
+  animation: gold-pulse 1.4s ease-out infinite;
 }
