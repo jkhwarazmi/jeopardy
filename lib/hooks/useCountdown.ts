@@ -17,7 +17,6 @@ export function useCountdown(timerEndsAt: Timestamp | null): {
       return;
     }
 
-    // Capture non-null value for closure
     const deadline = timerEndsAt;
 
     function tick() {
@@ -34,7 +33,6 @@ export function useCountdown(timerEndsAt: Timestamp | null): {
       }
     }
 
-    // Immediate tick
     tick();
 
     const interval = setInterval(tick, 100);

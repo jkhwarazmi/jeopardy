@@ -1,21 +1,20 @@
 @import "tailwindcss";
 
 /* ---------------------------------------------------------------------------
-   Design tokens — TV-studio Jeopardy: deep indigo stage, saturated board
-   blue, warm two-tone gold. Minimal surfaces, strong typography.
+   Colours
 --------------------------------------------------------------------------- */
 :root {
-  /* Stage (page) darks */
+  /* page background */
   --ink: #04051c;
   --ink-deep: #02030f;
 
-  /* Board blue family */
+  /* board blues */
   --jeopardy-blue: #060ce9;
   --jeopardy-blue-hi: #2334f0;
   --jeopardy-blue-dark: #050d8a;
   --jeopardy-blue-darker: #04053a;
 
-  /* Warm golds (values, accents, buttons) */
+  /* golds */
   --jeopardy-gold: #f2b93b;
   --jeopardy-gold-dark: #c9861f;
   --gold-hi: #ffe27a;
@@ -36,7 +35,6 @@
   --color-jeopardy-gold-dark: var(--jeopardy-gold-dark);
 }
 
-/* Stage backdrop: soft spotlight from above, vignette below. */
 body {
   font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
   color: #fff;
@@ -52,7 +50,6 @@ body {
    Typography
 --------------------------------------------------------------------------- */
 
-/* Condensed display — headings, values, join codes. */
 .font-display {
   font-family: var(--font-display), system-ui, -apple-system, sans-serif;
   font-weight: 400;
@@ -60,13 +57,11 @@ body {
   letter-spacing: 0.05em;
 }
 
-/* Serif clue face — the question text on the big screen. */
 .font-clue {
   font-family: var(--font-clue), Georgia, "Times New Roman", serif;
 }
 
-/* Warm gold gradient fill for money values & marquee headings.
-   Compose with .font-display: <span className="font-display text-money">£400</span> */
+/* gold gradient text, use with .font-display */
 .text-money {
   background-image: linear-gradient(
     180deg,
@@ -80,8 +75,7 @@ body {
   filter: drop-shadow(0 2px 1px rgba(0, 0, 0, 0.55));
 }
 
-/* Heavy shadow for light text over the board blue (clue legibility on
-   compressed screen-shares). */
+/* helps the clue text survive screen-share compression */
 .clue-shadow {
   text-shadow:
     0 3px 8px rgba(0, 0, 0, 0.8),
@@ -92,7 +86,6 @@ body {
    Surfaces
 --------------------------------------------------------------------------- */
 
-/* Default panel: translucent indigo, hairline border, soft depth. */
 .card {
   background: linear-gradient(180deg, rgba(26, 32, 116, 0.5), rgba(8, 11, 52, 0.72));
   border: 1px solid rgba(255, 255, 255, 0.09);
@@ -102,7 +95,7 @@ body {
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
-/* Gold-edged emphasis panel (join code, buzz banner, winner). */
+/* gold border version */
 .card-gold {
   background: linear-gradient(180deg, rgba(38, 44, 140, 0.6), rgba(10, 12, 60, 0.85));
   border: 1px solid rgba(242, 185, 59, 0.55);
@@ -113,7 +106,6 @@ body {
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
-/* Board cell face — saturated blue with a machined bevel. */
 .board-cell {
   background: linear-gradient(180deg, #212fee 0%, #0812c9 45%, #050b86 100%);
   box-shadow:
@@ -128,9 +120,7 @@ body {
 /* ---------------------------------------------------------------------------
    Controls
 --------------------------------------------------------------------------- */
-/* Buttons come in three sizes; the base is the default. Call sites should
-   NOT add their own padding utilities — use .btn-sm / .btn-lg instead.
-   Full-width is fine (w-full). */
+/* use .btn-sm / .btn-lg for sizes rather than padding classes */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -146,13 +136,11 @@ body {
     background-color 0.15s ease,
     border-color 0.15s ease;
 }
-/* Compact: chips, inline actions, per-row controls. */
 .btn-sm {
   padding: 0.5rem 0.875rem;
   font-size: 0.875rem;
   border-radius: 0.625rem;
 }
-/* Hero: primary full-width CTAs (join, lock it in, buzz-adjacent). */
 .btn-lg {
   padding: 1.125rem 1.5rem;
   font-size: 1.25rem;
@@ -211,7 +199,6 @@ body {
   filter: brightness(1.1);
 }
 
-/* Text/number inputs */
 .input {
   background: rgba(3, 5, 32, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.16);
@@ -307,7 +294,7 @@ body {
     0 0 100px 40px rgba(242, 185, 59, 0.28);
 }
 
-/* Buzzers-open pulse (gold ring breathing) */
+/* pulsing ring while buzzers are open */
 @keyframes gold-pulse {
   0%,
   100% {

@@ -1,7 +1,4 @@
-/**
- * Server-only Firebase Admin SDK singleton.
- * Lazy initialization from FIREBASE_SERVICE_ACCOUNT_KEY env var.
- */
+// Server only. Uses the service account in FIREBASE_SERVICE_ACCOUNT_KEY.
 
 import { initializeApp, getApps, cert, type App } from "firebase-admin/app";
 import {
@@ -20,7 +17,7 @@ export function getAdminDb(): Firestore {
   const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
   if (!serviceAccountKey) {
     throw new Error(
-      "FIREBASE_SERVICE_ACCOUNT_KEY env var is not set — see README"
+      "FIREBASE_SERVICE_ACCOUNT_KEY is not set (see README)"
     );
   }
 
@@ -34,7 +31,7 @@ export function getAdminDb(): Firestore {
     );
   }
 
-  // Guard for HMR / multiple invocations
+  // avoid initialising twice on hot reload
   if (!getApps().length) {
     adminApp = initializeApp({
       credential: cert(serviceAccount),
@@ -47,5 +44,4 @@ export function getAdminDb(): Firestore {
   return adminDb;
 }
 
-// Re-export field value helpers for convenience
 export { Timestamp, FieldValue };

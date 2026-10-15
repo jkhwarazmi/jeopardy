@@ -23,31 +23,23 @@ export interface UsePlayerSession {
   updateProfile: (updates: { name?: string; photoBase64?: string }) => Promise<void>;
 }
 
-/**
- * Normalize and deduplicate a player name against existing players in the game.
- * - Trims and slices to 30 chars max
- * - Falls back to "Player" if empty
- * - Case-insensitive dedupe: appends " 2", " 3", etc. if name already taken by OTHER players
- */
+// Trims to 30 chars and adds " 2", " 3" etc. if someone else already has the name
 async function resolveName(
   gameId: string,
   uid: string,
   rawName: string
 ): Promise<string> {
-  // Trim name to 1..30 chars
   let trimmedName = rawName.trim().slice(0, 30);
   if (trimmedName.length === 0) {
     trimmedName = "Player";
   }
 
-  // Check for name collision (case-insensitive) and append " 2", " 3", etc.
   const playersRef = collection(db, "games", gameId, "players");
   const snapshot = await getDocs(playersRef);
   const existingNames = new Set<string>();
 
   snapshot.docs.forEach((doc) => {
     const data = doc.data() as PlayerDoc;
-    // Only consider OTHER players (not self)
     if (doc.id !== uid) {
       existingNames.add(data.name.toLowerCase());
     }
@@ -129,12 +121,12 @@ export function usePlayerSession(gameId: string): UsePlayerSession {
 
       const finalName = await resolveName(gameId, uid, name);
 
-      // Create player doc with exact initial shape required by rules
+      // the rules check these starting values
       const playerDoc: WithFieldValue<PlayerDoc> = {
         name: finalName,
         photoBase64,
         score: 0,
-        joinedAt: serverTimestamp(), // resolves to Timestamp server-side
+        joinedAt: serverTimestamp(),
         connected: true,
         finalWager: null,
         finalAnswer: null,
@@ -144,7 +136,6 @@ export function usePlayerSession(gameId: string): UsePlayerSession {
 
       await setDoc(doc(db, "games", gameId, "players", uid), playerDoc);
 
-      // Persist to localStorage for reconnect
       try {
         localStorage.setItem(
           "jeopardy:lastGame",
@@ -166,7 +157,7 @@ export function usePlayerSession(gameId: string): UsePlayerSession {
           connected,
         });
       } catch (err) {
-        // Swallow errors (doc may not exist yet or player kicked)
+        // doc might not exist yet, or the player was kicked
         console.debug("setConnected failed:", err);
       }
     },
@@ -179,19 +170,16 @@ export function usePlayerSession(gameId: string): UsePlayerSession {
         throw new Error("Not authenticated");
       }
 
-      // Short-circuit only if no keys were provided at all.
-      // NOTE: photoBase64 === "" is a real update (photo removal).
+      // photoBase64 === "" means remove the photo, so check for undefined
       if (updates.name === undefined && updates.photoBase64 === undefined) {
         return;
       }
 
-      // Resolve name if provided (with dedupe)
       let resolvedName: string | undefined;
       if (updates.name !== undefined) {
         resolvedName = await resolveName(gameId, uid, updates.name);
       }
 
-      // Build typed update payload with only provided fields
       const payload: Partial<Pick<PlayerDoc, "name" | "photoBase64">> = {};
       if (resolvedName !== undefined) {
         payload.name = resolvedName;
@@ -200,10 +188,8 @@ export function usePlayerSession(gameId: string): UsePlayerSession {
         payload.photoBase64 = updates.photoBase64;
       }
 
-      // Update Firestore doc (let errors propagate)
       await updateDoc(doc(db, "games", gameId, "players", uid), payload);
 
-      // Refresh localStorage if name changed
       if (resolvedName !== undefined) {
         try {
           localStorage.setItem(
@@ -218,7 +204,7 @@ export function usePlayerSession(gameId: string): UsePlayerSession {
     [uid, gameId]
   );
 
-  // Register best-effort presence handlers
+  // rough presence tracking
   useEffect(() => {
     if (!uid || !self) return;
 

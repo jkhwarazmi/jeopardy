@@ -1,21 +1,13 @@
 /**
- * Client-side buzz path
+ * A buzz does two writes at once:
+ *  1. adds a record to games/{id}/buzzes with a server timestamp, which
+ *     /api/settle-buzz uses for the tie-break
+ *  2. sets buzzedPlayerId on the game doc. The rules only allow this while
+ *     nobody has buzzed, so the first write wins.
  *
- * Two concurrent fire-and-forget writes on every buzz attempt:
- *  1. A record in games/{gameId}/buzzes with a serverTimestamp (rules-enforced)
- *     — raw material for the 150ms lower-score tie-break in /api/settle-buzz.
- *  2. A plain updateDoc setting games/{gameId}.buzzedPlayerId to our uid.
- *     Security rules enforce first-writer-wins server-side (only allowed while
- *     status == 'question_open', buzzedPlayerId == null, own uid, not locked
- *     out) — so no client transaction is needed.
- *
- * WHY updateDoc and NOT runTransaction: Firestore transactions get no latency
- * compensation — local snapshots don't reflect the write until the server
- * commits (2+ RTTs), which made the buzzer feel laggy. updateDoc echoes into
- * the local cache immediately (onSnapshot fires with hasPendingWrites=true),
- * so the player sees "YOU BUZZED" instantly; if the rules reject the write
- * (someone else got there first), the local echo reverts and the UI corrects
- * itself. The settle route remains the final authority on the winner.
+ * This used to be a transaction, but those don't touch the local cache until
+ * the server commits so the buzzer felt laggy. A plain updateDoc shows up
+ * locally straight away and gets rolled back if the rules reject it.
  */
 import {
   addDoc,
@@ -33,18 +25,16 @@ export function attemptBuzz(
   uid: string,
   cellKeyStr: string
 ): Promise<BuzzResult> {
-  // Evidence write for the tie-break — concurrent, never blocks the buzz.
+  // don't wait on this one
   addDoc(collection(db, "games", gameId, "buzzes"), {
     playerId: uid,
     at: serverTimestamp(),
     cellKey: cellKeyStr,
   }).catch(() => {
-    // Rules reject buzzes once the question closes — harmless race, ignore.
+    // rejected if the question already closed, that's fine
   });
 
-  // The buzz itself. Resolves "lost" when rules reject it (someone else won
-  // the race or the question closed) — the reverted local echo already fixed
-  // the UI by then.
+  // "lost" means someone else got there first (or the question closed)
   return updateDoc(doc(db, "games", gameId), { buzzedPlayerId: uid }).then(
     () => "won" as const,
     () => "lost" as const

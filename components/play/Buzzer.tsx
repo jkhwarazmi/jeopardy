@@ -12,7 +12,7 @@ interface BuzzerProps {
   self: Player;
   uid: string;
   gameId: string;
-  /** Full player list so we can show WHO buzzed first. */
+  /** to show who buzzed */
   players: Player[];
 }
 
@@ -26,8 +26,7 @@ export default function Buzzer({
   players,
 }: BuzzerProps) {
   const buzzedRef = useRef(false);
-  /** Optimistic: flips to true synchronously on tap so "YOU BUZZED" renders
-   *  in the same frame — the game doc confirms (or corrects) moments later. */
+  // set on tap so the UI updates straight away, the game doc catches up after
   const [pendingBuzz, setPendingBuzz] = useState(false);
   const { secondsLeft } = useCountdown(game.timerEndsAt);
 
@@ -35,30 +34,22 @@ export default function Buzzer({
   const isLockedOut = game.lockedOutIds.includes(uid);
   const buzzedPlayerId = game.buzzedPlayerId;
 
-  // Derived purely from the game doc each render. Deliberately NO wall-clock
-  // gating: the buzzer is LIVE the instant this device sees question_open.
-  // Phone clocks skew by seconds, so any Date.now()-vs-server-timestamp gate
-  // creates a dead window that silently drops taps (the old "had to buzz
-  // twice" bug). Fairness is server-side: rules enforce first-writer-wins and
-  // /api/settle-buzz tie-breaks near-simultaneous buzzes.
+  // Don't add any timing checks here. Phone clocks can be seconds out, and
+  // gating on them was why people had to tap twice. The rules and
+  // /api/settle-buzz decide who actually got there first.
   const localState: BuzzerState = (() => {
     if (buzzedPlayerId === uid) return "you";
     if (buzzedPlayerId !== null) return "locked";
     if (isLockedOut) return "out";
-    // Optimistic: we tapped and no contradicting buzz has arrived yet.
+    // we tapped and haven't heard otherwise yet
     if (pendingBuzz && game.status === "question_open") return "you";
     if (game.status === "question_open" && cell) return "live";
     return "armed";
   })();
 
-  // Reset per-attempt state whenever the question changes OR the phase
-  // changes. Keying on status matters twice over:
-  //  - it explicitly clears a stale optimistic pendingBuzz if the question
-  //    closes before our write settles (rather than relying on `cell` being
-  //    a referentially-new object every snapshot);
-  //  - on buzzed → question_open (wrong answer reopens the window), players
-  //    who buzzed earlier but lost the race get their double-fire guard
-  //    cleared so they can buzz again.
+  // Reset on a new question or status change. The status matters too: when a
+  // wrong answer reopens buzzing, players who lost the first race need to be
+  // able to buzz again.
   useEffect(() => {
     buzzedRef.current = false;
     setPendingBuzz(false);
@@ -66,14 +57,11 @@ export default function Buzzer({
 
   const handleBuzz = () => {
     if (localState !== "live") return;
-    if (buzzedRef.current) return; // Guard against double-fire
+    if (buzzedRef.current) return;
     if (!cell) return;
 
     buzzedRef.current = true;
 
-    // Instant feedback: same-frame render + haptic. The Firestore write's
-    // local echo confirms this within milliseconds; the server corrects it
-    // only if someone else genuinely won the race.
     setPendingBuzz(true);
     if (navigator.vibrate) {
       navigator.vibrate(50);
@@ -85,16 +73,13 @@ export default function Buzzer({
       cellKey(game.currentBoard, cell.cat, cell.row)
     ).then((result) => {
       if (result === "lost") {
-        // Rules rejected the write (someone beat us / question closed).
-        // Drop the optimistic state; the game doc drives the real state.
+        // someone beat us to it
         setPendingBuzz(false);
       }
     });
   };
 
-  // ARMED: dimmed blue, disabled. Fallback only — during question_open the
-  // buzzer is always live (see localState above), so this renders solely in
-  // transitional non-question states.
+  // not open yet
   if (localState === "armed") {
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-6 pb-safe">
@@ -107,7 +92,7 @@ export default function Buzzer({
           className="w-[70vw] h-[70vw] max-w-[340px] max-h-[340px] rounded-full bg-jeopardy-blue/40 border-4 border-jeopardy-blue/50 flex items-center justify-center cursor-not-allowed"
         >
           <span className="font-display text-white/50 text-4xl uppercase">
-            GET READY…
+            GET READY...
           </span>
         </button>
 
@@ -118,7 +103,7 @@ export default function Buzzer({
     );
   }
 
-  // LIVE: glowing gold, enabled
+  // open
   if (localState === "live") {
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-6 pb-safe">
@@ -146,7 +131,7 @@ export default function Buzzer({
     );
   }
 
-  // YOU: gold, you buzzed
+  // we buzzed
   if (localState === "you") {
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-6 pb-safe">
@@ -174,7 +159,7 @@ export default function Buzzer({
     );
   }
 
-  // LOCKED: someone else buzzed
+  // someone else buzzed
   if (localState === "locked") {
     const buzzedPlayer =
       players.find((p) => p.id === game.buzzedPlayerId)?.name ?? "Someone";
@@ -203,7 +188,7 @@ export default function Buzzer({
     );
   }
 
-  // OUT: locked out (answered wrong)
+  // answered wrong
   if (localState === "out") {
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-6 pb-safe">

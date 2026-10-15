@@ -4,11 +4,8 @@ import { useState, useRef, useCallback } from "react";
 
 export type SoundName = "buzz" | "correct" | "wrong" | "timeup" | "reveal" | "final" | "winner";
 
-/**
- * Host-only audio hook for playing game sounds.
- * Requires a user gesture to unlock (autoplay policy).
- * Preloads all sounds lazily after unlock.
- */
+// Sounds for the host screen. unlock() needs to be called from a click
+// because of browser autoplay rules.
 export function useAudio(): {
   unlocked: boolean;
   unlock: () => void;
@@ -23,16 +20,14 @@ export function useAudio(): {
 
     const sounds: SoundName[] = ["buzz", "correct", "wrong", "timeup", "reveal", "final", "winner"];
 
-    // Preload and prime each sound
     sounds.forEach((name) => {
       const audio = new Audio(`/sounds/${name}.mp3`);
       audio.preload = "auto";
       audio.volume = 0.7;
 
-      // Play muted to satisfy autoplay policy (no-op if fails)
+      // play once muted so the browser lets us play it later
       audio.muted = true;
       audio.play().catch(() => {
-        // Swallow; alternative: just call load()
         audio.load();
       }).finally(() => {
         audio.muted = false;
@@ -53,10 +48,10 @@ export function useAudio(): {
     const audio = audioElementsRef.current.get(name);
     if (!audio) return;
 
-    // Reset to start and play (allows rapid repeats)
+    // rewind so it can be replayed quickly
     audio.currentTime = 0;
     audio.play().catch(() => {
-      // Swallow play rejection (e.g. user navigated away)
+      // ignore
     });
   }, [unlocked]);
 

@@ -17,7 +17,7 @@ export default function AdminPage({
   params: Promise<{ gameId: string }>;
 }) {
   const { gameId: rawGameId } = use(params);
-  // Join codes are uppercase; normalize so typed lowercase URLs still work.
+  // so lowercase URLs still work
   const gameId = rawGameId.toUpperCase();
   const { game, loading: gameLoading, error: gameError } = useGame(gameId);
   const { players } = usePlayers(gameId);
@@ -28,7 +28,6 @@ export default function AdminPage({
   const [dangerExpanded, setDangerExpanded] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
 
-  // Load password from localStorage on mount
   useEffect(() => {
     const stored = localStorage.getItem(ADMIN_PW_KEY(gameId));
     if (stored) {
@@ -51,7 +50,6 @@ export default function AdminPage({
 
     if (!result.ok) {
       if (result.error === "Wrong password") {
-        // Clear stored password and go back to gate
         localStorage.removeItem(ADMIN_PW_KEY(gameId));
         setPassword(null);
         setError(result.error);
@@ -105,7 +103,6 @@ export default function AdminPage({
 
   return (
     <div className="flex-1 flex flex-col px-6 py-8 max-w-2xl mx-auto w-full space-y-6">
-      {/* Header */}
       <div>
         <h1 className="font-display text-money text-3xl mb-2">
           Admin Control
@@ -117,7 +114,6 @@ export default function AdminPage({
         </div>
       </div>
 
-      {/* Error banner */}
       {error && (
         <div className="bg-red-900/50 border-2 border-red-500 text-red-200 px-4 py-3 rounded-lg">
           <div className="flex items-start justify-between gap-3">
@@ -133,13 +129,10 @@ export default function AdminPage({
         </div>
       )}
 
-      {/* Controls */}
       <Controls game={game} players={players} act={act} busy={busy} />
 
-      {/* Scoreboard */}
       <LiveScoreboard players={players} game={game} act={act} />
 
-      {/* Danger zone */}
       <div className="border-t border-red-900/50 pt-6">
         <button
           onClick={() => setDangerExpanded(!dangerExpanded)}

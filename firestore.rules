@@ -1,16 +1,11 @@
 rules_version = '2';
 
-// Business-Event Jeopardy security rules.
+// Game docs are only written by the API routes (Admin SDK), apart from
+// buzzing: a player can set buzzedPlayerId to themselves while the question
+// is open and nobody has buzzed yet.
 //
-// Write-path philosophy:
-//   - Game docs are created/mutated ONLY by the server (Admin SDK via Next.js
-//     API routes, password-checked) — with ONE exception: the buzz transaction,
-//     where a signed-in player may set buzzedPlayerId to their own uid while a
-//     question is open and nobody has buzzed yet.
-//   - Players may create/update only their own player doc, and never `score`,
-//     `isKicked`, or `finalCorrect`.
-//   - Buzz records may be created only while status == 'question_open', only
-//     for yourself, and only with a server timestamp.
+// Players can only edit their own doc, and never score, isKicked or
+// finalCorrect.
 
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -28,7 +23,7 @@ service cloud.firestore {
       allow read: if signedIn();
       allow create, delete: if false; // Admin SDK only (bypasses rules)
 
-      // The buzz transaction: the ONLY client-side game-doc write allowed.
+      // buzzing in
       allow update: if signedIn()
         && resource.data.status == 'question_open'
         && resource.data.buzzedPlayerId == null
@@ -40,7 +35,7 @@ service cloud.firestore {
       match /players/{playerId} {
         allow read: if signedIn();
 
-        // Join: doc id must be the caller's uid; safe initial values enforced.
+        // joining
         allow create: if signedIn()
           && request.auth.uid == playerId
           && game().lobbyLocked == false
@@ -56,14 +51,14 @@ service cloud.firestore {
           && request.resource.data.photoBase64 is string
           && request.resource.data.photoBase64.size() < 120000;
 
-        // Self-service updates: identity/presence + final inputs only.
+        // name, photo, presence and final round inputs
         allow update: if signedIn()
           && request.auth.uid == playerId
           && resource.data.isKicked == false
           && request.resource.data.diff(resource.data).affectedKeys()
                .hasOnly(['name', 'photoBase64', 'connected',
                          'finalWager', 'finalAnswer'])
-          // Rename: same constraints as join (1..30 chars).
+          // name: same limits as joining
           && (
             !request.resource.data.diff(resource.data).affectedKeys()
               .hasAny(['name'])
@@ -73,7 +68,7 @@ service cloud.firestore {
               && request.resource.data.name.size() <= 30
             )
           )
-          // Photo change: same size cap as join ('' = no photo).
+          // photo: same size limit ('' = no photo)
           && (
             !request.resource.data.diff(resource.data).affectedKeys()
               .hasAny(['photoBase64'])
@@ -82,8 +77,7 @@ service cloud.firestore {
               && request.resource.data.photoBase64.size() < 120000
             )
           )
-          // Wagers: only during final_wager, 0..max(wagerFloor, own score) —
-          // the floor keeps trailing players in the game.
+          // wager: 0 up to max(wagerFloor, score), only during final_wager
           && (
             !request.resource.data.diff(resource.data).affectedKeys()
               .hasAny(['finalWager'])
@@ -95,7 +89,7 @@ service cloud.firestore {
                   || request.resource.data.finalWager <= resource.data.score)
             )
           )
-          // Answers: only during final_answer, before the deadline.
+          // answer: only during final_answer and before the deadline
           && (
             !request.resource.data.diff(resource.data).affectedKeys()
               .hasAny(['finalAnswer'])

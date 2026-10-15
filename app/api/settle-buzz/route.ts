@@ -1,15 +1,12 @@
 /**
  * POST /api/settle-buzz
  *
- * Called by the host client ~300ms after a provisional buzz appears.
- * Unauthenticated BY DESIGN: the outcome is fully deterministic from server
- * data and the write is idempotent (guarded by buzzSettledCellKey), so the
- * worst an abuser can do is compute the same result we would.
- *
- * Tie-break rule: among buzz records for the current cell landing within
- * BUZZ_SETTLE_MS (150ms) of the earliest valid buzz, the player with the
- * LOWEST current score wins; equal scores fall back to earliest timestamp.
- * Also starts the authoritative answer countdown (timerEndsAt).
+  * The host calls this ~300ms after someone buzzes. Of all the buzzes within
+  * 150ms of the first one, the player with the lowest score gets it (earliest
+  * wins if scores are equal). Then it starts the answer timer.
+  *
+  * There's no auth because the result only depends on what's already in
+  * Firestore and it only runs once per cell.
  */
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminDb, Timestamp } from "@/lib/firebase-admin";
@@ -24,8 +21,7 @@ import {
 
 export const runtime = "nodejs";
 
-/** Tolerance for skew between route clock (timerEndsAt) and Firestore
- *  serverTimestamp when filtering out stale previous-round buzz records. */
+// allowance for clock differences between this server and Firestore
 const WINDOW_EPSILON_MS = 1000;
 
 interface SettleResponse {
@@ -55,10 +51,7 @@ export async function POST(
       if (!gameSnap.exists) return { settled: false, winnerId: null };
       const game = normalizeGameDoc(gameSnap.data() as GameDoc);
 
-      // Idempotency / phase guards. The provisional winner exists but the
-      // status is still 'question_open' (clients cannot change status).
-      // buzzLiveAt is the authoritative live moment; legacy docs (created
-      // before untimed buzz windows) derive it from timerEndsAt below.
+      // someone has buzzed but it hasn't been settled yet
       if (
         game.status !== "question_open" ||
         game.buzzedPlayerId === null ||
@@ -84,12 +77,8 @@ export async function POST(
       const players = new Map<string, PlayerDoc>();
       playersSnap.docs.forEach((d) => players.set(d.id, d.data() as PlayerDoc));
 
-      // Only buzzes from this round: at/after the moment buzzing went live,
-      // minus a skew tolerance. This excludes stale records from before a
-      // wrong answer reopened buzzing. buzzLiveAt is authoritative; legacy
-      // docs fall back to timerEndsAt minus the buzz window (both non-null
-      // there, guaranteed by the guard above — legacy docs always have a
-      // numeric buzzWindowSeconds).
+      // Ignore buzzes from before buzzing (re)opened, e.g. before a wrong answer.
+      // Older docs don't have buzzLiveAt so work it out from the timer.
       const liveAtMs =
         (game.buzzLiveAt?.toMillis() ??
           game.timerEndsAt!.toMillis() -
@@ -113,7 +102,7 @@ export async function POST(
         const contenders = eligible.filter(
           (b) => b.at.toMillis() - t0 <= BUZZ_SETTLE_MS
         );
-        // Deduplicate players (a mashed buzzer writes multiple records).
+        // mashing the buzzer writes several records, keep the earliest
         const seen = new Map<string, number>(); // playerId -> earliest at
         for (const b of contenders) {
           if (!seen.has(b.playerId)) seen.set(b.playerId, b.at.toMillis());

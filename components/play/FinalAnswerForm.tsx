@@ -31,14 +31,13 @@ export default function FinalAnswerForm({
   const [error, setError] = useState("");
   const { secondsLeft, expired } = useCountdown(game.timerEndsAt);
 
-  // Sync local input with prop when it changes (e.g., submission success)
+  // keep the input in sync with the saved answer
   useEffect(() => {
     if (self.finalAnswer !== null) {
       setAnswerInput(self.finalAnswer);
     }
   }, [self.finalAnswer]);
 
-  // Player didn't wager, so they're spectating
   if (self.finalWager === null) {
     return (
       <div className="flex-1 flex items-center justify-center px-6 py-12">
@@ -48,7 +47,7 @@ export default function FinalAnswerForm({
               NO WAGER
             </p>
             <p className="text-white/70">
-              You didn&apos;t lock in a wager for this question — watch the big screen!
+              You didn&apos;t lock in a wager for this question. Watch the big screen!
             </p>
           </div>
         </div>
@@ -66,7 +65,7 @@ export default function FinalAnswerForm({
     try {
       await submitFinalAnswer(gameId, uid, answerInput);
     } catch (err) {
-      // Handle write rejection gracefully (deadline passed)
+      // probably past the deadline
       if (
         err instanceof Error &&
         err.message.includes("permission-denied")

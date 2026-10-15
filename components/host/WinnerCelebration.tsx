@@ -13,7 +13,6 @@ interface WinnerCelebrationProps {
 export default function WinnerCelebration({ game, players }: WinnerCelebrationProps) {
   const confettiIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Dynamically import confetti
   useEffect(() => {
     let mounted = true;
 
@@ -22,7 +21,6 @@ export default function WinnerCelebration({ game, players }: WinnerCelebrationPr
         const confetti = (await import("canvas-confetti")).default;
         if (!mounted) return;
 
-        // Initial big burst
         confetti({
           particleCount: 200,
           spread: 100,
@@ -30,7 +28,7 @@ export default function WinnerCelebration({ game, players }: WinnerCelebrationPr
           colors: ["#FFCC00", "#FFD700", "#FFA500", "#FF6347"],
         });
 
-        // Side cannons every 1.5s for 15s
+        // then side bursts every 1.5s
         let count = 0;
         const maxBursts = 10; // ~15s
 
@@ -64,7 +62,7 @@ export default function WinnerCelebration({ game, players }: WinnerCelebrationPr
           count++;
         }, 1500);
       } catch (err) {
-        // Swallow; confetti is cosmetic
+        // confetti is just for show
       }
     };
 
@@ -79,7 +77,6 @@ export default function WinnerCelebration({ game, players }: WinnerCelebrationPr
     };
   }, []);
 
-  // Determine winner(s)
   if (players.length === 0) {
     return (
       <div className="h-full flex items-center justify-center">
@@ -96,16 +93,13 @@ export default function WinnerCelebration({ game, players }: WinnerCelebrationPr
 
   return (
     <div className="h-full flex flex-col items-center justify-center px-8 py-12 overflow-y-auto relative">
-      {/* Winner(s) */}
       <div className="mb-12 flex flex-wrap gap-12 justify-center items-center animate-winner-zoom">
         {winners.map((winner) => (
           <div key={winner.id} className="flex flex-col items-center relative">
-            {/* Crown */}
             <div className="absolute -top-16 text-8xl animate-crown-bob">
               👑
             </div>
 
-            {/* Winner photo with gold glow */}
             <div className="w-80 h-80 rounded-2xl overflow-hidden border-8 border-jeopardy-gold shadow-winner-glow mb-6">
               {winner.photoBase64 ? (
                 <img
@@ -120,12 +114,10 @@ export default function WinnerCelebration({ game, players }: WinnerCelebrationPr
               )}
             </div>
 
-            {/* Name */}
             <p className="text-white font-display text-6xl mb-4">
               {winner.name}
             </p>
 
-            {/* Score */}
             <p className="font-display text-money text-5xl">
               {money(winner.score)}
             </p>
@@ -133,14 +125,12 @@ export default function WinnerCelebration({ game, players }: WinnerCelebrationPr
         ))}
       </div>
 
-      {/* "WINNER" or "WINNERS" banner */}
       <div className="mb-16">
         <p className="font-display text-money text-7xl tracking-wider">
           {winners.length > 1 ? "WINNERS!" : "WINNER!"}
         </p>
       </div>
 
-      {/* Remaining players ranked */}
       {remaining.length > 0 && (
         <div className="w-full max-w-6xl">
           <h3 className="text-white/70 font-display text-3xl mb-6 text-center">

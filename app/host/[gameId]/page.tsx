@@ -28,27 +28,26 @@ export default function HostPage({
   params: Promise<{ gameId: string }>;
 }) {
   const { gameId: rawGameId } = use(params);
-  // Join codes are uppercase; normalize so typed lowercase URLs still work.
+  // so lowercase URLs still work
   const gameId = rawGameId.toUpperCase();
   const { game, loading: gameLoading, error: gameError } = useGame(gameId);
   const { players, loading: playersLoading } = usePlayers(gameId);
   const { expired } = useCountdown(game?.timerEndsAt ?? null);
 
   const [origin, setOrigin] = useState("");
-  /** null = still verifying the stored credential; "" = needs password entry. */
+  // null while checking the saved password, "" if we need to ask for it
   const [password, setPassword] = useState<string | null>(null);
   const [passwordInput, setPasswordInput] = useState("");
   const [verifying, setVerifying] = useState(false);
   const [gateError, setGateError] = useState("");
   const [errorBanner, setErrorBanner] = useState("");
 
-  // Track last fired timer to prevent duplicate calls
+  // deadline we last called timer-expire for
   const lastFiredTimerRef = useRef<number>(0);
 
-  // Audio (host-only)
   const { unlocked, unlock, play } = useAudio();
 
-  // Track previous state for sound triggers
+  // previous state, to work out which sound to play
   const prevStateRef = useRef<{
     status: GameStatus | null;
     buzzedPlayerId: string | null;
@@ -59,13 +58,11 @@ export default function HostPage({
     lockedOutLength: 0,
   });
 
-  // Get window.location.origin safely (client-side only)
   useEffect(() => {
     setOrigin(window.location.origin);
   }, []);
 
-  // Verify the stored password on entry (server-checked via the no-op
-  // "verify" action). Wrong/absent credential → full-page gate.
+  // check the saved password, otherwise show the password screen
   useEffect(() => {
     let cancelled = false;
     const stored = localStorage.getItem(ADMIN_PW_KEY(gameId));
@@ -92,7 +89,7 @@ export default function HostPage({
     return `${origin}/play/${gameId}`;
   }, [origin, gameId]);
 
-  // Auto-settle buzz when provisional buzz lands
+  // settle the buzz shortly after someone buzzes
   useEffect(() => {
     if (!game?.currentCell) return;
     if (game.status !== "question_open") return;
@@ -104,15 +101,13 @@ export default function HostPage({
       game.currentCell.row
     );
 
-    // Already settled this cell
     if (game.buzzSettledCellKey === activeKey) return;
 
-    // Schedule settle call
     const timeout1 = setTimeout(() => {
       settleBuzz({ gameId, cellKey: activeKey });
     }, SETTLE_CALL_DELAY_MS);
 
-    // Retry after 1.5s (idempotent on server)
+    // retry in case the first call failed
     const timeout2 = setTimeout(() => {
       settleBuzz({ gameId, cellKey: activeKey });
     }, 1500);
@@ -130,13 +125,12 @@ export default function HostPage({
     game?.currentBoard,
   ]);
 
-  // Auto-expire timers
+  // tell the server when a timer runs out
   useEffect(() => {
     if (!game || !game.timerEndsAt || !expired) return;
 
     const currentDeadline = game.timerEndsAt.toMillis();
 
-    // Already fired for this deadline
     if (lastFiredTimerRef.current === currentDeadline) return;
 
     if (game.status === "question_open" && game.buzzedPlayerId === null) {
@@ -148,7 +142,7 @@ export default function HostPage({
     }
   }, [gameId, game, expired]);
 
-  // Sound effects driven by game state transitions
+  // sounds
   useEffect(() => {
     if (!game) return;
 
@@ -159,17 +153,15 @@ export default function HostPage({
       lockedOutLength: game.lockedOutIds.length,
     };
 
-    // buzzedPlayerId transitions null → non-null → play "buzz"
     if (prev.buzzedPlayerId === null && curr.buzzedPlayerId !== null) {
       play("buzz");
     }
 
-    // lockedOutIds.length increases → play "wrong"
     if (curr.lockedOutLength > prev.lockedOutLength) {
       play("wrong");
     }
 
-    // status question_open → answer_reveal (nobody buzzed) → play "timeup"
+    // nobody buzzed
     if (
       prev.status === "question_open" &&
       curr.status === "answer_reveal" &&
@@ -178,7 +170,6 @@ export default function HostPage({
       play("timeup");
     }
 
-    // status buzzed → answer_reveal AND lockedOutIds didn't increase → play "correct"
     if (
       prev.status === "buzzed" &&
       curr.status === "answer_reveal" &&
@@ -187,12 +178,10 @@ export default function HostPage({
       play("correct");
     }
 
-    // status playing → question_open → play "reveal" (cell opened)
     if (prev.status === "playing" && curr.status === "question_open") {
       play("reveal");
     }
 
-    // status enters final_wager (from any non-final status) → play "final"
     if (
       prev.status !== null &&
       prev.status !== "final_wager" &&
@@ -203,18 +192,15 @@ export default function HostPage({
       play("final");
     }
 
-    // status enters finished → play "winner"
     if (prev.status !== "finished" && curr.status === "finished") {
       play("winner");
     }
 
-    // Update ref
     prevStateRef.current = curr;
   }, [game, play]);
 
-  // Handle cell click
   const handlePickCell = async (cat: number, row: number) => {
-    if (!password) return; // entry gate guarantees this in practice
+    if (!password) return;
 
     const result = await adminAction(gameId, password, {
       type: "open_cell",
@@ -224,7 +210,7 @@ export default function HostPage({
 
     if (!result.ok) {
       if (result.error === "Wrong password") {
-        // Password changed under us (e.g. game reset) — back to the gate.
+        // password no longer valid, back to the password screen
         localStorage.removeItem(ADMIN_PW_KEY(gameId));
         setPassword("");
       }
@@ -233,7 +219,6 @@ export default function HostPage({
     }
   };
 
-  // Entry-gate submit: verify against the server before letting the host in.
   const handlePasswordSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const attempt = passwordInput.trim();
@@ -289,7 +274,6 @@ export default function HostPage({
     );
   }
 
-  // Entry gate: verifying stored credential…
   if (password === null) {
     return (
       <div className="h-screen flex items-center justify-center">
@@ -301,7 +285,6 @@ export default function HostPage({
     );
   }
 
-  // Entry gate: password required before the board is shown.
   if (password === "") {
     return (
       <div className="h-screen flex items-center justify-center p-6">
@@ -342,14 +325,12 @@ export default function HostPage({
 
   return (
     <div className="h-screen flex flex-col overflow-hidden">
-      {/* Error banner */}
       {errorBanner && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg font-semibold animate-fade-in">
           {errorBanner}
         </div>
       )}
 
-      {/* Sound unlock button */}
       {!unlocked && (
         <button
           onClick={unlock}
@@ -359,7 +340,6 @@ export default function HostPage({
         </button>
       )}
 
-      {/* Status-based rendering */}
       {game.status === "lobby" && (
         <HostLobby game={game} players={players} joinUrl={joinUrl} />
       )}
@@ -384,8 +364,7 @@ export default function HostPage({
         </>
       )}
 
-      {/* No PlayerRail during the final round — FinalRound already shows every
-          player's photo/name/score in its wager & reveal panels. */}
+      {/* no player rail here, FinalRound shows the players itself */}
       {(game.status === "final_wager" ||
         game.status === "final_answer" ||
         game.status === "final_reveal") && (

@@ -1,7 +1,4 @@
-/**
- * Client-only Firebase SDK singleton.
- * DO NOT import this file server-side (API routes, server components).
- */
+// Client SDK. API routes should use lib/firebase-admin.ts instead.
 
 import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
 import { getFirestore, type Firestore } from "firebase/firestore";
@@ -24,7 +21,7 @@ let app: FirebaseApp;
 let db: Firestore;
 let auth: Auth;
 
-// Guard for HMR: initialize only once
+// avoid initialising twice on hot reload
 if (!getApps().length) {
   app = initializeApp(firebaseConfig);
 } else {
@@ -36,10 +33,7 @@ auth = getAuth(app);
 
 export { db };
 
-/**
- * Ensures the user is signed in anonymously. Reuses existing auth state
- * across refreshes (persistent by default). Returns the uid.
- */
+/** Signs in anonymously if needed and returns the uid (persists across refreshes) */
 export async function ensureAnonymousAuth(): Promise<string> {
   return new Promise<string>((resolve, reject) => {
     const unsubscribe = onAuthStateChanged(
@@ -47,7 +41,6 @@ export async function ensureAnonymousAuth(): Promise<string> {
       async (user: User | null) => {
         unsubscribe();
         if (user) {
-          // Already signed in
           resolve(user.uid);
         } else {
           try {

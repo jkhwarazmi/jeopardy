@@ -1,7 +1,4 @@
-/**
- * Typed client wrappers for the server mutation routes.
- * Used by /admin (all actions), /host (open_cell + settle/expire wiring).
- */
+// Client helpers for the API routes.
 import type {
   AdminAction,
   AdminResponse,
@@ -37,7 +34,7 @@ export async function settleBuzz(req: SettleBuzzRequest): Promise<void> {
   try {
     await post("/api/settle-buzz", req);
   } catch {
-    // Host retries via effect; admin marking also re-syncs state.
+    // the host retries anyway
   }
 }
 
@@ -45,10 +42,10 @@ export async function timerExpire(req: TimerExpireRequest): Promise<void> {
   try {
     await post("/api/timer-expire", req);
   } catch {
-    // Idempotent — a later call or admin action recovers.
+    // fine to ignore, the next call will pick it up
   }
 }
 
-/** sessionStorage/localStorage keys for the admin/host password memory. */
+// localStorage key for the saved admin password
 export const ADMIN_PW_KEY = (gameId: string): string =>
   `jeopardy:adminpw:${gameId}`;

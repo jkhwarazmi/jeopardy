@@ -25,7 +25,7 @@ export function usePlayers(gameId: string): {
 
         const collectionRef = collection(db, "games", gameId, "players");
 
-        // Subscribe unordered (avoid orderBy exclusion of pending server timestamps)
+        // no orderBy, it would skip docs whose joinedAt hasn't been written yet
         unsubscribe = onSnapshot(
           collectionRef,
           (snapshot) => {
@@ -39,7 +39,7 @@ export function usePlayers(gameId: string): {
               })
               .filter((p) => !p.isKicked);
 
-            // Client-side sort by joinedAt; null/pending timestamps go last
+            // pending timestamps go last
             allPlayers.sort((a, b) => {
               const aTime = a.joinedAt?.toMillis() ?? Infinity;
               const bTime = b.joinedAt?.toMillis() ?? Infinity;

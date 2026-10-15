@@ -20,7 +20,6 @@ export default function LiveScoreboard({
   const [customDelta, setCustomDelta] = useState<Record<string, string>>({});
   const [confirmKick, setConfirmKick] = useState<string | null>(null);
 
-  // Sort by score descending
   const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
 
   const handleAdjust = async (playerId: string, delta: number) => {

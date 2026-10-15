@@ -32,8 +32,7 @@ export default function WagerForm({
   );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  // Reopens the form after a wager is locked (rules allow re-submission
-  // until the phase closes; isSubmitted alone would keep the form hidden).
+  // lets the player change their wager until the phase ends
   const [editing, setEditing] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

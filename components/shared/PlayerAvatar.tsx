@@ -18,7 +18,6 @@ export default function PlayerAvatar({
 
   const sizeClass = sizeClasses[size];
 
-  // If photo is available, show it
   if (player.photoBase64) {
     return (
       <img
@@ -29,7 +28,6 @@ export default function PlayerAvatar({
     );
   }
 
-  // Fallback: show initial
   const initial = player.name.charAt(0).toUpperCase();
 
   return (

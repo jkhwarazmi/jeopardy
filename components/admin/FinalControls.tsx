@@ -31,7 +31,6 @@ export default function FinalControls({
     }
   };
 
-  // Shared derivation
   const final = game.config.final;
   const qIndex = Math.min(game.finalQuestionIndex, final.questions.length - 1);
   const fq = final.questions[qIndex];
@@ -42,9 +41,8 @@ export default function FinalControls({
 
   const participants = players.filter((p) => p.finalWager !== null);
 
-  // FINAL WAGER PHASE
+  // wagers
   if (game.status === "final_wager") {
-    // All players are eligible (wagerFloor ensures everyone can wager)
     const eligiblePlayers = players;
     const wagersIn = eligiblePlayers.filter((p) => p.finalWager !== null).length;
     const total = eligiblePlayers.length;
@@ -54,7 +52,7 @@ export default function FinalControls({
       <div className="space-y-4">
         <div className="card-gold p-4">
           <h3 className="font-display text-jeopardy-gold text-sm uppercase tracking-wide mb-3">
-            Final Jeopardy — Wagers
+            Final Jeopardy: Wagers
           </h3>
 
           {qLabel && (
@@ -141,19 +139,18 @@ export default function FinalControls({
           {confirmAction === "reveal_question"
             ? allWagersIn
               ? "Confirm?"
-              : "Not all wagers in — Confirm?"
+              : "Not all wagers in. Confirm?"
             : "REVEAL QUESTION →"}
         </button>
       </div>
     );
   }
 
-  // FINAL ANSWER PHASE
+  // answers
   if (game.status === "final_answer") {
     const answersIn = participants.filter((p) => p.finalAnswer !== null).length;
     const total = participants.length;
-    // Untimed mode (finalAnswerSeconds: null): no deadline exists, so the
-    // "timer not expired" warning would be nonsense — plain confirm instead.
+    // no point warning about the timer if there isn't one
     const untimed = game.timerEndsAt === null;
     const timerExpired = secondsLeft === 0;
 
@@ -235,16 +232,16 @@ export default function FinalControls({
           {confirmAction === "start_reveal"
             ? untimed || timerExpired
               ? "Confirm?"
-              : "Timer not expired — Confirm?"
+              : "Timer still running. Confirm?"
             : "START REVEAL →"}
         </button>
       </div>
     );
   }
 
-  // FINAL REVEAL PHASE
+  // reveal
   if (game.status === "final_reveal") {
-    // Stable queue: pre-judgment score ascending (for sync with host)
+    // same order as the host screen: lowest score (before this question) first
     const stakeOf = (p: Player) => finalStake(p.finalWager ?? 0, multiplier);
     const preScore = (p: Player) =>
       p.score - (p.finalCorrect === null ? 0 : p.finalCorrect ? stakeOf(p) : -stakeOf(p));
@@ -320,7 +317,6 @@ export default function FinalControls({
 
         {participants.length > 0 && (
           <>
-            {/* Up Now card */}
             {upNow && (
               <div className="space-y-4">
                 <div className="card-gold p-6">
@@ -393,7 +389,6 @@ export default function FinalControls({
               </div>
             )}
 
-            {/* Player queue */}
             <div className="card p-4">
               <p className="text-white/70 text-sm uppercase tracking-wide mb-3">
                 Players
@@ -462,7 +457,6 @@ export default function FinalControls({
               </div>
             </div>
 
-            {/* End game / Next question buttons when all judged */}
             {allJudged && (
               <div className="space-y-3">
                 {hasNextQuestion && (

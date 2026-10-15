@@ -1,6 +1,4 @@
-/**
- * Shared game-state types — single source of truth for all surfaces.
- */
+// Types shared by the pages, API routes and Firestore docs.
 import type { Timestamp } from "firebase/firestore";
 
 // ---------------------------------------------------------------------------
@@ -31,20 +29,16 @@ export interface FinalQuestionConfig {
 }
 
 /**
- * Final round: a series of questions (typically 3) with rising stakes so
- * trailing players can come back. Per question every player wagers up to
- * max(wagerFloor, own score); a judged answer moves their score by
- * ±wager × multipliers[questionIndex].
+ * Final round: a few questions with rising stakes so players who are behind
+ * can still catch up. Each player wagers up to max(wagerFloor, score) and
+ * wins or loses wager * multiplier.
  */
 export interface FinalConfig {
-  /** 1–5 questions, played in order. */
+  /** 1-5 questions, played in order */
   questions: FinalQuestionConfig[];
-  /** Wager-outcome multiplier per question (same length as questions).
-   *  May be fractional (e.g. 1.5); stakes are rounded to whole pounds via
-   *  finalStake() in lib/format.ts. Defaults to 1, 2, 3, … */
+  /** One per question, defaults to 1, 2, 3... Can be fractional, see finalStake() */
   multipliers: number[];
-  /** Everyone may wager at least this much regardless of score (default 1000)
-   *  — keeps losing players in the game. Leaders may wager up to their score. */
+  /** Everyone can wager at least this much, even with a low score (default 1000) */
   wagerFloor: number;
 }
 
@@ -53,16 +47,13 @@ export function maxFinalWager(config: FinalConfig, score: number): number {
   return Math.max(config.wagerFloor, score);
 }
 
-/** Shape of `config.final` in game docs created before multi-question finals. */
+/** Old single-question `config.final` shape */
 export type LegacyFinalConfig = FinalQuestionConfig;
 
 /**
- * Upgrade a game doc read from Firestore that may predate the multi-question
- * final round: legacy single-question `config.final` and no
- * `finalQuestionIndex`. Mirrors the zod upgrade in lib/config-schema.ts (which
- * only runs at game creation) for docs already stored. Every read boundary
- * (`useGame`, admin route) MUST pass raw doc data through this — never cast
- * `snapshot.data()` to GameDoc directly.
+ * Fills in fields that older game docs don't have (single-question final, no
+ * finalQuestionIndex or buzzLiveAt). Anything read from Firestore should go
+ * through this.
  */
 export function normalizeGameDoc<T extends GameDoc>(docData: T): T {
   const rawFinal = docData.config.final as FinalConfig | LegacyFinalConfig;
@@ -90,12 +81,11 @@ export function normalizeGameDoc<T extends GameDoc>(docData: T): T {
 export interface TimersConfig {
   /** Seconds a buzzed player has to answer (default 8) */
   answerSeconds: number;
-  /** Seconds players may buzz before auto-reveal — includes the host reading
-   *  the question aloud. null/omitted = no time limit: no countdown, no
-   *  auto-reveal — the admin ends the question via Reveal Answer / Skip. */
+  /** Seconds to buzz in before the answer is revealed. null = no limit, the
+   *  admin ends the question. */
   buzzWindowSeconds: number | null;
-  /** Seconds to type each Final Jeopardy answer. null/omitted = no time
-   *  limit — the host ends the phase manually via "Start Reveal". */
+  /** Seconds to type each final answer. null = no limit, the host starts the
+   *  reveal when ready. */
   finalAnswerSeconds: number | null;
 }
 
@@ -130,7 +120,7 @@ export interface CurrentCell {
 export interface GameDoc {
   /** 6 uppercase chars, unambiguous alphabet */
   joinCode: string;
-  /** scrypt "saltHex:hashHex" — never sent to clients via API responses */
+  /** scrypt, "salt:hash" in hex */
   adminPassHash: string;
   status: GameStatus;
   config: GameConfig;
@@ -138,12 +128,9 @@ export interface GameDoc {
   currentCell: CurrentCell | null;
   /** Player whose turn it is to pick (informational highlight) */
   currentPickerId: string | null;
-  /** Provisional buzz winner (client transaction) → final after settle */
+  /** Set by the first client to buzz, then confirmed by /api/settle-buzz */
   buzzedPlayerId: string | null;
-  /**
-   * Cell key of the last cell whose buzz was settled by /api/settle-buzz.
-   * Idempotency guard: settle runs once per cell.
-   */
+  /** Last cell settled by /api/settle-buzz, so it only runs once per cell */
   buzzSettledCellKey: string | null;
   /** Players locked out of the current question (answered wrong) */
   lockedOutIds: string[];
@@ -152,13 +139,9 @@ export interface GameDoc {
   /** Wall-clock authoritative deadline for the active countdown */
   timerEndsAt: Timestamp | null;
   /**
-   * Wall-clock moment the buzz window (re)opened. Set on open_cell and every
-   * buzz-window reopen; cleared on question end. Used ONLY server-side by
-   * /api/settle-buzz to filter stale buzz records from earlier rounds —
-   * clients must NEVER gate taps on it (phone clocks skew by seconds; any
-   * wall-clock gate creates a dead window that silently drops taps). The
-   * client buzzer is live whenever status == 'question_open'. Older docs
-   * lack it; settle falls back to timerEndsAt − buzzWindowSeconds.
+   * When buzzing last (re)opened. Only used by /api/settle-buzz to ignore old
+   * buzzes. Don't use it to gate the buzzer on the client: phone clocks can be
+   * seconds out and taps get dropped.
    */
   buzzLiveAt: Timestamp | null;
   /** When true, new players may not join (rules-enforced) */
@@ -168,31 +151,31 @@ export interface GameDoc {
   createdAt: Timestamp;
 }
 
-/** games/{gameId}/players/{playerId} — playerId === anonymous auth uid */
+/** games/{gameId}/players/{playerId}, id is the anonymous auth uid */
 export interface PlayerDoc {
   name: string;
-  /** JPEG data URL, square, ≤256px, ≤~40KB */
+  /** Square JPEG data URL (max 256px), "" for no photo */
   photoBase64: string;
   score: number;
   joinedAt: Timestamp;
   connected: boolean;
-  /** Wager for the CURRENT final question; reset between questions */
+  /** For the current final question, reset between questions */
   finalWager: number | null;
-  /** Typed answer for the CURRENT final question; reset between questions */
+  /** For the current final question, reset between questions */
   finalAnswer: string | null;
-  /** Set by admin judging the current final question; null until judged */
+  /** null until the admin judges it */
   finalCorrect: boolean | null;
   isKicked: boolean;
 }
 
-/** games/{gameId}/buzzes/{autoId} — cleared on question close */
+/** games/{gameId}/buzzes/{autoId}, cleared when the question closes */
 export interface BuzzDoc {
   playerId: string;
   at: Timestamp;
   cellKey: string;
 }
 
-/** Doc + id conveniences used by hooks/UI */
+/** Docs with their ids attached */
 export interface Game extends GameDoc {
   id: string;
 }
@@ -208,14 +191,10 @@ export function cellKey(board: number, cat: number, row: number): string {
   return `${board}:${cat}:${row}`;
 }
 
-// NOTE: there is deliberately NO anti-jump delay and NO client-side timing
-// gate on the buzzer. Buzzers are live the instant a device sees
-// status == 'question_open' — taps are never dropped. Fairness across
-// network/clock differences is handled server-side by the settle tie-break.
-/** Two buzzes within this window tie-break to the lower current score. */
+/** Buzzes this close together go to the player with the lower score */
 export const BUZZ_SETTLE_MS = 150;
-/** Host client waits this long after seeing a provisional buzz before calling
- *  /api/settle-buzz (must be > BUZZ_SETTLE_MS to let straggler buzzes land). */
+/** How long the host waits after a buzz before calling /api/settle-buzz.
+ *  Needs to be longer than BUZZ_SETTLE_MS so close buzzes make it in. */
 export const SETTLE_CALL_DELAY_MS = 300;
 
 // ---------------------------------------------------------------------------
@@ -223,15 +202,14 @@ export const SETTLE_CALL_DELAY_MS = 300;
 // ---------------------------------------------------------------------------
 
 export type AdminAction =
-  /** No-op after the password check — used to gate host/admin UIs on entry. */
+  /** Just checks the password */
   | { type: "verify" }
   | { type: "start_game" }
   | { type: "toggle_lobby_locked"; locked: boolean }
   | { type: "open_cell"; cat: number; row: number }
   | { type: "mark_correct" }
   | { type: "mark_incorrect" }
-  /** question_open with no buzz → answer_reveal (the "nobody knows" ending;
-   *  same outcome as buzz_window_timeout — for untimed buzz windows). */
+  /** Nobody buzzed, show the answer */
   | { type: "reveal_answer" }
   | { type: "skip_question" }
   /** answer_reveal → playing (picker already set) */
@@ -239,14 +217,13 @@ export type AdminAction =
   | { type: "next_board" }
   | { type: "adjust_score"; playerId: string; delta: number }
   | { type: "kick_player"; playerId: string }
-  /** Enter the final round at question 0 (also clears player final fields). */
+  /** Start the final round */
   | { type: "start_final_wager" }
   | { type: "start_final_answer" }
   | { type: "start_final_reveal" }
-  /** Judge a player's current final answer; re-marking adjusts the score by
-   *  the difference, so misclicks are safe to correct. */
+  /** Can be marked again to fix a misclick */
   | { type: "final_mark"; playerId: string; correct: boolean }
-  /** final_reveal → final_wager for the next question (clears final fields). */
+  /** Move on to the next final question */
   | { type: "next_final_question" }
   | { type: "end_game" }
   | { type: "reset_game" };
@@ -265,13 +242,13 @@ export interface AdminResponse {
 // Unauthenticated deterministic routes
 // ---------------------------------------------------------------------------
 
-/** POST /api/settle-buzz — 150ms lower-score tie-break, starts answer timer */
+/** POST /api/settle-buzz */
 export interface SettleBuzzRequest {
   gameId: string;
   cellKey: string;
 }
 
-/** POST /api/timer-expire — deadline-guarded auto transitions */
+/** POST /api/timer-expire */
 export type TimerExpireKind = "answer_timeout" | "buzz_window_timeout";
 export interface TimerExpireRequest {
   gameId: string;
@@ -284,7 +261,7 @@ export interface TimerExpireRequest {
 
 export interface CreateGameRequest {
   password: string;
-  /** Raw config JSON — zod-validated server-side */
+  /** Raw JSON, validated on the server */
   config: unknown;
 }
 

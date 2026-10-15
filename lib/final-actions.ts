@@ -1,12 +1,6 @@
-/**
- * Player-side Final Jeopardy writes (per final question). Security rules
- * enforce:
- *  - finalWager: only while status === 'final_wager', integer in
- *    0..max(config.final.wagerFloor, own score)
- *  - finalAnswer: only while status === 'final_answer' and before timerEndsAt
- * Both may be re-submitted until the phase/deadline closes. Fields are reset
- * server-side between final questions.
- */
+// Player writes for the final round. The limits (wager range, answer
+// deadline) are enforced in firestore.rules. Both can be resubmitted until
+// the phase ends.
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 

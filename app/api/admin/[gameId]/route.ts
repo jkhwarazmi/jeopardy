@@ -1,10 +1,8 @@
 /**
  * POST /api/admin/[gameId]
  *
- * Every game-doc mutation except the buzz transaction flows through here.
- * Auth: admin password verified against the scrypt hash on the game doc.
- * All state transitions run inside a Firestore transaction (Admin SDK
- * bypasses security rules; rules lock these writes for regular clients).
+  * All game state changes apart from buzzing go through here. Checks the admin
+  * password, then applies the action in a transaction.
  */
 import { NextRequest, NextResponse } from "next/server";
 import type {
@@ -72,13 +70,7 @@ function currentPoints(game: GameDoc): number {
   return points;
 }
 
-/**
- * Timestamps for (re)opening the buzz window. buzzLiveAt = now (settle-buzz's
- * stale-record filter base — NO anti-jump delay: buzzers are live the instant
- * clients see question_open, so taps are never dropped); timerEndsAt is the
- * auto-reveal deadline, or null when buzzWindowSeconds is null (untimed —
- * admin ends the question).
- */
+// Fields to set when buzzing opens. timerEndsAt is null if the buzz window is untimed.
 function buzzWindowFields(game: GameDoc): {
   buzzLiveAt: Timestamp;
   timerEndsAt: Timestamp | null;
@@ -90,7 +82,7 @@ function buzzWindowFields(game: GameDoc): {
   };
 }
 
-/** Reopen buzzing for everyone except lockedOut, or reveal if nobody is left. */
+// Reopen buzzing for anyone not locked out, or reveal the answer if nobody's left
 function reopenOrReveal(
   tx: Transaction,
   gameRef: DocumentReference,
@@ -130,13 +122,11 @@ async function applyAction(
 ): Promise<void> {
   const gameSnap = await tx.get(gameRef);
   if (!gameSnap.exists) fail("Game not found");
-  // normalizeGameDoc: upgrade docs that predate multi-question finals so
-  // final_mark / next_final_question never hit an undefined questions array.
   const game = normalizeGameDoc(gameSnap.data() as GameDoc);
 
   switch (action.type) {
     case "verify": {
-      // Password already checked in POST; nothing to mutate.
+      // handled in POST
       return;
     }
 
@@ -213,11 +203,10 @@ async function applyAction(
     }
 
     case "reveal_answer": {
-      // The "nobody knows" ending for untimed buzz windows (also usable to
-      // cut a timed window short). Mirrors buzz_window_timeout exactly.
+      // nobody knows it, same as buzz_window_timeout
       if (game.status !== "question_open") fail("No open question");
       if (game.buzzedPlayerId !== null)
-        fail("Someone buzzed — judge their answer instead");
+        fail("Someone buzzed, judge their answer instead");
       tx.update(gameRef, {
         status: "answer_reveal",
         usedCells: FieldValue.arrayUnion(currentCellKey(game)),
@@ -297,7 +286,7 @@ async function applyAction(
         updates.currentPickerId = remaining[0]?.id ?? null;
       }
       if (game.status === "buzzed" && game.buzzedPlayerId === action.playerId) {
-        // Kicked mid-answer: reopen buzzing, no score change.
+        // kicked while answering: reopen buzzing, no points lost
         const newLockedOut = game.lockedOutIds.includes(action.playerId)
           ? game.lockedOutIds
           : [...game.lockedOutIds, action.playerId];
@@ -312,7 +301,6 @@ async function applyAction(
     case "start_final_wager": {
       if (game.status !== "playing" && game.status !== "answer_reveal")
         fail("Finish the current question first");
-      // Enter the final round at question 0 with a clean slate.
       const players = await getPlayers(tx, playersRef);
       for (const p of players) {
         tx.update(p.ref, {
@@ -335,8 +323,7 @@ async function applyAction(
 
     case "start_final_answer": {
       if (game.status !== "final_wager") fail("Not in wager phase");
-      // null = untimed: host ends the phase via start_final_reveal. The
-      // Firestore rules' answer-write clause already tolerates a null deadline.
+      // null = no time limit, the host starts the reveal when ready
       const finalSeconds = game.config.timers.finalAnswerSeconds;
       tx.update(gameRef, {
         status: "final_answer",
@@ -362,8 +349,7 @@ async function applyAction(
       const multiplier =
         game.config.final.multipliers[game.finalQuestionIndex] ?? 1;
       const stake = finalStake(player.finalWager ?? 0, multiplier);
-      // Re-mark safe: apply the DIFFERENCE vs. what was already applied,
-      // so the admin can correct a misclick without double-counting.
+      // only apply the difference, so fixing a misclick doesn't double count
       const applied =
         player.finalCorrect === null ? 0 : player.finalCorrect ? stake : -stake;
       const target = action.correct ? stake : -stake;
@@ -431,8 +417,7 @@ async function applyAction(
   }
 }
 
-/** Best-effort: clear buzz records once a question is done (rules block new
- *  client writes as soon as status leaves 'question_open'). */
+// buzz records are only needed while a question is open
 async function clearBuzzes(gameId: string): Promise<void> {
   try {
     const db = getAdminDb();
@@ -446,18 +431,14 @@ async function clearBuzzes(gameId: string): Promise<void> {
   }
 }
 
-/**
- * Actions after which buzzing (re)opens: stale records must be gone BEFORE the
- * transaction commits, else a round-1 buzz could win the round-2 settle.
- * Pre-clearing is race-free because the current status ('playing'/'buzzed')
- * blocks client buzz creates until the transaction flips to 'question_open'.
- */
+// These reopen buzzing, so old buzz records need to go before the transaction
+// or they could win the next settle. Clients can't buzz yet at this point.
 const CLEARS_BUZZES_BEFORE: ReadonlySet<AdminAction["type"]> = new Set([
   "open_cell",
   "mark_incorrect",
 ]);
 
-/** Pure hygiene: question is over, rules already block new buzz writes. */
+// question's over, just tidying up
 const CLEARS_BUZZES_AFTER: ReadonlySet<AdminAction["type"]> = new Set([
   "reveal_answer",
   "skip_question",
@@ -499,7 +480,6 @@ export async function POST(
       );
     }
 
-    // Pure password check — no state to touch.
     if (body.action.type === "verify") {
       return NextResponse.json({ ok: true });
     }

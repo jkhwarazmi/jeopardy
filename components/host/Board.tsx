@@ -24,7 +24,6 @@ export default function Board({ game, onPickCell }: BoardProps) {
             gridTemplateRows: `auto repeat(${pointValues.length}, 1fr)`,
           }}
         >
-          {/* Category headers */}
           {categories.map((category, catIndex) => (
             <div
               key={`cat-${catIndex}`}
@@ -36,7 +35,6 @@ export default function Board({ game, onPickCell }: BoardProps) {
             </div>
           ))}
 
-          {/* Value cells */}
           {pointValues.map((pointValue, rowIndex) =>
             categories.map((_, catIndex) => {
               const key = cellKey(game.currentBoard, catIndex, rowIndex);

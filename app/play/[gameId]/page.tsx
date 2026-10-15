@@ -20,7 +20,7 @@ export default function PlayPage({
   params: Promise<{ gameId: string }>;
 }) {
   const { gameId: rawGameId } = use(params);
-  // Join codes are uppercase; normalize so typed lowercase URLs still work.
+  // so lowercase URLs still work
   const gameId = rawGameId.toUpperCase();
   const { game, loading: gameLoading, error: gameError } = useGame(gameId);
   const { self, uid, loading: sessionLoading, join, updateProfile } = usePlayerSession(gameId);
@@ -89,7 +89,6 @@ export default function PlayPage({
     );
   }
 
-  // Player is kicked
   if (self?.isKicked) {
     return (
       <div className="flex-1 flex items-center justify-center px-6">
@@ -100,9 +99,7 @@ export default function PlayPage({
     );
   }
 
-  // Player has not joined yet
   if (!self) {
-    // Game is locked or finished
     if (game.lobbyLocked || game.status === "finished") {
       return (
         <div className="flex-1 flex items-center justify-center px-6">
@@ -115,7 +112,6 @@ export default function PlayPage({
       );
     }
 
-    // Join flow
     if (joinStep === "selfie") {
       return (
         <div className="flex-1 flex flex-col items-center justify-center px-6 py-8">
@@ -143,7 +139,6 @@ export default function PlayPage({
       );
     }
 
-    // Name entry (default)
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
         <div className="w-full max-w-md space-y-8">
@@ -190,7 +185,6 @@ export default function PlayPage({
     );
   }
 
-  // Player is joined — render based on game status
   if (game.status === "lobby") {
     return (
       <div className="flex-1 flex items-center justify-center px-6 py-12">
@@ -251,7 +245,7 @@ export default function PlayPage({
   }
 
   if (game.status === "question_open" || game.status === "buzzed") {
-    if (!uid) return null; // Should not happen
+    if (!uid) return null;
     return (
       <Buzzer
         game={game}
@@ -383,20 +377,17 @@ export default function PlayPage({
   }
 
   if (game.status === "finished") {
-    // Determine winner(s) and self's rank
     const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
     const maxScore = sortedPlayers.length > 0 ? sortedPlayers[0].score : 0;
     const winners = sortedPlayers.filter((p) => p.score === maxScore);
     const isWinner = winners.some((w) => w.id === uid);
 
-    // Calculate rank
     const selfRank = sortedPlayers.findIndex((p) => p.id === uid) + 1;
 
     return (
       <div className="flex-1 flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-md space-y-6">
           {isWinner ? (
-            // YOU WON
             <div className="bg-gradient-to-br from-jeopardy-gold to-jeopardy-gold-dark rounded-2xl p-8 text-center border-4 border-jeopardy-gold shadow-2xl">
               <div className="text-7xl mb-4">🏆</div>
               <p className="text-jeopardy-dark font-display text-5xl mb-4">
@@ -407,11 +398,9 @@ export default function PlayPage({
               </p>
             </div>
           ) : (
-            // You didn't win
             <div className="bg-jeopardy-blue-dark rounded-2xl p-8 text-center border-2 border-jeopardy-blue space-y-6">
               <p className="text-white font-display text-3xl mb-4">GAME OVER</p>
 
-              {/* Winner announcement */}
               <div className="bg-jeopardy-dark rounded-lg p-4">
                 <p className="text-white/70 text-sm mb-2">Winner{winners.length > 1 ? "s" : ""}</p>
                 <p className="text-jeopardy-gold font-display text-2xl">
@@ -419,7 +408,6 @@ export default function PlayPage({
                 </p>
               </div>
 
-              {/* Your final score and rank */}
               <div className="bg-jeopardy-dark rounded-lg p-4">
                 <p className="text-white/70 text-sm mb-1">Your Final Score</p>
                 <p className="text-jeopardy-gold font-display text-4xl mb-3">
@@ -438,7 +426,6 @@ export default function PlayPage({
     );
   }
 
-  // Fallback
   return (
     <div className="flex-1 flex items-center justify-center px-6">
       <div className="text-center">

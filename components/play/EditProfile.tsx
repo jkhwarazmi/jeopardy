@@ -25,17 +25,15 @@ export default function EditProfile({ self, onSave, onClose }: EditProfileProps)
     const trimmedName = name.trim();
     const updates: { name?: string; photoBase64?: string } = {};
 
-    // Check name changed (after trim); blank means "leave unchanged"
+    // blank name means keep the current one
     if (trimmedName.length > 0 && trimmedName !== self.name) {
       updates.name = trimmedName;
     }
 
-    // Check photo changed
     if (pendingPhoto !== null && pendingPhoto !== self.photoBase64) {
       updates.photoBase64 = pendingPhoto;
     }
 
-    // Nothing changed
     if (Object.keys(updates).length === 0) {
       onClose();
       return;

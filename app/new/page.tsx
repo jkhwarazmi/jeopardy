@@ -21,14 +21,12 @@ export default function NewGamePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Clear any pending copied-feedback timer on unmount
   useEffect(() => {
     return () => {
       if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
     };
   }, []);
 
-  // Generate QR code when game is created
   useEffect(() => {
     if (!created) return;
 
@@ -156,7 +154,7 @@ export default function NewGamePage() {
 
           <div className="space-y-3">
             <p className="font-display text-jeopardy-gold text-sm uppercase tracking-wide">
-              Save these links — especially the admin one:
+              Save these links, especially the admin one:
             </p>
 
             <LinkCard

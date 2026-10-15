@@ -38,8 +38,6 @@ export function useGame(gameId: string): {
               return;
             }
 
-            // normalizeGameDoc upgrades docs created before the
-            // multi-question final round (legacy config.final shape).
             const data = normalizeGameDoc(snapshot.data() as GameDoc);
             const gameWithId: Game = {
               ...data,

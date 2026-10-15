@@ -1,25 +1,16 @@
-/**
- * Server-only password hashing and verification using scrypt.
- */
-
 import { scryptSync, randomBytes, timingSafeEqual } from "node:crypto";
 
 const SALT_LENGTH = 16;
 const KEY_LENGTH = 64;
 
-/**
- * Hash a password using scrypt. Returns "saltHex:hashHex" format.
- */
+// returns "salt:hash" in hex
 export function hashPassword(password: string): string {
   const salt = randomBytes(SALT_LENGTH);
   const hash = scryptSync(password, salt, KEY_LENGTH);
   return `${salt.toString("hex")}:${hash.toString("hex")}`;
 }
 
-/**
- * Verify a password against a stored hash.
- * Returns false on malformed input (never throws).
- */
+// returns false rather than throwing if the stored hash is malformed
 export function verifyPassword(password: string, stored: string): boolean {
   try {
     const [saltHex, hashHex] = stored.split(":");

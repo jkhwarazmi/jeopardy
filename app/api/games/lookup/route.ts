@@ -1,6 +1,4 @@
-/**
- * GET /api/games/lookup?code=XXXXXX — resolve join code to gameId.
- */
+// GET /api/games/lookup?code=XXXXXX
 
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminDb } from "@/lib/firebase-admin";
@@ -36,8 +34,7 @@ export async function GET(
     const db = getAdminDb();
     const gamesRef = db.collection("games");
 
-    // Fast path: the join code IS the doc ID for games created after the
-    // short-URL change.
+    // newer games use the join code as the doc id
     const direct = await gamesRef.doc(normalizedCode).get();
     if (direct.exists) {
       return NextResponse.json({
@@ -46,7 +43,7 @@ export async function GET(
       });
     }
 
-    // Legacy fallback: older games used auto IDs with joinCode as a field.
+    // older games have an auto id with joinCode stored as a field
     const snapshot = await gamesRef
       .where("joinCode", "==", normalizedCode)
       .limit(1)

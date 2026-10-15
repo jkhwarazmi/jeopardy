@@ -1,16 +1,11 @@
 /**
- * POST /api/timer-expire — deadline-guarded automatic transitions.
+ * POST /api/timer-expire
  *
- * Called by the host client when its display countdown hits zero.
- * Unauthenticated BY DESIGN: it can only enact what the wall clock already
- * dictates — the server re-checks that timerEndsAt has truly passed, and the
- * status guards make repeat calls no-ops.
+ * The host calls this when a countdown hits zero. No auth since the server
+ * checks timerEndsAt has actually passed, and repeat calls do nothing.
  *
- *  - answer_timeout:      status 'buzzed' → same outcome as "Incorrect"
- *                         (deduct points, lock out, reopen buzzing or reveal
- *                         if nobody is left).
- *  - buzz_window_timeout: status 'question_open' with no buzz → reveal the
- *                         answer with no score change.
+ *  - answer_timeout: same as marking the answer wrong
+ *  - buzz_window_timeout: nobody buzzed, reveal the answer
  */
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminDb, FieldValue, Timestamp } from "@/lib/firebase-admin";
@@ -48,9 +43,8 @@ export async function POST(
     const db = getAdminDb();
     const gameRef = db.collection("games").doc(body.gameId);
 
-    // For answer_timeout we may reopen buzzing: stale buzz records must be
-    // cleared BEFORE the transaction (status 'buzzed' blocks client buzz
-    // creates, so this cannot race a legitimate new-round buzz).
+    // Buzzing might reopen so clear the old buzz records first. Fine to do this
+    // outside the transaction as clients can't buzz while the status is 'buzzed'.
     if (body.kind === "answer_timeout") {
       try {
         const snap = await gameRef.collection("buzzes").get();
@@ -60,7 +54,7 @@ export async function POST(
           await batch.commit();
         }
       } catch {
-        // non-fatal; settle route filters stale records by timestamp anyway
+        // not a big deal, settle-buzz ignores old records anyway
       }
     }
 
@@ -94,7 +88,7 @@ export async function POST(
         return true;
       }
 
-      // answer_timeout — mirrors the admin "mark_incorrect" outcome.
+      // answer_timeout: same as mark_incorrect
       if (game.status !== "buzzed" || game.buzzedPlayerId === null)
         return false;
       const loser = game.buzzedPlayerId;
@@ -123,11 +117,7 @@ export async function POST(
           buzzLiveAt: null,
         });
       } else {
-        // Reopen buzzing: buzzLiveAt = now (settle stale-record filter base;
-        // NO anti-jump — buzzers are live the instant clients see the reopen,
-        // so primed taps are never dropped). The window countdown only runs
-        // when buzzWindowSeconds is set (untimed windows stay open until the
-        // admin ends the question).
+        // reopen buzzing for everyone else
         const bw = game.config.timers.buzzWindowSeconds;
         tx.update(gameRef, {
           status: "question_open",

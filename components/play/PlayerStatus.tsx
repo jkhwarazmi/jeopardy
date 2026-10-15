@@ -8,7 +8,6 @@ interface PlayerStatusProps {
 }
 
 export default function PlayerStatus({ self, game }: PlayerStatusProps) {
-  // Contextual message based on game status
   let message = "";
   if (game.status === "lobby") {
     message = "You're in! Waiting for the host to start the game...";

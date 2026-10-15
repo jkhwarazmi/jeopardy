@@ -153,8 +153,6 @@ export default function Controls({ game, players, act, busy }: ControlsProps) {
           </div>
         )}
 
-        {/* End the question when nobody knows: shows the answer, no score
-            change. Server rejects it if someone has buzzed in the meantime. */}
         <button
           onClick={() => confirmAndAct("reveal", { type: "reveal_answer" })}
           disabled={busy || game.buzzedPlayerId !== null}
@@ -281,7 +279,6 @@ export default function Controls({ game, players, act, busy }: ControlsProps) {
   }
 
   if (game.status === "finished") {
-    // Show final rankings
     const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
     const maxScore = sortedPlayers.length > 0 ? sortedPlayers[0].score : 0;
     const winners = sortedPlayers.filter((p) => p.score === maxScore);
@@ -293,7 +290,6 @@ export default function Controls({ game, players, act, busy }: ControlsProps) {
             GAME OVER
           </p>
 
-          {/* Winner(s) */}
           {winners.length > 0 && (
             <div className="card-gold p-4">
               <p className="font-display text-jeopardy-gold text-sm uppercase tracking-wide mb-2">
@@ -310,7 +306,6 @@ export default function Controls({ game, players, act, busy }: ControlsProps) {
             </div>
           )}
 
-          {/* All rankings */}
           <div className="space-y-2 max-h-64 overflow-y-auto">
             <p className="text-white/70 text-xs uppercase tracking-wide">
               Final Standings

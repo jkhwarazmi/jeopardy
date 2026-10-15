@@ -1,7 +1,3 @@
-/**
- * POST /api/games — create a new game with validated config.
- */
-
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminDb, FieldValue } from "@/lib/firebase-admin";
 import { hashPassword } from "@/lib/password";
@@ -21,7 +17,6 @@ export async function POST(
   try {
     const body = (await request.json()) as CreateGameRequest;
 
-    // Validate password
     if (
       typeof body.password !== "string" ||
       body.password.length < 4 ||
@@ -36,7 +31,6 @@ export async function POST(
       );
     }
 
-    // Validate config
     let config;
     try {
       config = parseGameConfig(body.config);
@@ -55,9 +49,7 @@ export async function POST(
     const db = getAdminDb();
     const gamesRef = db.collection("games");
 
-    // Generate unique join code (retry up to 5 times on collision).
-    // The join code IS the game document ID, so URLs are short and memorable
-    // (/play/QX3F2A); host/admin surfaces stay password-gated regardless.
+    // the join code is also the doc id so URLs stay short (/play/QX3F2A)
     let joinCode = "";
     let attempts = 0;
     const maxAttempts = 5;
@@ -81,7 +73,6 @@ export async function POST(
       );
     }
 
-    // Create game document
     const gameDoc: Omit<GameDoc, "createdAt"> & {
       createdAt: ReturnType<typeof FieldValue.serverTimestamp>;
     } = {
@@ -103,8 +94,7 @@ export async function POST(
       createdAt: FieldValue.serverTimestamp(),
     };
 
-    // create() (not set()) fails if the doc appeared since the collision
-    // check, closing the check-then-write race.
+    // create() fails if the id was taken since the check above
     await gamesRef.doc(joinCode).create(gameDoc);
 
     return NextResponse.json({

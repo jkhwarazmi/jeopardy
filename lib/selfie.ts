@@ -1,26 +1,18 @@
-/**
- * Client-only image pipeline for player selfies.
- * Converts source images to square, center-cropped JPEG data URLs.
- * Max dimension: 256×256, target payload: ≤40KB binary (≈53KB base64).
- */
+// Turns a photo into a small square JPEG data URL (max 256px, ~40KB).
 
 export const SELFIE_MAX_DIM = 256;
 export const SELFIE_MAX_BYTES = 40_000;
 
-// Base64 overhead: 4/3 ratio, plus data URL prefix
+// ~40KB once base64 encoded
 const MAX_DATA_URL_LENGTH = 53_000;
 
-/**
- * Converts a Blob (e.g., from file input or camera) to a selfie data URL.
- * Handles EXIF rotation via createImageBitmap when available.
- */
+// createImageBitmap handles EXIF rotation so use it when we can
 export async function blobToSelfieDataUrl(source: Blob): Promise<string> {
   let bitmap: ImageBitmap | null = null;
   let imgElement: HTMLImageElement | null = null;
   let objectUrl: string | null = null;
 
   try {
-    // Prefer createImageBitmap for EXIF handling
     if (typeof createImageBitmap !== "undefined") {
       bitmap = await createImageBitmap(source, {
         imageOrientation: "from-image",
@@ -29,7 +21,6 @@ export async function blobToSelfieDataUrl(source: Blob): Promise<string> {
         ctx.drawImage(bitmap!, 0, 0, size, size);
       });
     } else {
-      // Fallback: HTMLImageElement
       objectUrl = URL.createObjectURL(source);
       imgElement = new Image();
 
@@ -57,19 +48,13 @@ export async function blobToSelfieDataUrl(source: Blob): Promise<string> {
   }
 }
 
-/**
- * Converts a canvas to a selfie data URL.
- * Use this when you already have a canvas (e.g., from a webcam stream).
- */
 export function canvasToSelfieDataUrl(canvas: HTMLCanvasElement): string {
   return processToCroppedJpeg(canvas.width, canvas.height, (ctx, size) => {
     ctx.drawImage(canvas, 0, 0, size, size);
   });
 }
 
-/**
- * Core processing: center-crop to square, scale down, compress.
- */
+// Centre crop to a square, scale down, then drop the quality until it fits
 function processToCroppedJpeg(
   srcWidth: number,
   srcHeight: number,
@@ -82,7 +67,6 @@ function processToCroppedJpeg(
     throw new Error("Failed to get canvas 2D context");
   }
 
-  // Determine square crop size (use smaller dimension)
   const cropSize = Math.min(srcWidth, srcHeight);
   const scale = Math.min(1, SELFIE_MAX_DIM / cropSize);
   const finalSize = Math.round(cropSize * scale);
@@ -90,7 +74,6 @@ function processToCroppedJpeg(
   canvas.width = finalSize;
   canvas.height = finalSize;
 
-  // Center crop: translate to center of source
   const offsetX = (srcWidth - cropSize) / 2;
   const offsetY = (srcHeight - cropSize) / 2;
 
@@ -100,7 +83,6 @@ function processToCroppedJpeg(
   drawSource(ctx, cropSize);
   ctx.restore();
 
-  // Compress with quality stepping
   const qualities = [0.8, 0.7, 0.6, 0.5, 0.35];
   let bestResult = "";
 

@@ -12,14 +12,14 @@ interface SelfieCaptureProps {
 export default function SelfieCapture({ onCapture, skipLabel = "Continue without photo", onCancel }: SelfieCaptureProps) {
   const [mode, setMode] = useState<"camera" | "upload">("camera");
   const [preview, setPreview] = useState<string | null>(null);
-  /** How the current preview was produced — drives the redo-button labels. */
+  // where the preview came from, for the retake/re-upload labels
   const [source, setSource] = useState<"camera" | "upload" | null>(null);
   const [error, setError] = useState("");
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Camera lifecycle: acquire stream when mode=camera and no preview; cleanup stops tracks
+  // start the camera when there's no preview yet, stop it on cleanup
   useEffect(() => {
     if (mode !== "camera" || preview !== null) return;
 
@@ -65,7 +65,6 @@ export default function SelfieCapture({ onCapture, skipLabel = "Continue without
     const video = videoRef.current;
     const canvas = canvasRef.current;
 
-    // Set canvas to square dimensions (256x256 for preview)
     const size = 256;
     canvas.width = size;
     canvas.height = size;
@@ -73,7 +72,6 @@ export default function SelfieCapture({ onCapture, skipLabel = "Continue without
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Calculate crop to center square
     const videoAspect = video.videoWidth / video.videoHeight;
     let sx = 0;
     let sy = 0;
@@ -243,7 +241,7 @@ export default function SelfieCapture({ onCapture, skipLabel = "Continue without
     );
   }
 
-  // Upload mode or camera error fallback
+  // upload mode, or the camera didn't work
   return (
     <div className="space-y-4">
       {error && (

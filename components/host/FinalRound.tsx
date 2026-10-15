@@ -12,7 +12,6 @@ interface FinalRoundProps {
 }
 
 export default function FinalRound({ game, players }: FinalRoundProps) {
-  // Shared derivation
   const final = game.config.final;
   const qIndex = Math.min(game.finalQuestionIndex, final.questions.length - 1);
   const fq = final.questions[qIndex];
@@ -21,15 +20,13 @@ export default function FinalRound({ game, players }: FinalRoundProps) {
     ? `Question ${qIndex + 1} of ${final.questions.length}`
     : null;
 
-  // Reveal-phase derivations — computed unconditionally because the linger
-  // hooks below must run on every render (Rules of Hooks).
+  // worked out up front because the hooks below can't be conditional
   const participants = players.filter((p) => p.finalWager !== null);
   const stakeOf = (p: Player) => finalStake(p.finalWager ?? 0, multiplier);
   const preScore = (p: Player) =>
     p.score -
     (p.finalCorrect === null ? 0 : p.finalCorrect ? stakeOf(p) : -stakeOf(p));
-  // Stable queue ordering (matches admin UI): score BEFORE this question's
-  // judging, so the order doesn't reshuffle as marks land.
+  // order by score before this question so it doesn't reshuffle while judging
   const queue = [...participants].sort(
     (a, b) => preScore(a) - preScore(b) || a.id.localeCompare(b.id)
   );
@@ -38,8 +35,7 @@ export default function FinalRound({ game, players }: FinalRoundProps) {
       ? queue.find((p) => p.finalCorrect === null)?.id ?? null
       : null;
 
-  // Drama linger: when the spotlighted player gets judged, hold them (with the
-  // stamp) for 2.5s before advancing. Display-only local state.
+  // keep the judged player on screen for 2.5s before moving on
   const [linger, setLinger] = useState<string | null>(null);
   const prevSpotlightRef = useRef<string | null>(null);
   const playersRef = useRef(players);
@@ -63,7 +59,6 @@ export default function FinalRound({ game, players }: FinalRoundProps) {
     }
   }, [game.status, currentSpotlightId]);
 
-  // FINAL WAGER VIEW
   if (game.status === "final_wager") {
     return (
       <div className="h-full flex flex-col items-center justify-center px-12 py-8">
@@ -114,14 +109,13 @@ export default function FinalRound({ game, players }: FinalRoundProps) {
           </div>
         ) : (
           <p className="text-white/70 text-2xl text-center">
-            Waiting for players…
+            Waiting for players...
           </p>
         )}
       </div>
     );
   }
 
-  // FINAL ANSWER VIEW
   if (game.status === "final_answer") {
     return (
       <div className="h-full flex flex-col items-center justify-center px-12 py-8 relative">
@@ -176,13 +170,11 @@ export default function FinalRound({ game, players }: FinalRoundProps) {
     );
   }
 
-  // FINAL REVEAL VIEW
   if (game.status === "final_reveal") {
     const currentSpotlight = currentSpotlightId
       ? queue.find((p) => p.id === currentSpotlightId)
       : undefined;
-    // Only linger a player who is actually judged for THIS question (guards
-    // against stale linger state across question transitions).
+    // ignore linger state left over from the previous question
     const lingerPlayer = linger
       ? players.find((p) => p.id === linger && p.finalCorrect !== null)
       : undefined;
@@ -190,7 +182,7 @@ export default function FinalRound({ game, players }: FinalRoundProps) {
 
     const judgedPlayers = participants.filter((p) => p.finalCorrect !== null);
 
-    // All judged and no linger: show standings
+    // everyone's been judged, show standings
     if (!displayedPlayer && participants.length > 0) {
       const standings = [...participants].sort((a, b) => b.score - a.score);
 
@@ -223,24 +215,22 @@ export default function FinalRound({ game, players }: FinalRoundProps) {
           </div>
 
           <p className="text-white/60 text-lg italic">
-            Waiting for the host…
+            Waiting for the host...
           </p>
         </div>
       );
     }
 
-    // No participants: fallback
     if (participants.length === 0) {
       return (
         <div className="h-full flex flex-col items-center justify-center px-12 py-8">
           <p className="text-white/70 text-2xl text-center">
-            No wagers came in — waiting for the host…
+            No wagers came in, waiting for the host...
           </p>
         </div>
       );
     }
 
-    // Spotlight active or lingering
     if (displayedPlayer) {
       const isJudged = displayedPlayer.finalCorrect !== null;
       const answerText = displayedPlayer.finalAnswer || "(no answer)";
@@ -249,7 +239,6 @@ export default function FinalRound({ game, players }: FinalRoundProps) {
 
       return (
         <div className="h-full flex flex-col items-center justify-center px-12 py-8">
-          {/* Spotlight player */}
           <div className="card-gold p-6 animate-pop-in mb-8">
             <div className="flex flex-col items-center">
               <PlayerAvatar player={displayedPlayer} size="xl" />
@@ -259,7 +248,6 @@ export default function FinalRound({ game, players }: FinalRoundProps) {
             </div>
           </div>
 
-          {/* Their answer */}
           <div className="bg-white rounded-xl p-8 max-w-3xl w-full mb-6">
             <p className="text-jeopardy-ink text-lg mb-3 uppercase tracking-wide">
               They wrote:
@@ -269,7 +257,6 @@ export default function FinalRound({ game, players }: FinalRoundProps) {
             </p>
           </div>
 
-          {/* Their wager */}
           <div className="mb-6">
             <p className="font-display text-money text-3xl text-center">
               Wagered {money(wagerAmount)}
@@ -281,7 +268,6 @@ export default function FinalRound({ game, players }: FinalRoundProps) {
             )}
           </div>
 
-          {/* Result stamp */}
           {isJudged && (
             <div className="mb-8 animate-fade-in">
               {displayedPlayer.finalCorrect ? (
@@ -301,7 +287,6 @@ export default function FinalRound({ game, players }: FinalRoundProps) {
             </div>
           )}
 
-          {/* Already-judged players strip */}
           {judgedPlayers.length > 0 && (
             <div className="flex flex-wrap justify-center gap-3 mt-auto max-w-6xl">
               {judgedPlayers

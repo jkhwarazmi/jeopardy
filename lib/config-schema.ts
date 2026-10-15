@@ -1,8 +1,3 @@
-/**
- * Zod schema for game config validation.
- * Exports parseGameConfig (throws) and safeParseGameConfig (returns result).
- */
-
 import { z } from "zod";
 import type { GameConfig } from "@/lib/types";
 
@@ -31,7 +26,6 @@ const boardConfigSchema = z
   })
   .refine(
     (board) => {
-      // Every category must have cells.length === pointValues.length
       return board.categories.every(
         (cat) => cat.cells.length === board.pointValues.length
       );
@@ -48,11 +42,7 @@ const finalQuestionSchema = z.object({
   answer: z.string().min(1, "Final answer cannot be empty"),
 });
 
-/**
- * Final round: multiple questions with rising multipliers. Accepts the legacy
- * single-question shape ({category, question, answer}) and upgrades it to a
- * one-question round with multiplier ×1.
- */
+// Also accepts the old single-question format ({ category, question, answer })
 const finalConfigSchema = z.preprocess(
   (val) => {
     if (
@@ -71,8 +61,7 @@ const finalConfigSchema = z.preprocess(
         .array(finalQuestionSchema)
         .min(1, "At least one final question required")
         .max(5, "At most 5 final questions allowed"),
-      // Fractional multipliers (e.g. 1.5) are allowed; stakes are rounded to
-      // whole pounds at the point of use (see finalStake in lib/format.ts).
+      // can be fractional, see finalStake()
       multipliers: z
         .array(z.number().positive("Multipliers must be positive"))
         .optional(),
@@ -88,7 +77,6 @@ const finalConfigSchema = z.preprocess(
     )
     .transform((f) => ({
       questions: f.questions,
-      // Default multipliers: 1, 2, 3, …
       multipliers: f.multipliers ?? f.questions.map((_, i) => i + 1),
       wagerFloor: f.wagerFloor,
     }))
@@ -102,8 +90,7 @@ const timersConfigSchema = z
       .positive("answerSeconds must be positive")
       .max(300, "answerSeconds must be ≤300")
       .default(8),
-    // null/omitted = untimed — no countdown or auto-reveal; the admin ends
-    // the question manually (Reveal Answer / Skip).
+    // null = no time limit, the admin ends the question
     buzzWindowSeconds: z
       .number()
       .int()
@@ -111,7 +98,7 @@ const timersConfigSchema = z
       .max(300, "buzzWindowSeconds must be ≤300")
       .nullable()
       .default(null),
-    // null/omitted = untimed — the host ends the answer phase manually.
+    // null = no time limit
     finalAnswerSeconds: z
       .number()
       .int()
@@ -133,16 +120,11 @@ export const gameConfigSchema = z.object({
   timers: timersConfigSchema,
 }) satisfies z.ZodType<GameConfig>;
 
-/**
- * Parse and validate game config (throws ZodError on invalid input).
- */
+/** Throws a ZodError if the config is invalid */
 export function parseGameConfig(input: unknown): GameConfig {
   return gameConfigSchema.parse(input);
 }
 
-/**
- * Parse and validate game config safely. Returns a discriminated union.
- */
 export function safeParseGameConfig(
   input: unknown
 ):
@@ -152,7 +134,6 @@ export function safeParseGameConfig(
   if (result.success) {
     return { success: true, data: result.data };
   } else {
-    // Flatten errors into a readable string
     const formatted = result.error.flatten();
     const fieldErrors = Object.entries(formatted.fieldErrors)
       .map(([key, msgs]) => `${key}: ${(msgs || []).join(", ")}`)

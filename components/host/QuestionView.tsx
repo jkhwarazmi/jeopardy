@@ -23,13 +23,10 @@ export default function QuestionView({ game, players }: QuestionViewProps) {
 
   const buzzedPlayer = players.find((p) => p.id === game.buzzedPlayerId);
 
-  // Buzzers are live the instant the question opens — no anti-jump delay and
-  // no wall-clock math (mirrors Buzzer.tsx; see lib/types.ts note).
   const buzzersLive = game.status === "question_open";
 
   return (
     <div className="relative w-full h-full flex flex-col overflow-hidden">
-      {/* Top bar: category + points */}
       <div className="bg-jeopardy-ink/90 border-b-2 border-jeopardy-gold px-8 py-4 flex items-center justify-between">
         <h2 className="font-display text-white text-2xl md:text-3xl uppercase">
           {category.name}
@@ -39,12 +36,9 @@ export default function QuestionView({ game, players }: QuestionViewProps) {
         </span>
       </div>
 
-      {/* Timer */}
       {game.timerEndsAt && <TimerCorner timerEndsAt={game.timerEndsAt} />}
 
-      {/* Main content */}
       <div className="flex-1 flex items-center justify-center px-8 py-12 relative">
-        {/* Question text */}
         <div
           className={`
             text-center transition-all duration-500 max-w-4xl
@@ -61,7 +55,6 @@ export default function QuestionView({ game, players }: QuestionViewProps) {
             {cell.question}
           </p>
 
-          {/* Buzzers indicator (question_open, no buzz yet) */}
           {game.status === "question_open" && !buzzedPlayer && (
             <div className="mt-8">
               {buzzersLive ? (
@@ -75,7 +68,6 @@ export default function QuestionView({ game, players }: QuestionViewProps) {
           )}
         </div>
 
-        {/* Buzzed player overlay */}
         {buzzedPlayer &&
           (game.status === "question_open" || game.status === "buzzed") && (
             <div className="absolute right-12 top-1/2 -translate-y-1/2 flex flex-col items-center gap-4">
@@ -101,7 +93,6 @@ export default function QuestionView({ game, players }: QuestionViewProps) {
           )}
       </div>
 
-      {/* Answer reveal */}
       {game.status === "answer_reveal" && (
         <div className="absolute inset-0 flex items-center justify-center backdrop-blur-sm animate-fade-in">
           <div className="text-center space-y-6 px-8">

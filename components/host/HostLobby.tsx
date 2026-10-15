@@ -33,7 +33,6 @@ export default function HostLobby({ game, players, joinUrl }: HostLobbyProps) {
   return (
     <div className="flex-1 flex flex-col p-8 overflow-y-auto">
       <div className="max-w-7xl mx-auto w-full space-y-8">
-        {/* Title and join code */}
         <div className="text-center space-y-4">
           <h1 className="font-display text-money text-[clamp(3rem,6vw,5rem)]">
             {game.config.title}
@@ -46,9 +45,7 @@ export default function HostLobby({ game, players, joinUrl }: HostLobbyProps) {
           </div>
         </div>
 
-        {/* QR Code and Rules */}
         <div className="grid md:grid-cols-2 gap-8 items-start">
-          {/* QR Code */}
           <div className="bg-white rounded-2xl p-6 text-center shadow-xl">
             <p className="text-jeopardy-ink font-semibold mb-4 text-xl">
               Scan to Join
@@ -64,7 +61,6 @@ export default function HostLobby({ game, players, joinUrl }: HostLobbyProps) {
             )}
           </div>
 
-          {/* How to Play */}
           <div className="card p-6">
             <h2 className="font-display text-jeopardy-gold text-2xl mb-4">
               How to Play
@@ -98,7 +94,6 @@ export default function HostLobby({ game, players, joinUrl }: HostLobbyProps) {
           </div>
         </div>
 
-        {/* Player Grid */}
         <div>
           <h2 className="font-display text-jeopardy-gold text-3xl mb-6 text-center">
             Players ({players.length})
