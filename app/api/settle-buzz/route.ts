@@ -1,19 +1,18 @@
 /**
  * POST /api/settle-buzz
  *
-  * The host calls this ~300ms after someone buzzes. Of all the buzzes within
-  * 150ms of the first one, the player with the lowest score gets it (earliest
-  * wins if scores are equal). Then it starts the answer timer.
-  *
-  * There's no auth because the result only depends on what's already in
-  * Firestore and it only runs once per cell.
+ * The host calls this ~300ms after someone buzzes. Of all the buzzes within
+ * 150ms of the first one, the player with the lowest score gets it (earliest
+ * wins if scores are equal). Then it starts the answer timer.
+ *
+ * There's no auth because the result only depends on what's already in
+ * Firestore and it only runs once per cell.
  */
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminDb, Timestamp } from "@/lib/firebase-admin";
 import {
   BUZZ_SETTLE_MS,
   cellKey as makeCellKey,
-  normalizeGameDoc,
   type GameDoc,
   type PlayerDoc,
   type SettleBuzzRequest,
@@ -49,7 +48,7 @@ export async function POST(
     const result = await db.runTransaction(async (tx) => {
       const gameSnap = await tx.get(gameRef);
       if (!gameSnap.exists) return { settled: false, winnerId: null };
-      const game = normalizeGameDoc(gameSnap.data() as GameDoc);
+      const game = gameSnap.data() as GameDoc;
 
       // someone has buzzed but it hasn't been settled yet
       if (

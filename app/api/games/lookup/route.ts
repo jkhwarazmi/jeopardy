@@ -32,24 +32,9 @@ export async function GET(
     const normalizedCode = normalizeJoinCode(code);
 
     const db = getAdminDb();
-    const gamesRef = db.collection("games");
 
-    // newer games use the join code as the doc id
-    const direct = await gamesRef.doc(normalizedCode).get();
-    if (direct.exists) {
-      return NextResponse.json({
-        ok: true,
-        gameId: direct.id,
-      });
-    }
-
-    // older games have an auto id with joinCode stored as a field
-    const snapshot = await gamesRef
-      .where("joinCode", "==", normalizedCode)
-      .limit(1)
-      .get();
-
-    if (snapshot.empty) {
+    const snap = await db.collection("games").doc(normalizedCode).get();
+    if (!snap.exists) {
       return NextResponse.json(
         {
           ok: false,
@@ -61,7 +46,7 @@ export async function GET(
 
     return NextResponse.json({
       ok: true,
-      gameId: snapshot.docs[0].id,
+      gameId: snap.id,
     });
   } catch (error) {
     console.error("Error looking up game:", error);

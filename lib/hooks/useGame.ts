@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db, ensureAnonymousAuth } from "@/lib/firebase";
-import { normalizeGameDoc, type Game, type GameDoc } from "@/lib/types";
+import type { Game, GameDoc } from "@/lib/types";
 
 export function useGame(gameId: string): {
   game: Game | null;
@@ -38,7 +38,7 @@ export function useGame(gameId: string): {
               return;
             }
 
-            const data = normalizeGameDoc(snapshot.data() as GameDoc);
+            const data = snapshot.data() as GameDoc;
             const gameWithId: Game = {
               ...data,
               id: snapshot.id,

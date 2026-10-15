@@ -1,8 +1,8 @@
 /**
  * POST /api/admin/[gameId]
  *
-  * All game state changes apart from buzzing go through here. Checks the admin
-  * password, then applies the action in a transaction.
+ * All game state changes apart from buzzing go through here. Checks the admin
+ * password, then applies the action in a transaction.
  */
 import { NextRequest, NextResponse } from "next/server";
 import type {
@@ -15,7 +15,6 @@ import { verifyPassword } from "@/lib/password";
 import { finalStake } from "@/lib/format";
 import {
   cellKey,
-  normalizeGameDoc,
   type AdminAction,
   type AdminRequest,
   type AdminResponse,
@@ -122,7 +121,7 @@ async function applyAction(
 ): Promise<void> {
   const gameSnap = await tx.get(gameRef);
   if (!gameSnap.exists) fail("Game not found");
-  const game = normalizeGameDoc(gameSnap.data() as GameDoc);
+  const game = gameSnap.data() as GameDoc;
 
   switch (action.type) {
     case "verify": {
@@ -472,7 +471,7 @@ export async function POST(
         { status: 404 }
       );
     }
-    const game = normalizeGameDoc(gameSnap.data() as GameDoc);
+    const game = gameSnap.data() as GameDoc;
     if (!verifyPassword(body.password, game.adminPassHash)) {
       return NextResponse.json(
         { ok: false, error: "Wrong password" },

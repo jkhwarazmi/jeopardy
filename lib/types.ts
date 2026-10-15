@@ -47,37 +47,6 @@ export function maxFinalWager(config: FinalConfig, score: number): number {
   return Math.max(config.wagerFloor, score);
 }
 
-/** Old single-question `config.final` shape */
-export type LegacyFinalConfig = FinalQuestionConfig;
-
-/**
- * Fills in fields that older game docs don't have (single-question final, no
- * finalQuestionIndex or buzzLiveAt). Anything read from Firestore should go
- * through this.
- */
-export function normalizeGameDoc<T extends GameDoc>(docData: T): T {
-  const rawFinal = docData.config.final as FinalConfig | LegacyFinalConfig;
-  const final: FinalConfig =
-    "questions" in rawFinal && Array.isArray(rawFinal.questions)
-      ? {
-          questions: rawFinal.questions,
-          multipliers:
-            rawFinal.multipliers ?? rawFinal.questions.map((_, i) => i + 1),
-          wagerFloor: rawFinal.wagerFloor ?? 1000,
-        }
-      : {
-          questions: [rawFinal as LegacyFinalConfig],
-          multipliers: [1],
-          wagerFloor: 1000,
-        };
-  return {
-    ...docData,
-    finalQuestionIndex: docData.finalQuestionIndex ?? 0,
-    buzzLiveAt: docData.buzzLiveAt ?? null,
-    config: { ...docData.config, final },
-  };
-}
-
 export interface TimersConfig {
   /** Seconds a buzzed player has to answer (default 8) */
   answerSeconds: number;
