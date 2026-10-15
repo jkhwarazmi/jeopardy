@@ -19,6 +19,7 @@ import {
   type AdminRequest,
   type AdminResponse,
   type GameDoc,
+  type GameSecretDoc,
   type PlayerDoc,
 } from "@/lib/types";
 
@@ -464,15 +465,15 @@ export async function POST(
     const gameRef = db.collection("games").doc(gameId);
     const playersRef = gameRef.collection("players");
 
-    const gameSnap = await gameRef.get();
-    if (!gameSnap.exists) {
+    const secretSnap = await db.collection("gameSecrets").doc(gameId).get();
+    if (!secretSnap.exists) {
       return NextResponse.json(
         { ok: false, error: "Game not found" },
         { status: 404 }
       );
     }
-    const game = gameSnap.data() as GameDoc;
-    if (!verifyPassword(body.password, game.adminPassHash)) {
+    const secret = secretSnap.data() as GameSecretDoc;
+    if (!verifyPassword(body.password, secret.adminPassHash)) {
       return NextResponse.json(
         { ok: false, error: "Wrong password" },
         { status: 401 }

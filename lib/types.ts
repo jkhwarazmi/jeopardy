@@ -89,8 +89,6 @@ export interface CurrentCell {
 export interface GameDoc {
   /** 6 uppercase chars, unambiguous alphabet */
   joinCode: string;
-  /** scrypt, "salt:hash" in hex */
-  adminPassHash: string;
   status: GameStatus;
   config: GameConfig;
   currentBoard: number;
@@ -118,6 +116,13 @@ export interface GameDoc {
   /** Which final question is in play (0-based; meaningful during final_*) */
   finalQuestionIndex: number;
   createdAt: Timestamp;
+}
+
+/** gameSecrets/{gameId}, server only. Kept off the game doc because
+ *  players can read that. */
+export interface GameSecretDoc {
+  /** scrypt, "salt:hash" in hex */
+  adminPassHash: string;
 }
 
 /** games/{gameId}/players/{playerId}, id is the anonymous auth uid */

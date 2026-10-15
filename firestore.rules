@@ -116,5 +116,10 @@ service cloud.firestore {
         allow update, delete: if false; // cleared server-side on question close
       }
     }
+
+    // admin password hashes, only the API routes touch these
+    match /gameSecrets/{gameId} {
+      allow read, write: if false;
+    }
   }
 }

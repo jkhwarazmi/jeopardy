@@ -7,6 +7,7 @@ import type {
   CreateGameRequest,
   CreateGameResponse,
   GameDoc,
+  GameSecretDoc,
 } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -77,7 +78,6 @@ export async function POST(
       createdAt: ReturnType<typeof FieldValue.serverTimestamp>;
     } = {
       joinCode,
-      adminPassHash: hashPassword(body.password),
       status: "lobby",
       config,
       currentBoard: 0,
@@ -94,8 +94,15 @@ export async function POST(
       createdAt: FieldValue.serverTimestamp(),
     };
 
+    const secret: GameSecretDoc = {
+      adminPassHash: hashPassword(body.password),
+    };
+
     // create() fails if the id was taken since the check above
-    await gamesRef.doc(joinCode).create(gameDoc);
+    const batch = db.batch();
+    batch.create(gamesRef.doc(joinCode), gameDoc);
+    batch.create(db.collection("gameSecrets").doc(joinCode), secret);
+    await batch.commit();
 
     return NextResponse.json({
       ok: true,
