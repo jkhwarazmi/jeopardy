@@ -1,16 +1,15 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import type { Game, Player } from "@/lib/types";
+import type { Player } from "@/lib/types";
 import PlayerAvatar from "@/components/shared/PlayerAvatar";
 import { money } from "@/lib/format";
 
 interface WinnerCelebrationProps {
-  game: Game;
   players: Player[];
 }
 
-export default function WinnerCelebration({ game, players }: WinnerCelebrationProps) {
+export default function WinnerCelebration({ players }: WinnerCelebrationProps) {
   const confettiIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -61,7 +60,7 @@ export default function WinnerCelebration({ game, players }: WinnerCelebrationPr
 
           count++;
         }, 1500);
-      } catch (err) {
+      } catch {
         // confetti is just for show
       }
     };

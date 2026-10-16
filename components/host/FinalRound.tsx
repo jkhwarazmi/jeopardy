@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import type { Game, Player } from "@/lib/types";
 import PlayerAvatar from "@/components/shared/PlayerAvatar";
 import TimerCorner from "@/components/host/TimerCorner";
@@ -37,27 +37,23 @@ export default function FinalRound({ game, players }: FinalRoundProps) {
 
   // keep the judged player on screen for 2.5s before moving on
   const [linger, setLinger] = useState<string | null>(null);
-  const prevSpotlightRef = useRef<string | null>(null);
-  const playersRef = useRef(players);
-  playersRef.current = players;
+  const [prevSpotlightId, setPrevSpotlightId] = useState(currentSpotlightId);
+  if (prevSpotlightId !== currentSpotlightId) {
+    setPrevSpotlightId(currentSpotlightId);
+    const prevPlayer = players.find((p) => p.id === prevSpotlightId);
+    if (prevPlayer && prevPlayer.finalCorrect !== null) {
+      setLinger(prevSpotlightId);
+    }
+  }
+  if (game.status !== "final_reveal" && linger !== null) {
+    setLinger(null);
+  }
 
   useEffect(() => {
-    if (game.status !== "final_reveal") {
-      prevSpotlightRef.current = null;
-      setLinger(null);
-      return;
-    }
-    const prevId = prevSpotlightRef.current;
-    prevSpotlightRef.current = currentSpotlightId;
-    if (prevId && prevId !== currentSpotlightId) {
-      const prevPlayer = playersRef.current.find((p) => p.id === prevId);
-      if (prevPlayer && prevPlayer.finalCorrect !== null) {
-        setLinger(prevId);
-        const timeout = setTimeout(() => setLinger(null), 2500);
-        return () => clearTimeout(timeout);
-      }
-    }
-  }, [game.status, currentSpotlightId]);
+    if (linger === null) return;
+    const timeout = setTimeout(() => setLinger(null), 2500);
+    return () => clearTimeout(timeout);
+  }, [linger]);
 
   if (game.status === "final_wager") {
     return (

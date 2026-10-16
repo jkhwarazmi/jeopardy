@@ -213,7 +213,7 @@ export default function FinalControls({
                   </div>
                   {answerPreview && (
                     <p className="text-white/70 text-sm pl-6 italic">
-                      "{answerPreview}"
+                      &ldquo;{answerPreview}&rdquo;
                     </p>
                   )}
                 </div>

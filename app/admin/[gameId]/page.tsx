@@ -28,9 +28,11 @@ export default function AdminPage({
   const [dangerExpanded, setDangerExpanded] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
 
+  // read after mount, localStorage isn't there during SSR
   useEffect(() => {
     const stored = localStorage.getItem(ADMIN_PW_KEY(gameId));
     if (stored) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPassword(stored);
     }
   }, [gameId]);

@@ -50,9 +50,13 @@ export default function Buzzer({
   // Reset on a new question or status change. The status matters too: when a
   // wrong answer reopens buzzing, players who lost the first race need to be
   // able to buzz again.
+  const [phase, setPhase] = useState({ cell, status: game.status });
+  if (phase.cell !== cell || phase.status !== game.status) {
+    setPhase({ cell, status: game.status });
+    setPendingBuzz(false);
+  }
   useEffect(() => {
     buzzedRef.current = false;
-    setPendingBuzz(false);
   }, [cell, game.status]);
 
   const handleBuzz = () => {
@@ -142,7 +146,7 @@ export default function Buzzer({
         <div className="w-[70vw] h-[70vw] max-w-[340px] max-h-[340px] rounded-full bg-gradient-to-br from-jeopardy-gold to-jeopardy-gold-dark border-4 border-jeopardy-gold flex items-center justify-center shadow-lg animate-pop-in">
           <div className="text-center px-8">
             <p className="font-display text-jeopardy-dark text-4xl uppercase mb-2">
-              YOU'RE IN!
+              YOU&apos;RE IN!
             </p>
             <p className="text-jeopardy-dark/90 text-lg font-semibold">ANSWER OUT LOUD!</p>
           </div>

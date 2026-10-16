@@ -2,7 +2,6 @@
 
 import type { Game, Player } from "@/lib/types";
 import TimerCorner from "./TimerCorner";
-import PlayerAvatar from "@/components/shared/PlayerAvatar";
 import { money } from "@/lib/format";
 
 interface QuestionViewProps {

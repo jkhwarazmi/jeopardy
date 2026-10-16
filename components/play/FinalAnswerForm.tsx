@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { Game, Player } from "@/lib/types";
 import { submitFinalAnswer } from "@/lib/final-actions";
 import { useCountdown } from "@/lib/hooks/useCountdown";
-import { money } from "@/lib/format";
 
 interface FinalAnswerFormProps {
   game: Game;
@@ -32,11 +31,11 @@ export default function FinalAnswerForm({
   const { secondsLeft, expired } = useCountdown(game.timerEndsAt);
 
   // keep the input in sync with the saved answer
-  useEffect(() => {
-    if (self.finalAnswer !== null) {
-      setAnswerInput(self.finalAnswer);
-    }
-  }, [self.finalAnswer]);
+  const [savedAnswer, setSavedAnswer] = useState(self.finalAnswer);
+  if (self.finalAnswer !== savedAnswer) {
+    setSavedAnswer(self.finalAnswer);
+    if (self.finalAnswer !== null) setAnswerInput(self.finalAnswer);
+  }
 
   if (self.finalWager === null) {
     return (

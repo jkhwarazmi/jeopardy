@@ -58,7 +58,9 @@ export default function HostPage({
     lockedOutLength: 0,
   });
 
+  // these read browser-only APIs, so they wait until after mount
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setOrigin(window.location.origin);
   }, []);
 
@@ -67,6 +69,7 @@ export default function HostPage({
     let cancelled = false;
     const stored = localStorage.getItem(ADMIN_PW_KEY(gameId));
     if (!stored) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPassword("");
       return;
     }
@@ -375,7 +378,7 @@ export default function HostPage({
 
       {game.status === "finished" && (
         <div className="flex-1 overflow-y-auto">
-          <WinnerCelebration game={game} players={players} />
+          <WinnerCelebration players={players} />
         </div>
       )}
 
