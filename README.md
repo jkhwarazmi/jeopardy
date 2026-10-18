@@ -1,58 +1,78 @@
-# Jeopardy Icebreaker
+# Jeopardy
 
-A real-time Jeopardy-style party game built for business events and icebreakers. The game board runs on a laptop (shared via Microsoft Teams screen share), the emcee controls everything from their phone, and players join on their phones with a selfie to buzz in real time. Built with Next.js (App Router) + TypeScript + Tailwind, with realtime gameplay powered by Firebase Firestore snapshots. No websocket server needed—fully deployable on Vercel.
+A Jeopardy-style quiz game you can run over a video call. The board goes on a laptop that you screen share, you run the game from your phone, and everyone else joins on their phones and buzzes in.
 
-## The Three Screens
+**Live:** https://jeopardy-topaz-eight.vercel.app/
 
-| Route | Device | Purpose |
-|-------|--------|---------|
-| `/host/[gameId]` | Laptop (screen-shared) | Board display, questions, timers, sounds, winner celebration |
-| `/admin/[gameId]` | Emcee's phone | Password-protected judge controls (open lobby, mark correct/wrong, adjust scores, kick players, Final Jeopardy, end game) |
-| `/play/[gameId]` | Players' phones | Join with name + selfie, giant buzzer, wagers, final answers |
+## Screenshots
 
-Additional routes: `/` (landing page), `/new` (create a game), `/join` (enter a join code to play).
+![Game board](docs/screenshots/game_screen.png)
 
-## Run Locally
+<p>
+  <img src="docs/screenshots/question.png" alt="Question" width="49%">
+  <img src="docs/screenshots/winner_screen.png" alt="Winner screen" width="49%">
+</p>
+
+## How it works
+
+There are three screens:
+
+- `/host/[code]`: This is the board which shows the questions, timers, and scores. Open it on the screen you're sharing.
+- `/admin/[code]`: Mark answers right or wrong, adjust scores, kick players, and run the final round from the admin panel. Good to run this on your phone.
+- `/play/[code]`: Players join this link with a name and an optional selfie, then buzz in.
+
+Both host screens need the admin password you set when creating the game.
+
+Whoever gets a question right picks next. A wrong answer loses you the points and lets everyone else buzz again. If two people buzz within 150ms of each other, the player with the lower score gets it.
+
+The final round is a few questions with rising stakes (e.g. x1, x1.5, x2). Everyone wagers before each question, and everyone can wager at least £1,000 so people at the bottom still have a shot.
+
+## Running it locally
+
+You'll need Node.js and a Firebase project with:
+
+- a Firestore database, with the rules from `firestore.rules` deployed
+- Anonymous sign-in enabled under Authentication
+- a web app registered, for the client config
+- a service account key, for the API routes
+
+Copy `.env.example` to `.env.local` and paste in your values:
+
+| Variable | What it is |
+|----------|------------|
+| `NEXT_PUBLIC_FIREBASE_API_KEY` | From the web app config |
+| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | From the web app config |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | From the web app config |
+| `NEXT_PUBLIC_FIREBASE_APP_ID` | From the web app config |
+| `FIREBASE_SERVICE_ACCOUNT_KEY` | The service account JSON, on one line |
+| `CRON_SECRET` | Any random string. Protects the daily cleanup job in `vercel.json` that deletes old games |
+
+Then:
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+To try it with real phones, open the dev server using your computer's local IP rather than localhost.
 
-## Game Content (JSON Config)
+## Making a game
 
-Games are defined by a JSON file that you upload or paste when creating a new game on the `/new` page. The app includes a built-in sample game that loads by default.
-
-### Config Schema
+Go to `/new`, set a password, and paste or upload a game file. "Load Sample Game" fills in `sample-game.json` if you want something to start from.
 
 ```json
 {
-  "title": "Office Icebreaker Jeopardy",
+  "title": "Friday Quiz",
   "boards": [
     {
-      "pointValues": [100, 200, 300, 400],
+      "pointValues": [100, 200, 300],
       "categories": [
         {
-          "name": "Corporate Jargon Decoded",
+          "name": "Missing Link",
           "cells": [
-            {
-              "question": "Finding the intersection of ideas to achieve mutual gains",
-              "answer": "Synergy"
-            },
-            {
-              "question": "Let's reschedule a discussion for a later time to revisit this topic",
-              "answer": "Circle back"
-            },
-            {
-              "question": "Attempt an ambitious project with unclear outcomes or massive scope",
-              "answer": "Boil the ocean"
-            },
-            {
-              "question": "Improve a key metric or objective by taking decisive action",
-              "answer": "Move the needle"
-            }
+            { "question": "Black, Key, White", "answer": "Board" },
+            { "question": "Gown, Stand, Club", "answer": "Night" },
+            { "question": "Dial, Flower, Room", "answer": "Sun" }
           ]
         }
       ]
@@ -60,128 +80,37 @@ Games are defined by a JSON file that you upload or paste when creating a new ga
   ],
   "final": {
     "questions": [
-      {
-        "category": "Company History",
-        "question": "In what year did the founder of Microsoft drop out of Harvard to pursue his business venture?",
-        "answer": "1975"
-      },
-      {
-        "category": "Office Firsts",
-        "question": "This everyday office fixture was invented in 1849...",
-        "answer": "The paper clip"
-      }
+      { "category": "Greek Myth", "question": "...", "answer": "Poseidon" },
+      { "category": "Formula One", "question": "...", "answer": "Schumacher or Hamilton" }
     ],
     "multipliers": [1, 2],
     "wagerFloor": 1000
   },
   "timers": {
-    "answerSeconds": 8,
+    "answerSeconds": 10,
     "buzzWindowSeconds": null,
-    "finalAnswerSeconds": null
+    "finalAnswerSeconds": 30
   }
 }
 ```
 
-### Required Fields
+- `boards`: one or more boards played in order. Every category needs one cell per point value. Up to 8 categories per board.
+- `final.questions`: 1 to 5 final questions.
+- `final.multipliers`: optional, one per final question. Defaults to 1, 2, 3... and can be fractional, e.g. 1.5.
+- `final.wagerFloor`: optional, defaults to 1000. Everyone can wager at least this much.
+- `timers.answerSeconds`: how long someone has to answer after buzzing. Defaults to 8.
+- `timers.buzzWindowSeconds`: how long people have to buzz before the answer is revealed. `null` (the default) means no limit, and you end the question from the admin phone.
+- `timers.finalAnswerSeconds`: time to type each final answer. `null` (the default) means no limit.
 
-- **`title`** (string): Name of the game.
-- **`boards[]`** (array): Each board has:
-  - **`pointValues[]`** (array of numbers): The point values for each column (e.g., [100, 200, 300, 400]).
-  - **`categories[]`** (array): Each category has:
-    - **`name`** (string): Category title.
-    - **`cells[]`** (array): Must have the same length as `pointValues`. Each cell has:
-      - **`question`** (string): The clue.
-      - **`answer`** (string): The correct response.
-- **`final`** (object): Final round — one or more questions with rising stakes:
-  - **`questions[]`** (array, 1–5): Each has `category`, `question`, `answer`. Played in order.
-  - **`multipliers[]`** (array of positive numbers, optional): Stake multiplier per question — a judged answer moves the player's score by ±(wager × multiplier), rounded to the nearest whole pound. Fractional values like 1.5 are fine. Must match `questions` length. Defaults to 1, 2, 3, …
-  - **`wagerFloor`** (number, optional, default 1000): Every player may wager at least this much regardless of score, so trailing players stay in the game. Leaders may wager up to their score.
-  - The legacy single-question shape (`{ "category", "question", "answer" }`) is still accepted and upgraded to a one-question round with multiplier ×1.
-- **`timers`** (object, all optional with defaults below):
-  - **`answerSeconds`** (number): Time to answer after buzzing (default: 8).
-  - **`buzzWindowSeconds`** (number or null): Time window for players to buzz, including reading the clue aloud. `null` or omitted = no time limit — the question stays open until someone buzzes or the host taps "Reveal Answer" / "Skip" on the admin phone (default: null).
-  - **`finalAnswerSeconds`** (number or null): Time to type each final answer. `null` or omitted = no time limit — players can answer until the host taps "Start Reveal" on the admin phone (default: null).
+## Running a game
 
-## Sounds
+1. Create the game at `/new` and keep the three links it gives you.
+2. Open the host link on your device, enter the password you created, and share that window on the call.
+3. Open the admin link on another device like your phone.
+4. Players scan the QR code on screen, or go to `/join` and type the code.
+5. Once everyone's in, lock the lobby if you want, then hit **Start Game**.
+6. The highlighted player picks a clue. Click it on the board and read it out. Judge whoever buzzes from your phone.
+7. When the board's done, start the final round from the admin phone. For each question: collect wagers, reveal the question, then reveal everyone's answers (lowest score first) and mark them.
+8. Hit **End Game** for the winner screen.
 
-The `public/sounds/` directory ships with 7 silent placeholder MP3 files:
-- `buzz.mp3`
-- `correct.mp3`
-- `wrong.mp3`
-- `timeup.mp3`
-- `reveal.mp3`
-- `final.mp3`
-- `winner.mp3`
-
-Replace these with real royalty-free audio clips (keep the same filenames). Sounds only play on the host screen after clicking "Enable Sound" (see the runbook below). See `public/sounds/README.md` for clip recommendations.
-
-## Day-of-Event Runbook
-
-### Setup (Before the Meeting)
-
-1. Go to `<your-url>/new`, set an admin password, load your game JSON, and click **Create**. Save the three links it provides:
-   - Host link (for the laptop screen share)
-   - Admin link (for your phone)
-   - Player join link (QR code or direct URL)
-
-   All three URLs use the 6-character join code as the slug (e.g. `/host/QX3F2A`), so they're easy to retype from memory. Host and admin surfaces still require the password.
-
-2. Open the **host link** on your laptop and enter the admin password when prompted, then leave it in the lobby screen (do not start the game yet).
-
-3. Start the Teams meeting and **share the browser window** (select "window" to share, include computer sound if you have real sound files).
-
-4. Click **Enable Sound** (top-right corner of the host screen).
-
-### Playing the Game
-
-5. Open the **admin link** on your phone and enter the admin password.
-
-6. Players scan the QR code displayed on screen (or visit `/join` and type the big join code), enter their name, and take a selfie. They appear in the lobby live as they join.
-
-7. When all players have joined:
-   - On the admin phone, optionally click **Lock Lobby** to prevent late joins.
-   - Click **Start Game** to begin play.
-
-8. **Main round play loop:**
-   - A highlighted player announces a category and dollar amount out loud.
-   - You tap that cell on the **host laptop**.
-   - Read the question aloud to all players.
-   - Players buzz by tapping the big buzzer on their phones.
-   - The first player to buzz gets to answer.
-   - You judge on your **admin phone**: tap **Correct** or **Wrong**.
-     - If correct: the buzzed player gets the points and picks next.
-     - If wrong: that player is locked out; the buzzer reopens for other players. If nobody else buzzes or 10 seconds pass, the answer is revealed.
-
-9. **Final round** (repeats once per final question, with rising stakes):
-   - From the admin phone, tap **Start Final Round** (or **Next Question** after the first).
-   - Every player secretly enters a wager — everyone may wager at least the wager floor ($1000 by default), so nobody is out of it.
-   - Tap **Reveal Question**; players type their response (30 seconds).
-   - Tap **Start Reveal**. The big screen spotlights players automatically, lowest score first; judge each answer **Correct** or **Wrong** on the admin phone (scores move by ±wager × that question's multiplier). Misjudged? Tap the small ↺ flip button on that player's row.
-
-10. After the last final question is judged, tap **End Game**. The winner celebration plays on the big screen.
-
-### Troubleshooting
-
-- **Refreshing is safe:** Refreshing the host or any player's phone is safe. Game state lives in Firestore, so players rejoin automatically on the same device.
-- **Wrong admin password:** The admin phone will re-prompt you to enter the correct password.
-- **Player left and wants to rejoin:** They can reopen their player link (same device) to rejoin seamlessly.
-- **Joining mid-game:** New players can join unless the lobby is locked, though they start with 0 points.
-
-## Tech Notes
-
-- **Realtime:** Gameplay is powered by Firestore `onSnapshot` subscriptions on the game document and the players subcollection. All clients stay in sync automatically.
-- **Timers:** Game timers are stored as wall-clock deadlines in Firestore (e.g., `timerEndsAt`). Clients render a countdown but never trust client-side intervals for game logic.
-- **Buzzer logic:** If two or more players buzz within 150 ms of each other, the tie goes to the player with the lower score.
-- **Server verification:** All privileged mutations (marking answers, adjusting scores, ending rounds) go through server API routes that verify the admin password hash using the Firebase Admin SDK. Players can only buzz, join, submit wagers, and submit final answers.
-
-## Technology Stack
-
-- **Frontend:** Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4
-- **Backend:** Firebase Firestore, Firebase Authentication, Firebase Admin SDK
-- **Deployment:** Vercel (recommended)
-- **Real-time subscriptions:** Firestore `onSnapshot` (no websocket server)
-- **Additional libraries:** Zod (validation), qrcode (QR generation), canvas-confetti (winner animation)
-
-## License
-
-This project is for internal use as an icebreaker game for business events.
+Refreshing any screen is fine and players who close the tab can reopen their link on the same phone and they'll be back in.
