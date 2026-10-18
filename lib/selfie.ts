@@ -8,57 +8,40 @@ const MAX_DATA_URL_LENGTH = 53_000;
 
 // createImageBitmap handles EXIF rotation so use it when we can
 export async function blobToSelfieDataUrl(source: Blob): Promise<string> {
-  let bitmap: ImageBitmap | null = null;
-  let imgElement: HTMLImageElement | null = null;
-  let objectUrl: string | null = null;
-
-  try {
-    if (typeof createImageBitmap !== "undefined") {
-      bitmap = await createImageBitmap(source, {
-        imageOrientation: "from-image",
-      } as ImageBitmapOptions);
-      return processToCroppedJpeg(bitmap.width, bitmap.height, (ctx, size) => {
-        ctx.drawImage(bitmap!, 0, 0, size, size);
-      });
-    } else {
-      objectUrl = URL.createObjectURL(source);
-      imgElement = new Image();
-
-      await new Promise<void>((resolve, reject) => {
-        imgElement!.onload = () => resolve();
-        imgElement!.onerror = () => reject(new Error("Failed to load image"));
-        imgElement!.src = objectUrl!;
-      });
-
-      return processToCroppedJpeg(
-        imgElement.width,
-        imgElement.height,
-        (ctx, size) => {
-          ctx.drawImage(imgElement!, 0, 0, size, size);
-        }
-      );
-    }
-  } finally {
-    if (bitmap) {
+  if (typeof createImageBitmap !== "undefined") {
+    const bitmap = await createImageBitmap(source, {
+      imageOrientation: "from-image",
+    } as ImageBitmapOptions);
+    try {
+      return processToCroppedJpeg(bitmap, bitmap.width, bitmap.height);
+    } finally {
       bitmap.close();
     }
-    if (objectUrl) {
-      URL.revokeObjectURL(objectUrl);
-    }
+  }
+
+  const objectUrl = URL.createObjectURL(source);
+  try {
+    const img = new Image();
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = () => reject(new Error("Failed to load image"));
+      img.src = objectUrl;
+    });
+    return processToCroppedJpeg(img, img.naturalWidth, img.naturalHeight);
+  } finally {
+    URL.revokeObjectURL(objectUrl);
   }
 }
 
 export function canvasToSelfieDataUrl(canvas: HTMLCanvasElement): string {
-  return processToCroppedJpeg(canvas.width, canvas.height, (ctx, size) => {
-    ctx.drawImage(canvas, 0, 0, size, size);
-  });
+  return processToCroppedJpeg(canvas, canvas.width, canvas.height);
 }
 
 // Centre crop to a square, scale down, then drop the quality until it fits
 function processToCroppedJpeg(
+  source: CanvasImageSource,
   srcWidth: number,
-  srcHeight: number,
-  drawSource: (ctx: CanvasRenderingContext2D, size: number) => void
+  srcHeight: number
 ): string {
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
@@ -68,20 +51,23 @@ function processToCroppedJpeg(
   }
 
   const cropSize = Math.min(srcWidth, srcHeight);
-  const scale = Math.min(1, SELFIE_MAX_DIM / cropSize);
-  const finalSize = Math.round(cropSize * scale);
+  const finalSize = Math.min(SELFIE_MAX_DIM, cropSize);
 
   canvas.width = finalSize;
   canvas.height = finalSize;
 
-  const offsetX = (srcWidth - cropSize) / 2;
-  const offsetY = (srcHeight - cropSize) / 2;
-
-  ctx.save();
-  ctx.scale(scale, scale);
-  ctx.translate(-offsetX, -offsetY);
-  drawSource(ctx, cropSize);
-  ctx.restore();
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(
+    source,
+    (srcWidth - cropSize) / 2,
+    (srcHeight - cropSize) / 2,
+    cropSize,
+    cropSize,
+    0,
+    0,
+    finalSize,
+    finalSize
+  );
 
   const qualities = [0.8, 0.7, 0.6, 0.5, 0.35];
   let bestResult = "";

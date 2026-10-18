@@ -258,7 +258,6 @@ export default function SelfieCapture({ onCapture, skipLabel = "Continue without
           <input
             type="file"
             accept="image/*"
-            capture="user"
             onChange={handleFileUpload}
             className="w-full text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-jeopardy-gold file:text-jeopardy-dark file:font-semibold hover:file:bg-jeopardy-gold-dark file:cursor-pointer file:transition-colors"
           />
